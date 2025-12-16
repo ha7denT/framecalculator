@@ -17,29 +17,63 @@ Establish project structure, core data types, and timecode arithmetic engine.
 
 ### Deliverables
 
-- [ ] Xcode project setup (SwiftUI App, macOS 13.0+ target)
-- [ ] Project folder structure per architecture spec
-- [ ] `FrameRate` enum with all supported rates + custom
-- [ ] `Timecode` struct with:
+- [x] Xcode project setup (SwiftUI App, macOS 13.0+ target)
+- [x] Project folder structure per architecture spec
+- [x] `FrameRate` enum with all supported rates + custom
+- [x] `Timecode` struct with:
   - Frame-based internal storage
   - Arithmetic operators (+, -, multiply by scalar)
   - Conversion to/from frame count
   - String parsing (HH:MM:SS:FF format)
   - String formatting (with drop frame semicolon notation)
   - Drop frame calculation logic
-- [ ] Unit tests for `Timecode` and `FrameRate`
+- [x] Unit tests for `Timecode` and `FrameRate`
 
 ### Acceptance Criteria
 
-- All frame rates calculate correctly (verify against known timecode values)
-- Drop frame skips frames 0,1 at each minute except every 10th minute
-- `Timecode("01:00:00:00", .fps24) + Timecode("00:00:01:00", .fps24)` = `01:00:01:00`
-- Parsing handles both `:` (non-drop) and `;` (drop frame) separators
-- 100% test coverage on Timecode arithmetic
+- [x] All frame rates calculate correctly (verify against known timecode values)
+- [x] Drop frame skips frames 0,1 at each minute except every 10th minute
+- [x] `Timecode("01:00:00:00", .fps24) + Timecode("00:00:01:00", .fps24)` = `01:00:01:00`
+- [x] Parsing handles both `:` (non-drop) and `;` (drop frame) separators
+- [x] 100% test coverage on Timecode arithmetic
 
 ### Notes
 
 This sprint has no UI. Focus entirely on getting the math right — everything else depends on it.
+
+### Implementation Notes (for future reference)
+
+**Project Structure:**
+- Using Swift Package Manager (`Package.swift`) for building and testing
+- App entry point (`@main`) is in `FrameCalculator/App/` but excluded from the library target to avoid duplicate symbol errors during testing
+- UI folders (`Views/`, `ViewModels/`) also excluded from library target for now
+
+**Drop Frame Algorithm:**
+The drop frame implementation uses a "count dropped frames, then add back" approach:
+1. Calculate how many frame numbers have been skipped by the current frame count
+2. Add those back to get a "display frame number"
+3. Convert display frame number to HH:MM:SS:FF using simple NDF math
+
+Key formula for drops within a 10-minute block:
+- First minute (0): no drop
+- Minutes 1-9: each has a drop of 2 frames
+- `framesPerTenMinutes = 1800 * 10 - 2 * 9 = 17982`
+
+**Testing:**
+- 51 tests total (9 for FrameRate, 42 for Timecode)
+- Round-trip tests verify `components → frames → components` consistency
+- Edge cases tested: minute boundaries, 10-minute boundaries, hour mark, negative durations
+
+**Key Files:**
+- `FrameCalculator/Models/FrameRate.swift` — enum with computed properties
+- `FrameCalculator/Models/Timecode.swift` — value type with all arithmetic and parsing
+- `FrameCalculatorTests/TimecodeTests.swift` — comprehensive test coverage
+
+**Build Commands:**
+```bash
+swift build   # Build the library
+swift test    # Run all tests
+```
 
 ---
 
@@ -327,7 +361,7 @@ Features explicitly deferred from 1.0:
 
 | Sprint | Status | Start Date | End Date | Notes |
 |--------|--------|------------|----------|-------|
-| 1 - Foundation | Not Started | | | |
+| 1 - Foundation | ✅ Complete | 2025-12-17 | 2025-12-17 | 51 tests passing, drop frame verified |
 | 2 - Calculator UI | Not Started | | | |
 | 3 - Video Loading | Not Started | | | |
 | 4 - Video Player | Not Started | | | |
@@ -338,4 +372,4 @@ Features explicitly deferred from 1.0:
 
 ---
 
-*Last Updated: December 2025*
+*Last Updated: 2025-12-17*
