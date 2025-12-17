@@ -157,7 +157,7 @@ private struct MultiplierInput: View {
 
             TextField("", text: $value)
                 .textFieldStyle(.roundedBorder)
-                .font(.system(size: 16, design: .monospaced))
+                .font(.spaceMono(size: 16))
                 .frame(width: 60)
                 .multilineTextAlignment(.center)
         }

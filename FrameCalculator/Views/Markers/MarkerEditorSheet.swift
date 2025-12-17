@@ -17,7 +17,7 @@ struct MarkerEditorPopover: View {
             HStack {
                 if let marker = markerVM.editingMarker {
                     Text(timecodeText(for: marker))
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .font(.spaceMono(size: 13, weight: .bold))
                         .foregroundColor(.primary)
                 }
 

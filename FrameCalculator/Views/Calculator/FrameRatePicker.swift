@@ -36,7 +36,7 @@ struct CompactFrameRatePicker: View {
         } label: {
             HStack(spacing: 4) {
                 Text(selection.displayName)
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .font(.spaceMono(size: 14, weight: .bold))
                 Text("fps")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)

@@ -543,7 +543,7 @@ struct InOutPanel: View {
 
                     if let inTC = viewModel.inPointTimecode {
                         Text(inTC.formatted())
-                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                            .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.primary)
 
                         Button(action: { viewModel.seekToInPoint() }) {
@@ -554,7 +554,7 @@ struct InOutPanel: View {
                         .help("Go to In point (⇧I)")
                     } else {
                         Text("Not set")
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.spaceMono(size: 13))
                             .foregroundColor(.secondary)
 
                         Text("")
@@ -571,7 +571,7 @@ struct InOutPanel: View {
 
                     if let outTC = viewModel.outPointTimecode {
                         Text(outTC.formatted())
-                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                            .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.primary)
 
                         Button(action: { viewModel.seekToOutPoint() }) {
@@ -582,7 +582,7 @@ struct InOutPanel: View {
                         .help("Go to Out point (⇧O)")
                     } else {
                         Text("Not set")
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.spaceMono(size: 13))
                             .foregroundColor(.secondary)
 
                         Text("")
@@ -599,7 +599,7 @@ struct InOutPanel: View {
                             .frame(width: 50, alignment: .leading)
 
                         Text(duration.formatted())
-                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                            .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.yellow)
 
                         Text("")

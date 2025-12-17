@@ -45,7 +45,8 @@ struct CalculatorView: View {
                 frameCount: viewModel.currentFrameCount,
                 showFrameCount: viewModel.entryMode == .timecode,
                 hasError: viewModel.errorMessage != nil,
-                isPendingOperation: viewModel.hasPendingOperation
+                isPendingOperation: viewModel.hasPendingOperation,
+                invalidComponents: viewModel.invalidComponents
             )
             .padding(.horizontal, 8)
 
@@ -240,7 +241,7 @@ private struct PendingOperationView: View {
             Text("Operation:")
                 .foregroundColor(.secondary)
             Text(operation.symbol)
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .font(.spaceMono(size: 14, weight: .bold))
                 .foregroundColor(.accentColor)
         }
         .font(.system(size: 13))

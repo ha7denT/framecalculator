@@ -18,6 +18,14 @@ enum EntryMode {
     case frames     // Raw frame count entry
 }
 
+/// Components of a timecode that can be validated.
+enum TimecodeComponent: CaseIterable {
+    case hours
+    case minutes
+    case seconds
+    case frames
+}
+
 /// View model managing calculator state and operations.
 final class CalculatorViewModel: ObservableObject {
 
@@ -84,6 +92,29 @@ final class CalculatorViewModel: ObservableObject {
     /// Whether there's a pending operation with a stored value.
     var hasPendingOperation: Bool {
         pendingOperation != nil && storedTimecode != nil
+    }
+
+    /// Returns which timecode components are currently invalid during entry.
+    /// Used for visual feedback to show the user which values will fail validation.
+    var invalidComponents: Set<TimecodeComponent> {
+        guard isEntering && !digitBuffer.isEmpty && entryMode == .timecode else {
+            return []
+        }
+
+        let components = parseDigitBuffer()
+        var invalid: Set<TimecodeComponent> = []
+
+        if components.minutes >= 60 {
+            invalid.insert(.minutes)
+        }
+        if components.seconds >= 60 {
+            invalid.insert(.seconds)
+        }
+        if components.frames >= frameRate.nominalFrameRate {
+            invalid.insert(.frames)
+        }
+
+        return invalid
     }
 
     // MARK: - Initialization

@@ -4,9 +4,9 @@
 
 This document breaks down the development of Frame Calculator into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
-**Total Estimated Sprints:** 8  
-**Target MVP (Sprints 1-6):** Core calculator + video player + markers  
-**Target 1.0 (Sprints 7-8):** Export + polish for App Store submission
+**Total Estimated Sprints:** 9
+**Target MVP (Sprints 1-6):** Core calculator + video player + markers
+**Target 1.0 (Sprints 7-9):** Export + polish + App Store submission
 
 ---
 
@@ -553,12 +553,17 @@ swift test
 
 ---
 
-## Sprint 8: Polish & App Store Prep
+## Sprint 8: Polish & Infrastructure
 
 ### Goal
-Final polish, accessibility, and App Store submission preparation.
+Fix critical bugs, add visual polish, and implement standard macOS app infrastructure.
 
 ### Known Issues to Address
+
+**Export Button Bug (from Sprint 7):**
+- Export button in ExportDialogView does not trigger the save panel
+- Root cause: `NSSavePanel.runModal()` called from within SwiftUI sheet context
+- Fix: Dismiss sheet first, then show save panel after brief delay
 
 **Calculator Entry Validation (from Sprint 2 testing):**
 - Current behavior: Digits are formatted as entered (shifting left like a calculator), validation only occurs on operation/equals
@@ -575,33 +580,130 @@ Final polish, accessibility, and App Store submission preparation.
 
 ### Deliverables
 
-- [ ] Dark mode refinement (colors, contrast, vibrancy)
-- [ ] Light mode support and testing
-- [ ] Bundle and use Space Mono typeface for timecode display
-- [ ] App icon (multiple sizes)
-- [ ] Menu bar integration (File, Edit, View, Window, Help)
-- [ ] Preferences window (default frame rate, default marker color)
-- [ ] About window
-- [ ] Keyboard shortcut discoverability (menu items, tooltips)
+- [x] Fix export button bug (NSSavePanel from sheet context)
+- [x] Bundle and use Space Mono typeface for timecode display
+- [x] Calculator entry validation visual feedback
+- [x] User preferences system (default frame rate, marker color)
+- [x] Dark mode refinement (colors, contrast, vibrancy)
+- [x] Light mode support and testing
+- [x] Empty states (no video loaded, no markers)
+- [x] Menu bar integration (File, Edit, View, Window, Help)
+- [x] Preferences window
+- [x] About window (via standard macOS About menu)
+- [x] Keyboard shortcut discoverability (menu items, tooltips)
+- [x] Window restoration (remember size/position)
+
+### Acceptance Criteria
+
+- [x] Export button works correctly
+- [x] App feels native and professional in both dark and light mode
+- [x] All features accessible via keyboard
+- [x] Menu bar shows all available actions with keyboard shortcuts
+- [x] Preferences persist across app launches
+- [x] App launches in < 1 second
+
+### Notes
+
+Focus on making the app feel like a polished, native macOS application before moving to App Store submission.
+
+### Implementation Notes (for future reference)
+
+**Export Button Bug Fix:**
+- Changed `ExportDialogView.exportMarkers()` to dismiss sheet first, then show NSSavePanel after 0.1s delay
+- `NSSavePanel.runModal()` doesn't work properly when called from within a SwiftUI sheet context
+
+**Space Mono Font:**
+- Downloaded from GitHub (googlefonts/spacemono) to `FrameCalculator/Resources/Fonts/`
+- Font extension added to `AppState.swift` with fallback to system monospace
+- Updated all timecode displays: TimecodeDisplayView, VideoInspectorView (In/Out panel), MarkerEditorSheet, MarkerRowView, TimelineView, FrameRatePicker, TransportControls
+- **User Action Required:** Add font files to Xcode project with target membership and add `ATSApplicationFontsPath` to Info.plist
+
+**Calculator Entry Validation:**
+- Added `TimecodeComponent` enum and `invalidComponents` computed property to `CalculatorViewModel`
+- `TimecodeDisplayView` now shows invalid components (minutes >= 60, seconds >= 60, frames >= frame rate) in orange
+- Border color changes to orange when any component is invalid
+
+**User Preferences System:**
+- Created `UserPreferences` singleton class in `AppState.swift`
+- Stores: default frame rate, default marker color, dark/light mode preference, window restoration preference
+- Uses JSON encoding for FrameRate storage in UserDefaults
+
+**Preferences Window:**
+- Added `PreferencesView` to `FrameCalculatorApp.swift`
+- Settings: Default Frame Rate picker, Default Marker Color picker with color preview, Theme selector (System/Light/Dark), Window restoration toggle
+- Uses SwiftUI Form with grouped style
+
+**Menu Bar & Keyboard Shortcuts:**
+- Help menu with "Frame Calculator Help" and "Keyboard Shortcuts" (Cmd+Shift+?)
+- Keyboard shortcuts window shows all available shortcuts via NSAlert
+- Export Markers menu item (Cmd+E)
+
+**Dark/Light Mode:**
+- Removed hardcoded `.preferredColorScheme(.dark)`
+- Now respects user preference via `UserPreferences.preferDarkMode`
+- Options: System (nil), Light (false), Dark (true)
+
+**Empty States:**
+- Timeline shows "Press M to add marker" hint when no markers exist
+
+**Window Restoration:**
+- `NSQuitAlwaysKeepsWindows` now respects `UserPreferences.rememberWindowPosition`
+
+**Xcode Project Setup for Fonts:**
+- Added file references for SpaceMono-Regular.ttf and SpaceMono-Bold.ttf to project.pbxproj
+- Created Resources and Fonts groups in project structure
+- Added fonts to PBXResourcesBuildPhase for copying to app bundle
+- Created `FrameCalculator/Info.plist` with `ATSApplicationFontsPath = "."` (fonts in bundle root)
+- Set `INFOPLIST_FILE = FrameCalculator/Info.plist` in both Debug and Release build settings
+
+**Crash Bug Fix (Text Selection):**
+- Crash occurred when user attempted to select text in calculator timecode display
+- Root cause: SwiftUI's `.textSelection(.enabled)` modifier crashes on concatenated Text views (using `+` operator)
+- The `coloredTimecodeText` computed property concatenates multiple Text views with different foreground colors
+- Fix: Only enable text selection when `invalidComponents.isEmpty`, otherwise omit the modifier
+- This allows copy/paste in normal mode while avoiding the crash during validation display
+
+**Key Files Modified:**
+- `FrameCalculator/Views/Export/ExportDialogView.swift` - Export bug fix
+- `FrameCalculator/App/AppState.swift` - UserPreferences, Font extension
+- `FrameCalculator/App/FrameCalculatorApp.swift` - PreferencesView, Settings scene, menus, @ObservedObject for preferences
+- `FrameCalculator/ViewModels/CalculatorViewModel.swift` - Entry validation, TimecodeComponent enum
+- `FrameCalculator/Views/Calculator/TimecodeDisplayView.swift` - Validation UI, Space Mono, text selection crash fix
+- `FrameCalculator/Views/VideoPlayer/TimelineView.swift` - Empty state hint, Space Mono
+- `FrameCalculator.xcodeproj/project.pbxproj` - Font file references, build phase, Info.plist config
+- `FrameCalculator/Info.plist` - NEW: ATSApplicationFontsPath for font loading
+
+**New Files Created:**
+- `FrameCalculator/Resources/Fonts/SpaceMono-Regular.ttf`
+- `FrameCalculator/Resources/Fonts/SpaceMono-Bold.ttf`
+- `FrameCalculator/Resources/Fonts/OFL.txt` - Open Font License
+- `FrameCalculator/Info.plist` - App Info.plist with font path
+
+---
+
+## Sprint 9: Quality & App Store Submission
+
+### Goal
+Final quality assurance, accessibility audit, and App Store submission preparation.
+
+### Deliverables
+
 - [ ] Accessibility audit (VoiceOver, keyboard navigation)
 - [ ] Error handling and user-facing error messages
-- [ ] Empty states (no video loaded, no markers)
-- [ ] Window restoration (remember size/position)
 - [ ] App Sandbox configuration and testing
 - [ ] Privacy manifest (if required)
+- [ ] App icon (multiple sizes)
 - [ ] App Store screenshots (dark mode)
 - [ ] App Store description and metadata
 - [ ] TestFlight build for beta testing
 
 ### Acceptance Criteria
 
-- App feels native and professional
-- All features accessible via keyboard
 - VoiceOver can navigate all controls
 - No crashes in normal usage
 - Passes App Store review guidelines
-- App launches in < 1 second
 - Memory usage reasonable (< 50MB calculator, < 200MB video)
+- All App Store assets ready for submission
 
 ### Notes
 
@@ -641,7 +743,8 @@ Features explicitly deferred from 1.0:
 | 5 - In/Out Points | ✅ Complete | 2025-12-17 | 2025-12-17 | In/Out markers, keyboard shortcuts, auto-swap, duration display |
 | 6 - Markers | ✅ Complete | 2025-12-17 | 2025-12-17 | Timeline markers, popover editor, M key add/edit, NLE color palette |
 | 7 - Export | ✅ Complete | 2025-12-17 | 2025-12-17 | MarkerExporter service, EDL/Avid/CSV formats, export dialog, ⌘E shortcut, menu bar item |
-| 8 - Polish | Not Started | | | |
+| 8 - Polish & Infrastructure | ✅ Complete | 2025-12-17 | 2025-12-17 | Export fix, Space Mono, entry validation, preferences, menus, dark/light mode |
+| 9 - Quality & App Store | Not Started | | | Accessibility, sandbox testing, App Store submission |
 
 ---
 

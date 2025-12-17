@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000020001 /* SpaceMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000020000 /* SpaceMono-Regular.ttf */; };
+		FC000021001 /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000021000 /* SpaceMono-Bold.ttf */; };
 		2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */; };
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
 		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
@@ -36,6 +38,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FC000020000 /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Regular.ttf"; sourceTree = "<group>"; };
+		FC000021000 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
 		366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerRowView.swift; sourceTree = "<group>"; };
 		58D3365CC63152809B0FE50E /* Marker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Marker.swift; sourceTree = "<group>"; };
 		793A032AA16E395D28CF02A1 /* MarkerExporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerExporter.swift; sourceTree = "<group>"; };
@@ -76,6 +80,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000022000 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FC000023000 /* Fonts */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		FC000023000 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FC000020000 /* SpaceMono-Regular.ttf */,
+				FC000021000 /* SpaceMono-Bold.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		A98C64B4864F4502DC1E39B2 /* Export */ = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +134,7 @@
 				FC000000800 /* ViewModels */,
 				FC000000900 /* Views */,
 				FC00000F000 /* Services */,
+				FC000022000 /* Resources */,
 			);
 			path = FrameCalculator;
 			sourceTree = "<group>";
@@ -273,6 +295,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC000020001 /* SpaceMono-Regular.ttf in Resources */,
+				FC000021001 /* SpaceMono-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +468,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FrameCalculator/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -471,6 +496,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FrameCalculator/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (

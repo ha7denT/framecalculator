@@ -88,7 +88,7 @@ struct TransportControls: View {
 
         // Speed text
         Text(speedText)
-            .font(.system(size: 12, weight: .medium, design: .monospaced))
+            .font(.spaceMono(size: 12, weight: .bold))
             .foregroundColor(.secondary)
             .frame(width: 50, alignment: .trailing)
     }

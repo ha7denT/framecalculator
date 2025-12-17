@@ -155,3 +155,96 @@ public final class AppState: ObservableObject {
         return false
     }
 }
+
+// MARK: - User Preferences
+
+/// Global user preferences stored in UserDefaults.
+@MainActor
+final class UserPreferences: ObservableObject {
+    static let shared = UserPreferences()
+
+    /// Default frame rate for new sessions.
+    @Published var defaultFrameRate: FrameRate {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(defaultFrameRate) {
+                UserDefaults.standard.set(encoded, forKey: "defaultFrameRate")
+            }
+        }
+    }
+
+    /// Default color for new markers.
+    @Published var defaultMarkerColor: MarkerColor {
+        didSet {
+            UserDefaults.standard.set(defaultMarkerColor.rawValue, forKey: "defaultMarkerColor")
+        }
+    }
+
+    /// Whether to remember window position.
+    @Published var rememberWindowPosition: Bool {
+        didSet {
+            UserDefaults.standard.set(rememberWindowPosition, forKey: "rememberWindowPosition")
+        }
+    }
+
+    /// Preferred color scheme (nil = system, true = dark, false = light).
+    @Published var preferDarkMode: Bool? {
+        didSet {
+            if let value = preferDarkMode {
+                UserDefaults.standard.set(value, forKey: "preferDarkMode")
+                UserDefaults.standard.set(false, forKey: "useSystemAppearance")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "preferDarkMode")
+                UserDefaults.standard.set(true, forKey: "useSystemAppearance")
+            }
+        }
+    }
+
+    private init() {
+        // Load default frame rate
+        if let data = UserDefaults.standard.data(forKey: "defaultFrameRate"),
+           let frameRate = try? JSONDecoder().decode(FrameRate.self, from: data) {
+            self.defaultFrameRate = frameRate
+        } else {
+            self.defaultFrameRate = .fps24
+        }
+
+        // Load default marker color
+        if let colorRaw = UserDefaults.standard.string(forKey: "defaultMarkerColor"),
+           let color = MarkerColor(rawValue: colorRaw) {
+            self.defaultMarkerColor = color
+        } else {
+            self.defaultMarkerColor = .blue
+        }
+
+        // Load window restoration preference
+        self.rememberWindowPosition = UserDefaults.standard.bool(forKey: "rememberWindowPosition")
+
+        // Load appearance preference
+        if UserDefaults.standard.bool(forKey: "useSystemAppearance") {
+            self.preferDarkMode = nil
+        } else if UserDefaults.standard.object(forKey: "preferDarkMode") != nil {
+            self.preferDarkMode = UserDefaults.standard.bool(forKey: "preferDarkMode")
+        } else {
+            // Default to dark mode
+            self.preferDarkMode = true
+        }
+    }
+}
+
+// MARK: - Font Extension
+
+extension Font {
+    /// Space Mono font for timecode display.
+    /// Falls back to system monospace if Space Mono isn't available.
+    static func spaceMono(size: CGFloat, weight: Weight = .regular) -> Font {
+        let fontName = weight == .bold ? "SpaceMono-Bold" : "SpaceMono-Regular"
+
+        // Check if Space Mono is available
+        if let _ = NSFont(name: fontName, size: size) {
+            return .custom(fontName, size: size)
+        }
+
+        // Fallback to system monospace
+        return .system(size: size, weight: weight, design: .monospaced)
+    }
+}

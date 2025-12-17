@@ -147,14 +147,23 @@ struct TimelineWithTimecode: View {
             HStack {
                 // Current timecode
                 Text(viewModel.currentTimecode.formatted())
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(.spaceMono(size: 11, weight: .bold))
                     .foregroundColor(.secondary)
+
+                Spacer()
+
+                // Marker hint when no markers exist
+                if markers.isEmpty {
+                    Text("Press M to add marker")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
 
                 Spacer()
 
                 // Duration
                 Text(viewModel.durationTimecode.formatted())
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(.spaceMono(size: 11, weight: .bold))
                     .foregroundColor(.secondary)
             }
         }

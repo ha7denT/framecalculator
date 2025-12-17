@@ -18,7 +18,7 @@ struct MarkerRowView: View {
 
             // Timecode display
             Text(timecodeText)
-                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .font(.spaceMono(size: 12, weight: .bold))
                 .foregroundColor(.primary)
 
             // Note text (truncated)

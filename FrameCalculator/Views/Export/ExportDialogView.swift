@@ -5,8 +5,6 @@ import AppKit
 struct ExportDialogView: View {
     @Binding var isPresented: Bool
     @State private var selectedFormat: MarkerExportFormat = .edl
-    @State private var isExporting = false
-    @State private var exportError: String?
 
     let markers: [Marker]
     let frameRate: FrameRate
@@ -54,13 +52,6 @@ struct ExportDialogView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Error message
-            if let error = exportError {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-
             Divider()
 
             // Buttons
@@ -76,7 +67,7 @@ struct ExportDialogView: View {
                     exportMarkers()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(markers.isEmpty || isExporting)
+                .disabled(markers.isEmpty)
             }
         }
         .padding(20)
@@ -84,19 +75,21 @@ struct ExportDialogView: View {
     }
 
     /// Shows save panel and exports markers.
+    /// Note: We dismiss the sheet first, then show the save panel. NSSavePanel.runModal()
+    /// doesn't work properly when called from within a SwiftUI sheet context.
     private func exportMarkers() {
-        isExporting = true
-        exportError = nil
-
-        // Capture values for use in Task
+        // Capture values before dismissing sheet
         let format = selectedFormat
         let filename = defaultFilename
         let markersToExport = markers
         let rate = frameRate
         let source = sourceFilename
 
-        Task { @MainActor in
-            // Show save panel on main thread
+        // Dismiss sheet first
+        isPresented = false
+
+        // Show save panel after sheet dismisses
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             let panel = NSSavePanel()
             panel.allowedContentTypes = [format.utType]
             panel.nameFieldStringValue = filename
@@ -104,27 +97,22 @@ struct ExportDialogView: View {
 
             let response = panel.runModal()
 
-            guard response == .OK, let url = panel.url else {
-                isExporting = false
-                return
-            }
+            guard response == .OK, let url = panel.url else { return }
 
             // Export
-            do {
-                let exporter = MarkerExporter()
-                try await exporter.export(
-                    markers: markersToExport,
-                    format: format,
-                    to: url,
-                    frameRate: rate,
-                    sourceFilename: source
-                )
-
-                isExporting = false
-                isPresented = false
-            } catch {
-                isExporting = false
-                exportError = error.localizedDescription
+            Task {
+                do {
+                    let exporter = MarkerExporter()
+                    try await exporter.export(
+                        markers: markersToExport,
+                        format: format,
+                        to: url,
+                        frameRate: rate,
+                        sourceFilename: source
+                    )
+                } catch {
+                    print("Export error: \(error.localizedDescription)")
+                }
             }
         }
     }
