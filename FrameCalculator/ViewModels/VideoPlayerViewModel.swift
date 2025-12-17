@@ -80,6 +80,12 @@ final class VideoPlayerViewModel: ObservableObject {
     /// The start timecode offset (for videos with embedded TC).
     @Published private(set) var startTimecodeFrames: Int = 0
 
+    /// The In point position in frames (nil if not set).
+    @Published private(set) var inPointFrames: Int? = nil
+
+    /// The Out point position in frames (nil if not set).
+    @Published private(set) var outPointFrames: Int? = nil
+
     // MARK: - Private Properties
 
     private var player: AVPlayer?
@@ -106,6 +112,43 @@ final class VideoPlayerViewModel: ObservableObject {
     var progress: Double {
         guard totalFrames > 0 else { return 0 }
         return Double(currentFrames) / Double(totalFrames)
+    }
+
+    /// The In point as timecode (nil if not set).
+    var inPointTimecode: Timecode? {
+        guard let inFrames = inPointFrames else { return nil }
+        return Timecode(frames: inFrames + startTimecodeFrames, frameRate: frameRate)
+    }
+
+    /// The Out point as timecode (nil if not set).
+    var outPointTimecode: Timecode? {
+        guard let outFrames = outPointFrames else { return nil }
+        return Timecode(frames: outFrames + startTimecodeFrames, frameRate: frameRate)
+    }
+
+    /// The duration between In and Out points (nil if either is not set).
+    var inOutDuration: Timecode? {
+        guard let inFrames = inPointFrames,
+              let outFrames = outPointFrames else { return nil }
+        let durationFrames = abs(outFrames - inFrames)
+        return Timecode(frames: durationFrames, frameRate: frameRate)
+    }
+
+    /// In point progress for timeline display (nil if not set).
+    var inPointProgress: Double? {
+        guard let inFrames = inPointFrames, totalFrames > 0 else { return nil }
+        return Double(inFrames) / Double(totalFrames)
+    }
+
+    /// Out point progress for timeline display (nil if not set).
+    var outPointProgress: Double? {
+        guard let outFrames = outPointFrames, totalFrames > 0 else { return nil }
+        return Double(outFrames) / Double(totalFrames)
+    }
+
+    /// Whether both In and Out points are set.
+    var hasInOutPoints: Bool {
+        inPointFrames != nil && outPointFrames != nil
     }
 
     // MARK: - Initialization
@@ -146,6 +189,8 @@ final class VideoPlayerViewModel: ObservableObject {
         totalFrames = 0
         isPlaying = false
         shuttleState = .stopped
+        inPointFrames = nil
+        outPointFrames = nil
         cancellables.removeAll()
     }
 
@@ -252,6 +297,48 @@ final class VideoPlayerViewModel: ObservableObject {
         // Convert timecode to elapsed frames (accounting for start offset)
         let targetFrames = timecode.frames - startTimecodeFrames
         seek(toFrame: targetFrames)
+    }
+
+    // MARK: - In/Out Points
+
+    /// Sets the In point at the current playhead position.
+    func setInPoint() {
+        inPointFrames = currentFrames
+
+        // If Out point is before In point, swap them
+        if let outFrames = outPointFrames, outFrames < currentFrames {
+            outPointFrames = inPointFrames
+            inPointFrames = outFrames
+        }
+    }
+
+    /// Sets the Out point at the current playhead position.
+    func setOutPoint() {
+        outPointFrames = currentFrames
+
+        // If In point is after Out point, swap them
+        if let inFrames = inPointFrames, inFrames > currentFrames {
+            inPointFrames = outPointFrames
+            outPointFrames = inFrames
+        }
+    }
+
+    /// Clears both In and Out points.
+    func clearInOutPoints() {
+        inPointFrames = nil
+        outPointFrames = nil
+    }
+
+    /// Seeks to the In point.
+    func seekToInPoint() {
+        guard let inFrames = inPointFrames else { return }
+        seek(toFrame: inFrames)
+    }
+
+    /// Seeks to the Out point.
+    func seekToOutPoint() {
+        guard let outFrames = outPointFrames else { return }
+        seek(toFrame: outFrames)
     }
 
     // MARK: - Private Methods

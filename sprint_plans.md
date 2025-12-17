@@ -339,28 +339,64 @@ Mark in/out points on video and calculate durations.
 
 ### Deliverables
 
-- [ ] In/Out point state in `VideoPlayerViewModel`
-- [ ] `InOutOverlay` visual indicators on timeline
-- [ ] Keyboard shortcuts: I (in), O (out), ⌥X (clear)
-- [ ] Navigation: ⇧I (go to in), ⇧O (go to out)
-- [ ] Duration display (out minus in)
-- [ ] Visual feedback when points are set
-- [ ] In/Out timecode display in UI
+- [x] In/Out point state in `VideoPlayerViewModel`
+- [x] `InOutOverlay` visual indicators on timeline
+- [x] Keyboard shortcuts: I (in), O (out), ⌥X (clear)
+- [x] Navigation: ⇧I (go to in), ⇧O (go to out)
+- [x] Duration display (out minus in)
+- [x] Visual feedback when points are set
+- [x] In/Out timecode display in UI
 
 ### Acceptance Criteria
 
-- I key sets in point at current playhead
-- O key sets out point at current playhead
-- Duration auto-calculates and displays
-- ⇧I jumps to in point
-- ⇧O jumps to out point
-- ⌥X clears both points
-- In/Out points visible on timeline as markers/overlay
-- Setting out before in shows warning or swaps automatically
+- [x] I key sets in point at current playhead
+- [x] O key sets out point at current playhead
+- [x] Duration auto-calculates and displays
+- [x] ⇧I jumps to in point
+- [x] ⇧O jumps to out point
+- [x] ⌥X clears both points
+- [x] In/Out points visible on timeline as markers/overlay
+- [x] Setting out before in shows warning or swaps automatically
 
 ### Notes
 
 Store in/out as frame numbers, not CMTime, to avoid floating point drift. Display in current frame rate format.
+
+### Implementation Notes (for future reference)
+
+**VideoPlayerViewModel Additions:**
+- `inPointFrames: Int?` and `outPointFrames: Int?` — Frame-based storage (nil when not set)
+- Computed properties: `inPointTimecode`, `outPointTimecode`, `inOutDuration`, `inPointProgress`, `outPointProgress`
+- Methods: `setInPoint()`, `setOutPoint()`, `clearInOutPoints()`, `seekToInPoint()`, `seekToOutPoint()`
+- Auto-swap logic: If setting out before in (or vice versa), automatically swap to maintain correct order
+- Points cleared in `reset()` when video changes
+
+**TimelineView Enhancements:**
+- Yellow highlighted range between In and Out points
+- `InOutMarker` component with directional arrow shapes (|> for In, <| for Out)
+- Markers positioned using computed progress values from ViewModel
+
+**InOutPanel UI:**
+- Displays In, Out, and Duration timecodes
+- Clear button appears when any point is set
+- Go-to buttons for quick navigation
+- Keyboard hints for discoverability
+
+**Keyboard Handling:**
+- Extended `VideoKeyboardCaptureView.handleKeyEvent()` in VideoInspectorView
+- Modifier key detection: `event.modifierFlags.contains(.shift)` for ⇧I/⇧O
+- Option key detection: `event.modifierFlags.contains(.option)` for ⌥X
+
+**Key Files Modified:**
+- `VideoPlayerViewModel.swift` — State and methods for In/Out points
+- `TimelineView.swift` — Visual overlay and InOutMarker component
+- `VideoInspectorView.swift` — Keyboard handling, InOutPanel UI component
+
+**Post-Implementation UI Refinements:**
+- Reordered right panel: Calculator at top (primary tool), In/Out in middle, Metadata at bottom (static reference)
+- Replaced fixed 700px video height cap with responsive GeometryReader-based sizing
+- Video now fills available space while maintaining aspect ratio
+- Portrait videos (e.g., 1080×1920) display at full height instead of being artificially constrained
 
 ---
 
@@ -538,7 +574,7 @@ Features explicitly deferred from 1.0:
 | 2 - Calculator UI | ✅ Complete | 2025-12-17 | 2025-12-17 | Full calculator UI with keypad, keyboard input, Xcode project |
 | 3 - Video Loading | ✅ Complete | 2025-12-17 | 2025-12-17 | Drag-drop, metadata display, mode switching, frame rate sync |
 | 4 - Video Player | ✅ Complete | 2025-12-17 | 2025-12-17 | Transport controls, JKL shuttle, bidirectional sync |
-| 5 - In/Out Points | Not Started | | | |
+| 5 - In/Out Points | ✅ Complete | 2025-12-17 | 2025-12-17 | In/Out markers, keyboard shortcuts, auto-swap, duration display |
 | 6 - Markers | Not Started | | | |
 | 7 - Export | Not Started | | | |
 | 8 - Polish | Not Started | | | |
