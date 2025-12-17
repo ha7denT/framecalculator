@@ -3,22 +3,22 @@ import Foundation
 /// A timecode value representing a position or duration in video.
 /// Internally stored as a frame count with an associated frame rate.
 /// Supports drop frame display format for 29.97 DF.
-struct Timecode: Equatable, Hashable, Codable {
+public struct Timecode: Equatable, Hashable, Codable {
     /// The total frame count. Can be negative for durations.
-    let frames: Int
+    public let frames: Int
 
     /// The frame rate used for display and calculations.
-    let frameRate: FrameRate
+    public let frameRate: FrameRate
 
     /// Creates a timecode from a frame count and frame rate.
-    init(frames: Int, frameRate: FrameRate) {
+    public init(frames: Int, frameRate: FrameRate) {
         self.frames = frames
         self.frameRate = frameRate
     }
 
     /// Creates a timecode from individual components.
     /// For drop frame rates, the frame numbers are interpreted as drop frame display values.
-    init(hours: Int, minutes: Int, seconds: Int, frames: Int, frameRate: FrameRate) {
+    public init(hours: Int, minutes: Int, seconds: Int, frames: Int, frameRate: FrameRate) {
         let totalFrames = Self.framesTotalFromComponents(
             hours: hours,
             minutes: minutes,
@@ -33,7 +33,7 @@ struct Timecode: Equatable, Hashable, Codable {
     // MARK: - Components
 
     /// Whether the timecode represents a negative duration.
-    var isNegative: Bool {
+    public var isNegative: Bool {
         frames < 0
     }
 
@@ -44,21 +44,21 @@ struct Timecode: Equatable, Hashable, Codable {
 
     /// The components of the timecode (hours, minutes, seconds, frames).
     /// For drop frame, these are the display values with frame skipping applied.
-    var components: (hours: Int, minutes: Int, seconds: Int, frames: Int) {
+    public var components: (hours: Int, minutes: Int, seconds: Int, frames: Int) {
         componentsFromFrames(absoluteFrames, frameRate: frameRate)
     }
 
     /// The hours component of the timecode.
-    var hours: Int { components.hours }
+    public var hours: Int { components.hours }
 
     /// The minutes component of the timecode (0-59).
-    var minutes: Int { components.minutes }
+    public var minutes: Int { components.minutes }
 
     /// The seconds component of the timecode (0-59).
-    var seconds: Int { components.seconds }
+    public var seconds: Int { components.seconds }
 
     /// The frames component of the timecode (0 to nominal frame rate - 1).
-    var frameComponent: Int { components.frames }
+    public var frameComponent: Int { components.frames }
 
     // MARK: - Drop Frame Calculation
 
@@ -208,12 +208,12 @@ struct Timecode: Equatable, Hashable, Codable {
     // MARK: - Duration in Seconds
 
     /// The duration represented by this timecode in seconds.
-    var durationInSeconds: Double {
+    public var durationInSeconds: Double {
         Double(frames) / frameRate.framesPerSecond
     }
 
     /// Creates a timecode from a duration in seconds.
-    static func from(seconds: Double, frameRate: FrameRate) -> Timecode {
+    public static func from(seconds: Double, frameRate: FrameRate) -> Timecode {
         let frames = Int((seconds * frameRate.framesPerSecond).rounded())
         return Timecode(frames: frames, frameRate: frameRate)
     }
@@ -222,13 +222,13 @@ struct Timecode: Equatable, Hashable, Codable {
 
     /// Converts this timecode to a different frame rate, preserving the frame count.
     /// Use this when the underlying media is the same but you want a different display rate.
-    func converting(to newRate: FrameRate) -> Timecode {
+    public func converting(to newRate: FrameRate) -> Timecode {
         Timecode(frames: frames, frameRate: newRate)
     }
 
     /// Converts this timecode to a different frame rate, preserving the duration.
     /// Use this when you want the same real-world time at a different frame rate.
-    func convertingDuration(to newRate: FrameRate) -> Timecode {
+    public func convertingDuration(to newRate: FrameRate) -> Timecode {
         let seconds = durationInSeconds
         return .from(seconds: seconds, frameRate: newRate)
     }
@@ -236,7 +236,7 @@ struct Timecode: Equatable, Hashable, Codable {
 
 // MARK: - Arithmetic Operators
 
-extension Timecode {
+public extension Timecode {
     /// Adds two timecodes. Both must have the same frame rate.
     static func + (lhs: Timecode, rhs: Timecode) -> Timecode {
         precondition(lhs.frameRate == rhs.frameRate, "Cannot add timecodes with different frame rates")
@@ -268,7 +268,7 @@ extension Timecode {
 // MARK: - Comparable
 
 extension Timecode: Comparable {
-    static func < (lhs: Timecode, rhs: Timecode) -> Bool {
+    public static func < (lhs: Timecode, rhs: Timecode) -> Bool {
         precondition(lhs.frameRate == rhs.frameRate, "Cannot compare timecodes with different frame rates")
         return lhs.frames < rhs.frames
     }
@@ -278,13 +278,13 @@ extension Timecode: Comparable {
 
 extension Timecode: CustomStringConvertible {
     /// The timecode formatted as a string (e.g., "01:02:03:04" or "01:02:03;04" for DF).
-    var description: String {
+    public var description: String {
         formatted()
     }
 
     /// Formats the timecode as a string.
     /// - Parameter alwaysShowSign: If true, shows "+" for positive timecodes.
-    func formatted(alwaysShowSign: Bool = false) -> String {
+    public func formatted(alwaysShowSign: Bool = false) -> String {
         let sign: String
         if isNegative {
             sign = "-"
@@ -303,14 +303,14 @@ extension Timecode: CustomStringConvertible {
 
 // MARK: - String Parsing
 
-extension Timecode {
+public extension Timecode {
     /// Error thrown when parsing an invalid timecode string.
     enum ParseError: Error, LocalizedError {
         case invalidFormat
         case invalidComponent(String)
         case componentOutOfRange(String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidFormat:
                 return "Invalid timecode format. Expected HH:MM:SS:FF or HH:MM:SS;FF"
@@ -388,7 +388,7 @@ extension Timecode {
 
 // MARK: - Zero Timecode
 
-extension Timecode {
+public extension Timecode {
     /// A zero timecode at the given frame rate.
     static func zero(at frameRate: FrameRate) -> Timecode {
         Timecode(frames: 0, frameRate: frameRate)

@@ -84,30 +84,85 @@ Build the calculator-only interface with working timecode operations.
 
 ### Deliverables
 
-- [ ] `CalculatorViewModel` with operation state management
-- [ ] `TimecodeDisplayView` — large, selectable timecode field
-- [ ] `FrameRatePicker` — dropdown or segmented control
-- [ ] `CalculatorView` — main calculator layout
-- [ ] Operation mode selector (Add, Subtract, Multiply, Frame↔TC)
-- [ ] Keyboard input for timecode entry
-- [ ] Copy/paste support (⌘C, ⌘V) for timecode field
-- [ ] Basic app window with calculator as default view
+- [x] `CalculatorViewModel` with operation state management
+- [x] `TimecodeDisplayView` — large, selectable timecode field
+- [x] `FrameRatePicker` — dropdown or segmented control
+- [x] `CalculatorView` — main calculator layout
+- [x] Operation mode selector (Add, Subtract, Multiply, Frame↔TC)
+- [x] Keyboard input for timecode entry
+- [x] Copy/paste support (⌘C, ⌘V) for timecode field
+- [x] Basic app window with calculator as default view
 
 ### Acceptance Criteria
 
-- Can enter timecode via keyboard (numeric keys + colons)
-- Can switch between all supported frame rates
-- Addition: `01:00:00:00 + 00:30:00:00 = 01:30:00:00`
-- Subtraction: `01:00:00:00 - 00:00:30:00 = 00:59:30:00`
-- Multiplication: `00:00:30:00 × 4 = 00:02:00:00`
-- Frame→TC: `86400 frames @ 24fps = 01:00:00:00`
-- TC→Frame: `01:00:00:00 @ 24fps = 86400 frames`
-- Copy timecode to clipboard, paste from clipboard
-- Frame rate change recalculates displayed timecode
+- [x] Can enter timecode via keyboard (numeric keys + colons)
+- [x] Can switch between all supported frame rates
+- [x] Addition: `01:00:00:00 + 00:30:00:00 = 01:30:00:00`
+- [x] Subtraction: `01:00:00:00 - 00:00:30:00 = 00:59:30:00`
+- [x] Multiplication: `00:00:30:00 × 4 = 00:02:00:00`
+- [x] Frame→TC: `86400 frames @ 24fps = 01:00:00:00`
+- [x] TC→Frame: `01:00:00:00 @ 24fps = 86400 frames`
+- [x] Copy timecode to clipboard, paste from clipboard
+- [x] Frame rate change recalculates displayed timecode
 
 ### Notes
 
 Keep the window compact (~320×480pt). This is the "calculator app" mode users will use daily.
+
+### Implementation Notes (for future reference)
+
+**Project Structure:**
+- Xcode project created (`FrameCalculator.xcodeproj`) for building and running the app
+- SPM (`Package.swift`) retained for running unit tests via `swift test`
+- App entry point with dark mode by default and hidden title bar window style
+
+**Key Components:**
+- `CalculatorViewModel.swift` — Observable view model managing:
+  - Current timecode display
+  - Digit-by-digit entry with automatic formatting
+  - Pending operations (add, subtract, multiply, frame conversions)
+  - Frame rate selection with automatic timecode conversion
+  - Error handling with user-friendly messages
+
+- `KeypadView.swift` — Calculator button UI with:
+  - Number pad (0-9) with delete button
+  - Operation buttons (+, −, ×, =)
+  - Mode buttons (F→TC, TC→F, AC, C)
+  - Multiplier input field for multiply operations
+
+- `TimecodeDisplayView.swift` — Large SF Mono display:
+  - Text selection enabled for copy
+  - Frame count display below timecode
+  - Visual feedback for pending operations and errors
+
+- `FrameRatePicker.swift` — Compact dropdown menu for frame rate selection
+
+**Keyboard Handling:**
+- Uses NSViewRepresentable with NSView.keyDown() for macOS 13.0 compatibility
+- Supports numpad and top-row number keys
+- Operations: +, -, *, x, =, Enter, Delete, Escape, C
+
+**Build Commands:**
+```bash
+# Build via Xcode
+xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+
+# Run tests via SPM
+swift test
+
+# Open in Xcode
+open FrameCalculator.xcodeproj
+```
+
+**Key Files:**
+- `FrameCalculator/ViewModels/CalculatorViewModel.swift` — Main calculator logic
+- `FrameCalculator/Views/Calculator/CalculatorView.swift` — Main UI composition
+- `FrameCalculator/Views/Calculator/KeypadView.swift` — Button UI
+- `FrameCalculator/Views/Calculator/TimecodeDisplayView.swift` — Display component
+- `FrameCalculator/Views/Calculator/FrameRatePicker.swift` — Frame rate dropdown
+
+**Known Issues (deferred to Sprint 8):**
+- Entry validation visual feedback: Invalid timecode components (e.g., seconds > 59) are shown during entry but only validated on commit. Need clearer visual indication that entry is "draft" and may fail. See Sprint 8 notes.
 
 ---
 
@@ -118,32 +173,68 @@ Implement drag-and-drop video loading and metadata extraction.
 
 ### Deliverables
 
-- [ ] `VideoMetadata` model (duration, codec, bitrate, resolution, frame rate, color space, audio channels, file size)
-- [ ] `VideoLoader` service using AVFoundation
-- [ ] Drag-and-drop handler on main window
-- [ ] `MetadataPanel` view displaying extracted info
-- [ ] Auto-detect frame rate and set calculator accordingly
-- [ ] `AppState` to track current mode (calculator vs video)
-- [ ] Basic mode switching (calculator → video inspector)
+- [x] `VideoMetadata` model (duration, codec, bitrate, resolution, frame rate, color space, audio channels, file size)
+- [x] `VideoLoader` service using AVFoundation
+- [x] Drag-and-drop handler on main window
+- [x] `MetadataPanel` view displaying extracted info
+- [x] Auto-detect frame rate and set calculator accordingly
+- [x] `AppState` to track current mode (calculator vs video)
+- [x] Basic mode switching (calculator → video inspector)
 
 ### Acceptance Criteria
 
-- Drop .mov, .mp4, .m4v files onto window
-- Metadata panel shows all 8 metadata fields
-- Frame rate auto-populates calculator's frame rate selector
-- Unsupported files show appropriate error
-- Can return to calculator-only mode (close video)
+- [x] Drop .mov, .mp4, .m4v files onto window
+- [x] Metadata panel shows all 8 metadata fields
+- [x] Frame rate auto-populates calculator's frame rate selector
+- [x] Unsupported files show appropriate error
+- [x] Can return to calculator-only mode (close video)
 
 ### Notes
 
 Use `AVAsset.load(_:)` with async/await for metadata extraction. Handle files without embedded timecode gracefully (default to 00:00:00:00 start).
+
+### Implementation Notes (for future reference)
+
+**New Files Created:**
+- `FrameCalculator/Models/VideoMetadata.swift` — Video metadata value type with formatted display properties
+- `FrameCalculator/Services/VideoLoader.swift` — AVFoundation-based async video loader service (actor)
+- `FrameCalculator/App/AppState.swift` — Global app state managing mode and video loading
+- `FrameCalculator/Views/Metadata/MetadataPanel.swift` — Metadata display panel with Grid layout
+- `FrameCalculator/Views/Main/VideoInspectorView.swift` — Combined video player + calculator layout
+
+**Key Architecture Decisions:**
+- `VideoLoader` is an actor for thread-safe async video loading
+- `AppState` is a `@MainActor` class managing mode switching and video state
+- Drag-and-drop uses `UniformTypeIdentifiers` for file type detection
+- Files are copied to temp directory before loading (required for sandboxed access)
+- Frame rate auto-syncs to calculator via `onChange` when video loads
+
+**Metadata Extraction:**
+- Codec names extracted from `CMFormatDescription` FourCC codes
+- Color space from format description extensions
+- Audio channels counted from all audio tracks
+- Bitrate from `estimatedDataRate` on video track
+
+**Video Player:**
+- Uses `AVKit.VideoPlayer` for basic playback (full controls in Sprint 4)
+- Player created via `VideoLoader.createPlayer(for:)`
+- Close button overlay returns to calculator mode
+
+**Build Commands:**
+```bash
+# Build via Xcode
+xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+
+# Run tests via SPM
+swift test
+```
 
 ---
 
 ## Sprint 4: Video Player & Transport
 
 ### Goal
-Full video playback with professional transport controls.
+Full video playback with professional transport controls and bidirectional calculator sync.
 
 ### Deliverables
 
@@ -155,7 +246,7 @@ Full video playback with professional transport controls.
 - [ ] Periodic timecode update to calculator display
 - [ ] Frame stepping (←/→ arrow keys)
 - [ ] Shuttle speed indicator (1×, 2×, 4×, etc.)
-- [ ] `VideoInspectorView` — combined layout (player left, calculator right)
+- [ ] Bidirectional calculator ↔ player sync
 
 ### Acceptance Criteria
 
@@ -168,10 +259,18 @@ Full video playback with professional transport controls.
 - Timeline scrubbing is frame-accurate
 - Calculator display updates in real-time during playback
 - Responsive layout adapts to window resize
+- **Scrubbing/playback updates calculator timecode display**
+- **Typing timecode + Enter seeks playhead to that position**
 
 ### Notes
 
 Use `addPeriodicTimeObserver` with interval of `CMTime(value: 1, timescale: frameRate)` for smooth updates. Test with various codecs (ProRes, H.264, HEVC).
+
+**Bidirectional Sync Implementation:**
+- Player → Calculator: Use periodic time observer to update `CalculatorViewModel.currentTimecode` during playback/scrubbing
+- Calculator → Player: On Enter key (when in video mode), convert displayed timecode to CMTime and seek player
+- For videos without embedded TC, use elapsed time from 00:00:00:00
+- For videos with embedded TC, offset by start timecode when seeking
 
 ---
 
@@ -301,10 +400,26 @@ Test actual import in Resolve and Avid. Format quirks often only surface during 
 ### Goal
 Final polish, accessibility, and App Store submission preparation.
 
+### Known Issues to Address
+
+**Calculator Entry Validation (from Sprint 2 testing):**
+- Current behavior: Digits are formatted as entered (shifting left like a calculator), validation only occurs on operation/equals
+- Issue: User can see invalid timecode values during entry (e.g., `00:06:66:66` where seconds=66, frames=66)
+- Recommended fix: Show invalid portions in red/different color during entry to indicate "draft" input that will fail validation
+- The entry-then-validate approach is correct (user might type valid digits that temporarily form invalid intermediate values), but visual feedback should be clearer
+- Consider: Pulsing border, different text color for invalid components, or subtle "invalid" indicator
+
+**Typography:**
+- Switch from SF Mono to Space Mono for timecode display
+- Space Mono: https://fonts.google.com/specimen/Space+Mono
+- Bundle font with app (OFL license allows this)
+- Use Space Mono for all numeric/timecode display, SF Pro for UI text
+
 ### Deliverables
 
 - [ ] Dark mode refinement (colors, contrast, vibrancy)
 - [ ] Light mode support and testing
+- [ ] Bundle and use Space Mono typeface for timecode display
 - [ ] App icon (multiple sizes)
 - [ ] Menu bar integration (File, Edit, View, Window, Help)
 - [ ] Preferences window (default frame rate, default marker color)
@@ -362,8 +477,8 @@ Features explicitly deferred from 1.0:
 | Sprint | Status | Start Date | End Date | Notes |
 |--------|--------|------------|----------|-------|
 | 1 - Foundation | ✅ Complete | 2025-12-17 | 2025-12-17 | 51 tests passing, drop frame verified |
-| 2 - Calculator UI | Not Started | | | |
-| 3 - Video Loading | Not Started | | | |
+| 2 - Calculator UI | ✅ Complete | 2025-12-17 | 2025-12-17 | Full calculator UI with keypad, keyboard input, Xcode project |
+| 3 - Video Loading | ✅ Complete | 2025-12-17 | 2025-12-17 | Drag-drop, metadata display, mode switching, frame rate sync |
 | 4 - Video Player | Not Started | | | |
 | 5 - In/Out Points | Not Started | | | |
 | 6 - Markers | Not Started | | | |

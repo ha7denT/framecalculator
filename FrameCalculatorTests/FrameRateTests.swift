@@ -1,5 +1,5 @@
 import XCTest
-@testable import FrameCalculator
+@testable import FrameCalculatorCore
 
 final class FrameRateTests: XCTestCase {
 

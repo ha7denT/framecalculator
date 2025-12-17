@@ -3,7 +3,7 @@ import Foundation
 /// Represents video frame rates commonly used in professional video production.
 /// Drop frame rates use a timecode display format that skips certain frame numbers
 /// to maintain sync with real-world time.
-enum FrameRate: Hashable, Codable {
+public enum FrameRate: Hashable, Codable {
     case fps23_976
     case fps24
     case fps25
@@ -16,7 +16,7 @@ enum FrameRate: Hashable, Codable {
     case custom(Double)
 
     /// The actual frames per second as a Double value.
-    var framesPerSecond: Double {
+    public var framesPerSecond: Double {
         switch self {
         case .fps23_976:
             return 24000.0 / 1001.0  // 23.976...
@@ -42,7 +42,7 @@ enum FrameRate: Hashable, Codable {
     /// Whether this frame rate uses drop frame timecode display.
     /// Drop frame is a display format that skips frame numbers to keep
     /// timecode in sync with wall clock time for NTSC rates.
-    var isDropFrame: Bool {
+    public var isDropFrame: Bool {
         switch self {
         case .fps29_97_df:
             return true
@@ -53,7 +53,7 @@ enum FrameRate: Hashable, Codable {
 
     /// The nominal (integer) frame rate used for timecode display.
     /// For example, 29.97 displays as if it were 30fps.
-    var nominalFrameRate: Int {
+    public var nominalFrameRate: Int {
         switch self {
         case .fps23_976:
             return 24
@@ -77,7 +77,7 @@ enum FrameRate: Hashable, Codable {
     }
 
     /// Human-readable display name for the frame rate.
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .fps23_976:
             return "23.976"
@@ -103,7 +103,7 @@ enum FrameRate: Hashable, Codable {
     }
 
     /// All standard frame rates (excluding custom).
-    static var allStandardRates: [FrameRate] {
+    public static var allStandardRates: [FrameRate] {
         [.fps23_976, .fps24, .fps25, .fps29_97_df, .fps29_97_ndf, .fps30, .fps50, .fps59_94, .fps60]
     }
 }
@@ -120,7 +120,7 @@ extension FrameRate {
         case fps23_976, fps24, fps25, fps29_97_df, fps29_97_ndf, fps30, fps50, fps59_94, fps60, custom
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(FrameRateType.self, forKey: .type)
 
@@ -140,7 +140,7 @@ extension FrameRate {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {

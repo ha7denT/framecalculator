@@ -1,6 +1,9 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
+// This Package.swift is for running tests via `swift test`.
+// For building the app, use the Xcode project (FrameCalculator.xcodeproj).
+
 let package = Package(
     name: "FrameCalculator",
     platforms: [
@@ -8,19 +11,20 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "FrameCalculator",
-            targets: ["FrameCalculator"]
+            name: "FrameCalculatorCore",
+            targets: ["FrameCalculatorCore"]
         )
     ],
     targets: [
+        // Core library (Models only - for testing)
         .target(
-            name: "FrameCalculator",
-            path: "FrameCalculator",
-            exclude: ["App", "Views", "ViewModels"]  // Exclude UI components from library
+            name: "FrameCalculatorCore",
+            path: "FrameCalculator/Models"
         ),
+        // Tests
         .testTarget(
             name: "FrameCalculatorTests",
-            dependencies: ["FrameCalculator"],
+            dependencies: ["FrameCalculatorCore"],
             path: "FrameCalculatorTests"
         )
     ]
