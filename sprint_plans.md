@@ -238,29 +238,29 @@ Full video playback with professional transport controls and bidirectional calcu
 
 ### Deliverables
 
-- [ ] `VideoPlayerViewModel` managing AVPlayer state
-- [ ] `VideoPlayerView` wrapping AVKit player
-- [ ] `TransportControls` — play/pause, JKL shuttle
-- [ ] `TimelineView` — scrubber/timeline with playhead
-- [ ] Frame-accurate seeking (zero tolerance)
-- [ ] Periodic timecode update to calculator display
-- [ ] Frame stepping (←/→ arrow keys)
-- [ ] Shuttle speed indicator (1×, 2×, 4×, etc.)
-- [ ] Bidirectional calculator ↔ player sync
+- [x] `VideoPlayerViewModel` managing AVPlayer state
+- [x] `VideoPlayerView` wrapping AVKit player
+- [x] `TransportControls` — play/pause, JKL shuttle
+- [x] `TimelineView` — scrubber/timeline with playhead
+- [x] Frame-accurate seeking (zero tolerance)
+- [x] Periodic timecode update to calculator display
+- [x] Frame stepping (←/→ arrow keys)
+- [x] Shuttle speed indicator (1×, 2×, 4×, etc.)
+- [x] Bidirectional calculator ↔ player sync
 
 ### Acceptance Criteria
 
-- Space bar toggles play/pause
-- J = reverse (stacks: 1×, 2×, 4×)
-- K = stop
-- L = forward (stacks: 1×, 2×, 4×)
-- K+J or K+L = slow motion (optional, nice-to-have)
-- Arrow keys step exactly one frame
-- Timeline scrubbing is frame-accurate
-- Calculator display updates in real-time during playback
-- Responsive layout adapts to window resize
-- **Scrubbing/playback updates calculator timecode display**
-- **Typing timecode + Enter seeks playhead to that position**
+- [x] Space bar toggles play/pause
+- [x] J = reverse (stacks: 1×, 2×, 4×)
+- [x] K = stop
+- [x] L = forward (stacks: 1×, 2×, 4×)
+- [ ] K+J or K+L = slow motion (optional, nice-to-have — deferred)
+- [x] Arrow keys step exactly one frame
+- [x] Timeline scrubbing is frame-accurate
+- [x] Calculator display updates in real-time during playback
+- [x] Responsive layout adapts to window resize
+- [x] **Scrubbing/playback updates calculator timecode display**
+- [x] **Typing timecode + Enter seeks playhead to that position**
 
 ### Notes
 
@@ -271,6 +271,64 @@ Use `addPeriodicTimeObserver` with interval of `CMTime(value: 1, timescale: fram
 - Calculator → Player: On Enter key (when in video mode), convert displayed timecode to CMTime and seek player
 - For videos without embedded TC, use elapsed time from 00:00:00:00
 - For videos with embedded TC, offset by start timecode when seeking
+
+### Implementation Notes (for future reference)
+
+**New Files Created:**
+- `FrameCalculator/ViewModels/VideoPlayerViewModel.swift` — Manages AVPlayer state, shuttle control, time observer, frame stepping
+- `FrameCalculator/Views/VideoPlayer/TransportControls.swift` — Play/pause, JKL shuttle buttons, speed indicator
+- `FrameCalculator/Views/VideoPlayer/TimelineView.swift` — Scrubber, playhead, click-to-seek
+
+**Key Architecture Decisions:**
+- `VideoPlayerViewModel` is `@MainActor` isolated for thread-safe UI updates
+- `ShuttleState` enum tracks -4× to +4× playback speeds
+- Periodic time observer updates at frame-rate interval for smooth display
+- Bidirectional sync: player updates calculator via callback, calculator seeks player via Enter key
+
+**Shuttle Implementation:**
+- J key increases reverse speed: stopped→-1×→-2×→-4×
+- L key increases forward speed: stopped→1×→2×→4×
+- K key stops playback
+- Visual indicator shows current shuttle speed with colored bars
+
+**Keyboard Handling:**
+- Uses `NSViewRepresentable` with custom `NSView.keyDown()` for macOS 13.0 compatibility
+- Handles Space (play/pause), J/K/L (shuttle), arrows (frame step), Enter (seek)
+- Separate keyboard handler for video mode (`VideoKeyboardHandler`) to avoid conflicts with calculator
+
+**Build Commands:**
+```bash
+# Build via Xcode
+xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+
+# Run tests via SPM
+swift test
+```
+
+### Bug Fixes Applied
+
+**Window Sizing:**
+- Calculator mode: Window resizes to 320×520 on launch and when closing video
+- Video mode: Window sizes naturally to fit video content
+- Video display explicitly sized based on video dimensions (max height 700px, width calculated from aspect ratio) to eliminate black bars
+
+**AVKit Controls:**
+- Created `CustomVideoPlayerView` using `AVPlayerView` with `controlsStyle = .none` to hide default AVKit controls
+- Prevents duplicate playhead UI on hover
+
+**Transport Controls:**
+- Replaced J/K/L text labels with SF Symbols (`backward.fill`, `play.fill`/`pause.fill`, `forward.fill`)
+- Fixed play button to call `togglePlayPause()` instead of `handleK()`
+
+**Keyboard Handling:**
+- Fixed keyboard handler to properly capture focus in video mode
+- Added number key routing (0-9) to calculator when in video inspector
+- Enter key commits calculator entry and seeks player to that timecode
+
+**Layout:**
+- Video player area sized to exact video dimensions using metadata
+- Right panel fixed at 320px width
+- Timeline and transport controls always visible below video
 
 ---
 
@@ -479,7 +537,7 @@ Features explicitly deferred from 1.0:
 | 1 - Foundation | ✅ Complete | 2025-12-17 | 2025-12-17 | 51 tests passing, drop frame verified |
 | 2 - Calculator UI | ✅ Complete | 2025-12-17 | 2025-12-17 | Full calculator UI with keypad, keyboard input, Xcode project |
 | 3 - Video Loading | ✅ Complete | 2025-12-17 | 2025-12-17 | Drag-drop, metadata display, mode switching, frame rate sync |
-| 4 - Video Player | Not Started | | | |
+| 4 - Video Player | ✅ Complete | 2025-12-17 | 2025-12-17 | Transport controls, JKL shuttle, bidirectional sync |
 | 5 - In/Out Points | Not Started | | | |
 | 6 - Markers | Not Started | | | |
 | 7 - Export | Not Started | | | |

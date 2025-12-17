@@ -38,6 +38,36 @@ struct ContentView: View {
                 calculatorVM.frameRate = metadata.matchingFrameRate
             }
         }
+        .onChange(of: appState.mode) { newMode in
+            // Only resize when returning to calculator mode
+            resizeWindowForMode(newMode)
+        }
+        .onAppear {
+            // Set correct size on launch
+            resizeWindowForMode(.calculator)
+        }
+    }
+
+    // MARK: - Window Management
+
+    private func resizeWindowForMode(_ mode: AppMode) {
+        // Only resize when returning to calculator mode
+        // Video mode sizes itself naturally via SwiftUI content sizing
+        guard mode == .calculator else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            guard let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first else { return }
+
+            let targetSize = NSSize(width: 320, height: 520)
+            let currentFrame = window.frame
+            let newFrame = NSRect(
+                x: currentFrame.origin.x,
+                y: currentFrame.origin.y + currentFrame.height - targetSize.height,
+                width: targetSize.width,
+                height: targetSize.height
+            )
+            window.setFrame(newFrame, display: true, animate: true)
+        }
     }
 
     // MARK: - Standalone Calculator

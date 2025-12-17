@@ -21,6 +21,10 @@
 		FC00000C001 /* VideoLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC00000C000 /* VideoLoader.swift */; };
 		FC00000D001 /* MetadataPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC00000D000 /* MetadataPanel.swift */; };
 		FC00000E001 /* VideoInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC00000E000 /* VideoInspectorView.swift */; };
+		FC000011001 /* VideoPlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000011000 /* VideoPlayerViewModel.swift */; };
+		FC000012001 /* TransportControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000012000 /* TransportControls.swift */; };
+		FC000013001 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000013000 /* TimelineView.swift */; };
+		FC000015001 /* CustomVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000015000 /* CustomVideoPlayerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +43,10 @@
 		FC00000C000 /* VideoLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoLoader.swift; sourceTree = "<group>"; };
 		FC00000D000 /* MetadataPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataPanel.swift; sourceTree = "<group>"; };
 		FC00000E000 /* VideoInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInspectorView.swift; sourceTree = "<group>"; };
+		FC000011000 /* VideoPlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewModel.swift; sourceTree = "<group>"; };
+		FC000012000 /* TransportControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportControls.swift; sourceTree = "<group>"; };
+		FC000013000 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		FC000015000 /* CustomVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomVideoPlayerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				FC000005000 /* CalculatorViewModel.swift */,
+				FC000011000 /* VideoPlayerViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -112,9 +121,20 @@
 			children = (
 				FC000000A00 /* Main */,
 				FC000000B00 /* Calculator */,
+				FC000014000 /* VideoPlayer */,
 				FC000010000 /* Metadata */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		FC000014000 /* VideoPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				FC000012000 /* TransportControls.swift */,
+				FC000013000 /* TimelineView.swift */,
+				FC000015000 /* CustomVideoPlayerView.swift */,
+			);
+			path = VideoPlayer;
 			sourceTree = "<group>";
 		};
 		FC000000A00 /* Main */ = {
@@ -235,6 +255,10 @@
 				FC00000C001 /* VideoLoader.swift in Sources */,
 				FC00000D001 /* MetadataPanel.swift in Sources */,
 				FC00000E001 /* VideoInspectorView.swift in Sources */,
+				FC000011001 /* VideoPlayerViewModel.swift in Sources */,
+				FC000012001 /* TransportControls.swift in Sources */,
+				FC000013001 /* TimelineView.swift in Sources */,
+				FC000015001 /* CustomVideoPlayerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
