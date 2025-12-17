@@ -4,6 +4,12 @@ import SwiftUI
 struct TimelineView: View {
     @ObservedObject var viewModel: VideoPlayerViewModel
 
+    /// Markers to display on the timeline.
+    let markers: [Marker]
+
+    /// Callback when a marker is tapped.
+    var onMarkerTapped: ((Marker) -> Void)?
+
     /// Whether the user is currently dragging the playhead.
     @State private var isDragging = false
 
@@ -49,6 +55,19 @@ struct TimelineView: View {
                 if let outProgress = viewModel.outPointProgress {
                     InOutMarker(type: .outPoint, color: outPointColor)
                         .offset(x: CGFloat(outProgress) * geometry.size.width - 4)
+                }
+
+                // Markers
+                ForEach(markers) { marker in
+                    let markerProgress = viewModel.totalFrames > 0
+                        ? Double(marker.timecodeFrames) / Double(viewModel.totalFrames)
+                        : 0
+                    TimelineMarkerView(marker: marker)
+                        .offset(x: CGFloat(markerProgress) * geometry.size.width - 3)
+                        .contentShape(Rectangle().size(width: 16, height: 20))
+                        .onTapGesture {
+                            onMarkerTapped?(marker)
+                        }
                 }
 
                 // Playhead
@@ -115,9 +134,15 @@ struct TimelineView: View {
 struct TimelineWithTimecode: View {
     @ObservedObject var viewModel: VideoPlayerViewModel
 
+    /// Markers to display on the timeline.
+    let markers: [Marker]
+
+    /// Callback when a marker is tapped.
+    var onMarkerTapped: ((Marker) -> Void)?
+
     var body: some View {
         VStack(spacing: 4) {
-            TimelineView(viewModel: viewModel)
+            TimelineView(viewModel: viewModel, markers: markers, onMarkerTapped: onMarkerTapped)
 
             HStack {
                 // Current timecode
@@ -176,14 +201,21 @@ struct InOutMarker: View {
 
 #Preview {
     VStack(spacing: 20) {
-        TimelineView(viewModel: VideoPlayerViewModel())
+        TimelineView(viewModel: VideoPlayerViewModel(), markers: [])
 
-        TimelineWithTimecode(viewModel: VideoPlayerViewModel())
+        TimelineWithTimecode(viewModel: VideoPlayerViewModel(), markers: [])
 
-        // Preview markers
+        // Preview In/Out markers
         HStack(spacing: 20) {
             InOutMarker(type: .inPoint, color: .yellow)
             InOutMarker(type: .outPoint, color: .yellow)
+        }
+
+        // Preview timeline markers
+        HStack(spacing: 12) {
+            ForEach(MarkerColor.allCases, id: \.self) { color in
+                TimelineMarkerView(marker: Marker(timecodeFrames: 0, color: color))
+            }
         }
     }
     .padding()

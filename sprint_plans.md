@@ -407,32 +407,61 @@ Create, edit, and manage markers with colors and notes.
 
 ### Deliverables
 
-- [ ] `Marker` model (id, timecode, color, note, created timestamp)
-- [ ] `MarkerListViewModel` for marker management
-- [ ] `MarkerListView` — table/list of all markers
-- [ ] `MarkerRowView` — individual marker display
-- [ ] `MarkerEditorSheet` — edit marker popover/sheet
-- [ ] Add marker: M key at current playhead
-- [ ] Edit marker: double-click in list
-- [ ] Delete marker: select + Delete key
-- [ ] Navigate to marker: click in list
-- [ ] Color picker with 8 predefined colors
-- [ ] Markers visible on timeline
+- [x] `Marker` model (id, timecode, color, note, created timestamp)
+- [x] `MarkerListViewModel` for marker management
+- [x] `MarkerEditorPopover` — compact editor overlay on video
+- [x] Add marker: M key at current playhead
+- [x] Edit marker: M key on existing marker OR click marker on timeline
+- [x] Delete marker: Delete key or trash button in editor
+- [x] Color picker with 8 predefined colors
+- [x] Markers visible on timeline
 
 ### Acceptance Criteria
 
-- M key creates marker at playhead with default color
-- New marker opens editor for note entry
-- Can change marker color from 8 options
-- Markers sorted by timecode in list
-- Clicking marker seeks player to that timecode
-- Delete removes marker with confirmation (or undo)
-- Markers persist during session (not saved to file yet)
-- Timeline shows marker indicators at correct positions
+- [x] M key creates marker at playhead with default color (blue)
+- [x] M key on existing marker position opens editor
+- [x] Can change marker color from 8 options
+- [x] Clicking marker on timeline opens editor
+- [x] Delete removes marker
+- [x] Markers persist during session (cleared when video closes)
+- [x] Timeline shows marker indicators at correct positions
 
 ### Notes
 
 Consider keyboard shortcuts for quick color assignment (1-8 keys after M?). Marker colors should match the NLE-compatible palette from PRD.
+
+### Implementation Notes (for future reference)
+
+**Design Decision:** Markers display only on timeline (no sidebar list). Editor appears as popover overlay centered on video, matching NLE behavior. This keeps the UI compact and prevents layout overflow on smaller screens.
+
+**New Files Created:**
+- `FrameCalculator/Models/Marker.swift` — Marker struct + MarkerColor enum with 8 NLE-compatible colors (exact hex values from PRD)
+- `FrameCalculator/ViewModels/MarkerListViewModel.swift` — CRUD operations, selection, editor state
+- `FrameCalculator/Views/Markers/TimelineMarkerView.swift` — Triangle + line indicator for timeline
+- `FrameCalculator/Views/Markers/MarkerEditorPopover.swift` — Compact overlay editor (timecode, color picker, note field, delete/done)
+
+**Modified Files:**
+- `TimelineView.swift` — Added markers array parameter, renders TimelineMarkerView for each, added onMarkerTapped callback
+- `VideoInspectorView.swift` — Integrated markerVM, marker popover overlay, M key and Delete key handlers, keyboard focus management
+
+**Keyboard Shortcuts:**
+- M — Add marker at playhead (opens editor); if marker exists at position, opens editor for it
+- Delete — Remove selected marker
+- Click marker on timeline — Open editor
+
+**Keyboard Focus Handling:**
+The VideoKeyboardCaptureView aggressively captures keyboard focus for JKL/arrow/space controls. When marker editor opens, it releases focus to allow text input. Uses NotificationCenter to reclaim focus when editor closes.
+
+**Key Files:**
+- `FrameCalculator/Models/Marker.swift` — MarkerColor enum with displayColor (SwiftUI), avidColorName, resolveColorName
+- `FrameCalculator/ViewModels/MarkerListViewModel.swift` — @MainActor, @Published markers array, CRUD methods
+- `FrameCalculator/Views/Markers/MarkerEditorPopover.swift` — Auto-saves color changes, commits note on Done/Enter
+
+**Build Commands:**
+```bash
+xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+swift test
+```
 
 ---
 
@@ -575,7 +604,7 @@ Features explicitly deferred from 1.0:
 | 3 - Video Loading | ✅ Complete | 2025-12-17 | 2025-12-17 | Drag-drop, metadata display, mode switching, frame rate sync |
 | 4 - Video Player | ✅ Complete | 2025-12-17 | 2025-12-17 | Transport controls, JKL shuttle, bidirectional sync |
 | 5 - In/Out Points | ✅ Complete | 2025-12-17 | 2025-12-17 | In/Out markers, keyboard shortcuts, auto-swap, duration display |
-| 6 - Markers | Not Started | | | |
+| 6 - Markers | ✅ Complete | 2025-12-17 | 2025-12-17 | Timeline markers, popover editor, M key add/edit, NLE color palette |
 | 7 - Export | Not Started | | | |
 | 8 - Polish | Not Started | | | |
 

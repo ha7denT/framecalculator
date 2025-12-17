@@ -1,11 +1,18 @@
 import SwiftUI
 import AVKit
 
+// MARK: - Notification for keyboard focus
+
+extension Notification.Name {
+    static let reclaimKeyboardFocus = Notification.Name("reclaimKeyboardFocus")
+}
+
 /// The video inspection mode layout combining video player, calculator, and metadata.
 struct VideoInspectorView: View {
     @ObservedObject var appState: AppState
     @ObservedObject var calculatorVM: CalculatorViewModel
     @StateObject private var playerVM = VideoPlayerViewModel()
+    @StateObject private var markerVM = MarkerListViewModel()
 
     /// Tracks whether the view has been configured with the player.
     @State private var isConfigured = false
@@ -35,8 +42,14 @@ struct VideoInspectorView: View {
         .onChange(of: appState.player) { _ in
             configurePlayer()
         }
+        .onChange(of: markerVM.isEditorPresented) { isPresented in
+            if !isPresented {
+                // Editor closed - post notification to reclaim keyboard focus
+                NotificationCenter.default.post(name: .reclaimKeyboardFocus, object: nil)
+            }
+        }
         .background(
-            VideoKeyboardHandler(playerVM: playerVM, calculatorVM: calculatorVM)
+            VideoKeyboardHandler(playerVM: playerVM, calculatorVM: calculatorVM, markerVM: markerVM)
                 .frame(width: 0, height: 0)
         )
     }
@@ -65,27 +78,44 @@ struct VideoInspectorView: View {
                     }
                 }()
 
-                ZStack(alignment: .topTrailing) {
-                    if let player = appState.player {
-                        CustomVideoPlayerView(player: player)
-                            .frame(width: displayWidth, height: displayHeight)
-                    } else {
-                        Color.black
-                            .frame(width: displayWidth, height: displayHeight)
-                            .overlay(emptyPlayerState)
+                ZStack {
+                    ZStack(alignment: .topTrailing) {
+                        if let player = appState.player {
+                            CustomVideoPlayerView(player: player)
+                                .frame(width: displayWidth, height: displayHeight)
+                        } else {
+                            Color.black
+                                .frame(width: displayWidth, height: displayHeight)
+                                .overlay(emptyPlayerState)
+                        }
+
+                        // Close button overlay
+                        closeButton
+                            .padding(4)
                     }
 
-                    // Close button overlay
-                    closeButton
-                        .padding(4)
+                    // Marker editor popover (centered over video)
+                    if markerVM.isEditorPresented {
+                        MarkerEditorPopover(
+                            markerVM: markerVM,
+                            frameRate: playerVM.frameRate,
+                            startTimecodeFrames: playerVM.startTimecodeFrames
+                        )
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             // Timeline
-            TimelineWithTimecode(viewModel: playerVM)
-                .padding(.vertical, 8)
-                .background(Color(NSColor.windowBackgroundColor))
+            TimelineWithTimecode(
+                viewModel: playerVM,
+                markers: markerVM.sortedMarkers,
+                onMarkerTapped: { marker in
+                    markerVM.openEditor(for: marker)
+                }
+            )
+            .padding(.vertical, 8)
+            .background(Color(NSColor.windowBackgroundColor))
 
             // Transport controls
             TransportControls(viewModel: playerVM)
@@ -138,6 +168,8 @@ struct VideoInspectorView: View {
                 // Metadata panel (static file info at bottom)
                 MetadataPanel(metadata: appState.currentMetadata!)
                     .padding()
+
+                Spacer()
             }
         }
         .background(Color(NSColor.windowBackgroundColor))
@@ -147,7 +179,12 @@ struct VideoInspectorView: View {
 
     private func closeVideo() {
         playerVM.reset()
+        markerVM.clearAllMarkers()
         appState.closeVideo()
+    }
+
+    private func addMarkerAtPlayhead() {
+        markerVM.addMarker(at: playerVM.currentFrames)
     }
 
     private func configurePlayer() {
@@ -173,17 +210,31 @@ struct VideoInspectorView: View {
 struct VideoKeyboardHandler: NSViewRepresentable {
     let playerVM: VideoPlayerViewModel
     let calculatorVM: CalculatorViewModel
+    let markerVM: MarkerListViewModel
 
     func makeNSView(context: Context) -> VideoKeyboardCaptureView {
         let view = VideoKeyboardCaptureView()
         view.playerVM = playerVM
         view.calculatorVM = calculatorVM
+        view.markerVM = markerVM
         return view
     }
 
     func updateNSView(_ nsView: VideoKeyboardCaptureView, context: Context) {
+        let wasEditorOpen = nsView.wasEditorOpen
+        let isEditorOpen = markerVM.isEditorPresented
+
         nsView.playerVM = playerVM
         nsView.calculatorVM = calculatorVM
+        nsView.markerVM = markerVM
+        nsView.wasEditorOpen = isEditorOpen
+
+        // Reclaim focus when editor closes
+        if wasEditorOpen && !isEditorOpen {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                nsView.window?.makeFirstResponder(nsView)
+            }
+        }
     }
 }
 
@@ -191,6 +242,9 @@ struct VideoKeyboardHandler: NSViewRepresentable {
 class VideoKeyboardCaptureView: NSView {
     var playerVM: VideoPlayerViewModel?
     var calculatorVM: CalculatorViewModel?
+    var markerVM: MarkerListViewModel?
+    var wasEditorOpen: Bool = false
+    private var focusObserver: NSObjectProtocol?
 
     override var acceptsFirstResponder: Bool { true }
 
@@ -200,6 +254,23 @@ class VideoKeyboardCaptureView: NSView {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.window?.makeFirstResponder(self)
         }
+
+        // Listen for focus reclaim notification
+        focusObserver = NotificationCenter.default.addObserver(
+            forName: .reclaimKeyboardFocus,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self?.window?.makeFirstResponder(self)
+            }
+        }
+    }
+
+    deinit {
+        if let observer = focusObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     override func becomeFirstResponder() -> Bool {
@@ -207,8 +278,17 @@ class VideoKeyboardCaptureView: NSView {
     }
 
     override func resignFirstResponder() -> Bool {
+        // Don't reclaim focus if marker editor is open (user is typing in text field)
+        if markerVM?.isEditorPresented == true {
+            return true
+        }
+
         // Try to reclaim first responder status after a brief delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            // Don't reclaim if editor is now open
+            if self?.markerVM?.isEditorPresented == true {
+                return
+            }
             if self?.window?.firstResponder != self {
                 self?.window?.makeFirstResponder(self)
             }
@@ -217,6 +297,12 @@ class VideoKeyboardCaptureView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // Don't intercept keyboard events when marker editor is open
+        if markerVM?.isEditorPresented == true {
+            super.keyDown(with: event)
+            return
+        }
+
         guard let playerVM = playerVM else {
             super.keyDown(with: event)
             return
@@ -253,6 +339,12 @@ class VideoKeyboardCaptureView: NSView {
         case 36: // Enter/Return - seek to typed timecode
             Task { @MainActor in
                 self.handleEnterKey()
+            }
+            return true
+
+        case 51: // Delete key - remove selected marker
+            Task { @MainActor in
+                self.markerVM?.deleteSelectedMarker()
             }
             return true
 
@@ -328,8 +420,33 @@ class VideoKeyboardCaptureView: NSView {
             }
             return true
 
+        // Marker control
+        case "m":
+            Task { @MainActor in
+                self.handleMKey()
+            }
+            return true
+
         default:
             return false
+        }
+    }
+
+    @MainActor
+    private func handleMKey() {
+        guard let playerVM = playerVM,
+              let markerVM = markerVM else { return }
+
+        let currentFrames = playerVM.currentFrames
+
+        // Check if a marker already exists at this position (within 1 frame tolerance)
+        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: 1) {
+            // Open editor for existing marker
+            markerVM.openEditor(for: existingMarker)
+        } else {
+            // Add new marker and open editor
+            let newMarker = markerVM.addMarker(at: currentFrames)
+            markerVM.openEditor(for: newMarker)
         }
     }
 
