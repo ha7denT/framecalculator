@@ -5,6 +5,7 @@ import AVKit
 
 extension Notification.Name {
     static let reclaimKeyboardFocus = Notification.Name("reclaimKeyboardFocus")
+    static let showExportDialog = Notification.Name("showExportDialog")
 }
 
 /// The video inspection mode layout combining video player, calculator, and metadata.
@@ -16,6 +17,9 @@ struct VideoInspectorView: View {
 
     /// Tracks whether the view has been configured with the player.
     @State private var isConfigured = false
+
+    /// Controls export dialog presentation.
+    @State private var isExportDialogPresented = false
 
     /// Video aspect ratio for layout calculations
     private var videoAspectRatio: CGFloat {
@@ -49,9 +53,30 @@ struct VideoInspectorView: View {
             }
         }
         .background(
-            VideoKeyboardHandler(playerVM: playerVM, calculatorVM: calculatorVM, markerVM: markerVM)
+            VideoKeyboardHandler(
+                playerVM: playerVM,
+                calculatorVM: calculatorVM,
+                markerVM: markerVM,
+                onExportRequested: { isExportDialogPresented = true }
+            )
                 .frame(width: 0, height: 0)
         )
+        .sheet(isPresented: $isExportDialogPresented) {
+            if let metadata = appState.currentMetadata {
+                ExportDialogView(
+                    isPresented: $isExportDialogPresented,
+                    markers: markerVM.sortedMarkers,
+                    frameRate: playerVM.frameRate,
+                    sourceFilename: metadata.filename
+                )
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showExportDialog)) { _ in
+            // Show export dialog when triggered from menu bar
+            if !markerVM.markers.isEmpty {
+                isExportDialogPresented = true
+            }
+        }
     }
 
     // MARK: - Video Player Area
@@ -211,12 +236,14 @@ struct VideoKeyboardHandler: NSViewRepresentable {
     let playerVM: VideoPlayerViewModel
     let calculatorVM: CalculatorViewModel
     let markerVM: MarkerListViewModel
+    var onExportRequested: (() -> Void)?
 
     func makeNSView(context: Context) -> VideoKeyboardCaptureView {
         let view = VideoKeyboardCaptureView()
         view.playerVM = playerVM
         view.calculatorVM = calculatorVM
         view.markerVM = markerVM
+        view.onExportRequested = onExportRequested
         return view
     }
 
@@ -227,6 +254,7 @@ struct VideoKeyboardHandler: NSViewRepresentable {
         nsView.playerVM = playerVM
         nsView.calculatorVM = calculatorVM
         nsView.markerVM = markerVM
+        nsView.onExportRequested = onExportRequested
         nsView.wasEditorOpen = isEditorOpen
 
         // Reclaim focus when editor closes
@@ -243,6 +271,7 @@ class VideoKeyboardCaptureView: NSView {
     var playerVM: VideoPlayerViewModel?
     var calculatorVM: CalculatorViewModel?
     var markerVM: MarkerListViewModel?
+    var onExportRequested: (() -> Void)?
     var wasEditorOpen: Bool = false
     private var focusObserver: NSObjectProtocol?
 
@@ -426,6 +455,16 @@ class VideoKeyboardCaptureView: NSView {
                 self.handleMKey()
             }
             return true
+
+        // Export markers (⌘E)
+        case "e":
+            if event.modifierFlags.contains(.command) {
+                Task { @MainActor in
+                    self.onExportRequested?()
+                }
+                return true
+            }
+            return false
 
         default:
             return false

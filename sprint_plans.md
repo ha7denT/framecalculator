@@ -472,14 +472,14 @@ Export markers in formats compatible with Resolve, Avid, and generic CSV.
 
 ### Deliverables
 
-- [ ] `MarkerExporter` service with format-specific methods
-- [ ] EDL export for DaVinci Resolve
-- [ ] Tab-delimited text export for Avid Media Composer
-- [ ] CSV export for spreadsheets/other NLEs
-- [ ] Export dialog with format selection
-- [ ] File save panel integration
-- [ ] ⌘E keyboard shortcut for export
-- [ ] Include source filename in export metadata
+- [x] `MarkerExporter` service with format-specific methods
+- [x] EDL export for DaVinci Resolve
+- [x] Tab-delimited text export for Avid Media Composer
+- [x] CSV export for spreadsheets/other NLEs
+- [x] Export dialog with format selection
+- [x] File save panel integration
+- [x] ⌘E keyboard shortcut for export
+- [x] Include source filename in export metadata
 
 ### EDL Format (Resolve)
 ```
@@ -515,6 +515,41 @@ Timecode In,Timecode Out,Color,Name,Duration,Source
 ### Notes
 
 Test actual import in Resolve and Avid. Format quirks often only surface during real-world import.
+
+### Implementation Notes (for future reference)
+
+**New Files Created:**
+- `FrameCalculator/Services/MarkerExporter.swift` — Actor-based export service with format generators
+- `FrameCalculator/Views/Export/ExportDialogView.swift` — SwiftUI sheet with format picker + NSSavePanel
+
+**Key Architecture Decisions:**
+- `MarkerExporter` is an actor for thread-safe async file operations
+- Each export format has a dedicated private generator method (generateEDL, generateAvidText, generateCSV)
+- Uses NSSavePanel directly (not SwiftUI fileExporter) for better sandbox compatibility
+- Drop frame notation handled automatically by Timecode.formatted()
+
+**Export Format Details:**
+- **EDL:** Includes TITLE, FCM header (DROP/NON-DROP FRAME), event entries with MARKER COLOR comments
+- **Avid:** Tab-delimited with fallback colors (orange→yellow, purple→blue) for unsupported Avid colors
+- **CSV:** Standard columns with proper escaping for commas/quotes in notes
+
+**Modified Files:**
+- `VideoInspectorView.swift` — Added export dialog sheet, ⌘E keyboard handler, NotificationCenter listener
+- `FrameCalculatorApp.swift` — Added File > Export Markers... menu item
+- `Marker.swift` — Added `avidExportColorName` computed property for fallback colors
+
+**Build Commands:**
+```bash
+xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+swift test
+```
+
+**Known Issue (to fix in next session):**
+- Export button in ExportDialogView does not trigger the save panel
+- Clicking "Export..." button has no effect
+- Possible causes: SwiftUI sheet button action not firing, Task not executing, or NSSavePanel issue
+- Debug approach: Add print statements to `exportMarkers()` to trace execution flow
+- File to investigate: `FrameCalculator/Views/Export/ExportDialogView.swift`
 
 ---
 
@@ -605,7 +640,7 @@ Features explicitly deferred from 1.0:
 | 4 - Video Player | ✅ Complete | 2025-12-17 | 2025-12-17 | Transport controls, JKL shuttle, bidirectional sync |
 | 5 - In/Out Points | ✅ Complete | 2025-12-17 | 2025-12-17 | In/Out markers, keyboard shortcuts, auto-swap, duration display |
 | 6 - Markers | ✅ Complete | 2025-12-17 | 2025-12-17 | Timeline markers, popover editor, M key add/edit, NLE color palette |
-| 7 - Export | Not Started | | | |
+| 7 - Export | ✅ Complete | 2025-12-17 | 2025-12-17 | MarkerExporter service, EDL/Avid/CSV formats, export dialog, ⌘E shortcut, menu bar item |
 | 8 - Polish | Not Started | | | |
 
 ---

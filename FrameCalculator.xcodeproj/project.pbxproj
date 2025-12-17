@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */; };
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
+		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
+		9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */; };
 		E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */; };
 		F3C60314DAE520505FAA2008 /* Marker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D3365CC63152809B0FE50E /* Marker.swift */; };
 		FC000001001 /* FrameCalculatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000001000 /* FrameCalculatorApp.swift */; };
@@ -36,10 +38,12 @@
 /* Begin PBXFileReference section */
 		366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerRowView.swift; sourceTree = "<group>"; };
 		58D3365CC63152809B0FE50E /* Marker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Marker.swift; sourceTree = "<group>"; };
+		793A032AA16E395D28CF02A1 /* MarkerExporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerExporter.swift; sourceTree = "<group>"; };
 		A972022BAA1DDEED330268C3 /* TimelineMarkerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineMarkerView.swift; sourceTree = "<group>"; };
 		BF6177DD14F7E0AF882DE1A4 /* MarkerListViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerListViewModel.swift; sourceTree = "<group>"; };
 		CC7CCDAF4342677F1085A400 /* MarkerListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerListView.swift; sourceTree = "<group>"; };
 		E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerEditorSheet.swift; sourceTree = "<group>"; };
+		F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportDialogView.swift; sourceTree = "<group>"; };
 		FC000000100 /* FrameCalculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FrameCalculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC000001000 /* FrameCalculatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCalculatorApp.swift; sourceTree = "<group>"; };
 		FC000002000 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -72,6 +76,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A98C64B4864F4502DC1E39B2 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */,
+			);
+			name = Export;
+			path = Export;
+			sourceTree = "<group>";
+		};
 		FBF4146DB5E330F333E62270 /* Markers */ = {
 			isa = PBXGroup;
 			children = (
@@ -150,6 +163,7 @@
 				FC000014000 /* VideoPlayer */,
 				FC000010000 /* Metadata */,
 				FBF4146DB5E330F333E62270 /* Markers */,
+				A98C64B4864F4502DC1E39B2 /* Export */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -178,6 +192,7 @@
 			isa = PBXGroup;
 			children = (
 				FC00000C000 /* VideoLoader.swift */,
+				793A032AA16E395D28CF02A1 /* MarkerExporter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -292,6 +307,8 @@
 				E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */,
 				2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */,
 				25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */,
+				2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */,
+				9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

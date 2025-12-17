@@ -18,6 +18,14 @@ struct FrameCalculatorApp: App {
                 Divider()
             }
 
+            // File menu - Export Markers
+            CommandGroup(after: .importExport) {
+                Button("Export Markers...") {
+                    NotificationCenter.default.post(name: .showExportDialog, object: nil)
+                }
+                .keyboardShortcut("e", modifiers: .command)
+            }
+
             // Keyboard shortcuts help
             CommandGroup(replacing: .help) {
                 Button("Keyboard Shortcuts") {

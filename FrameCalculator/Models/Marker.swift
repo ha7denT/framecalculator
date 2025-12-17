@@ -44,6 +44,16 @@ enum MarkerColor: String, CaseIterable, Codable {
     var resolveColorName: String {
         rawValue.capitalized
     }
+
+    /// Export name for Avid with fallback for unsupported colors.
+    /// Orange maps to yellow, purple maps to blue.
+    var avidExportColorName: String {
+        if avidColorName.isEmpty {
+            // Provide fallback for unsupported colors
+            return self == .orange ? "yellow" : "blue"
+        }
+        return avidColorName
+    }
 }
 
 /// A marker representing a point of interest in the video timeline.
