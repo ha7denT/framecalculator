@@ -10,16 +10,9 @@ struct KeypadView: View {
         VStack(spacing: buttonSpacing) {
             // Operation mode row
             HStack(spacing: buttonSpacing) {
-                OperationButton(
-                    title: "F→TC",
-                    isSelected: viewModel.pendingOperation == .framesToTimecode,
-                    action: { viewModel.selectOperation(.framesToTimecode) }
-                )
-                OperationButton(
-                    title: "TC→F",
-                    isSelected: viewModel.pendingOperation == .timecodeToFrames,
-                    action: { viewModel.selectOperation(.timecodeToFrames) }
-                )
+                // Frame/Timecode toggle button
+                FrameTimecodeToggleButton(viewModel: viewModel)
+
                 OperationButton(
                     title: "AC",
                     style: .destructive,
@@ -34,28 +27,8 @@ struct KeypadView: View {
 
             // Number pad with operators
             HStack(spacing: buttonSpacing) {
-                // Numbers grid
-                VStack(spacing: buttonSpacing) {
-                    HStack(spacing: buttonSpacing) {
-                        NumberButton(digit: 7) { viewModel.enterDigit(7) }
-                        NumberButton(digit: 8) { viewModel.enterDigit(8) }
-                        NumberButton(digit: 9) { viewModel.enterDigit(9) }
-                    }
-                    HStack(spacing: buttonSpacing) {
-                        NumberButton(digit: 4) { viewModel.enterDigit(4) }
-                        NumberButton(digit: 5) { viewModel.enterDigit(5) }
-                        NumberButton(digit: 6) { viewModel.enterDigit(6) }
-                    }
-                    HStack(spacing: buttonSpacing) {
-                        NumberButton(digit: 1) { viewModel.enterDigit(1) }
-                        NumberButton(digit: 2) { viewModel.enterDigit(2) }
-                        NumberButton(digit: 3) { viewModel.enterDigit(3) }
-                    }
-                    HStack(spacing: buttonSpacing) {
-                        NumberButton(digit: 0, isWide: true) { viewModel.enterDigit(0) }
-                        DeleteButton { viewModel.deleteDigit() }
-                    }
-                }
+                // Numbers grid with grid lines
+                NumberPadGrid(viewModel: viewModel, buttonSpacing: buttonSpacing)
 
                 // Operators column
                 VStack(spacing: buttonSpacing) {
@@ -113,6 +86,74 @@ private struct NumberButton: View {
     }
 }
 
+/// Number pad grid with subtle grid lines between buttons.
+private struct NumberPadGrid: View {
+    @ObservedObject var viewModel: CalculatorViewModel
+    let buttonSpacing: CGFloat
+
+    private let gridLineColor = Color.primary.opacity(0.1)
+    private let buttonWidth: CGFloat = 56
+    private let buttonHeight: CGFloat = 48
+
+    var body: some View {
+        ZStack {
+            // Grid lines background
+            gridLines
+
+            // Buttons
+            VStack(spacing: buttonSpacing) {
+                HStack(spacing: buttonSpacing) {
+                    NumberButton(digit: 7) { viewModel.enterDigit(7) }
+                    NumberButton(digit: 8) { viewModel.enterDigit(8) }
+                    NumberButton(digit: 9) { viewModel.enterDigit(9) }
+                }
+                HStack(spacing: buttonSpacing) {
+                    NumberButton(digit: 4) { viewModel.enterDigit(4) }
+                    NumberButton(digit: 5) { viewModel.enterDigit(5) }
+                    NumberButton(digit: 6) { viewModel.enterDigit(6) }
+                }
+                HStack(spacing: buttonSpacing) {
+                    NumberButton(digit: 1) { viewModel.enterDigit(1) }
+                    NumberButton(digit: 2) { viewModel.enterDigit(2) }
+                    NumberButton(digit: 3) { viewModel.enterDigit(3) }
+                }
+                HStack(spacing: buttonSpacing) {
+                    NumberButton(digit: 0, isWide: true) { viewModel.enterDigit(0) }
+                    DeleteButton { viewModel.deleteDigit() }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var gridLines: some View {
+        let totalWidth = buttonWidth * 3 + buttonSpacing * 2
+        let totalHeight = buttonHeight * 4 + buttonSpacing * 3
+
+        Canvas { context, size in
+            // Vertical grid lines (between columns)
+            for i in 1..<3 {
+                let x = CGFloat(i) * (buttonWidth + buttonSpacing) - buttonSpacing / 2
+                var path = Path()
+                path.move(to: CGPoint(x: x, y: 0))
+                path.addLine(to: CGPoint(x: x, y: totalHeight))
+                context.stroke(path, with: .color(gridLineColor), lineWidth: 1)
+            }
+
+            // Horizontal grid lines (between rows)
+            for i in 1..<4 {
+                let y = CGFloat(i) * (buttonHeight + buttonSpacing) - buttonSpacing / 2
+                var path = Path()
+                path.move(to: CGPoint(x: 0, y: y))
+                path.addLine(to: CGPoint(x: totalWidth, y: y))
+                context.stroke(path, with: .color(gridLineColor), lineWidth: 1)
+            }
+        }
+        .frame(width: totalWidth, height: totalHeight)
+        .allowsHitTesting(false)
+    }
+}
+
 /// Delete/backspace button.
 private struct DeleteButton: View {
     let action: () -> Void
@@ -163,6 +204,37 @@ private struct MultiplierInput: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
+    }
+}
+
+/// Toggle button for Frame↔Timecode display modes.
+private struct FrameTimecodeToggleButton: View {
+    @ObservedObject var viewModel: CalculatorViewModel
+
+    /// Whether we're currently showing frames
+    private var isShowingFrames: Bool {
+        viewModel.entryMode == .frames
+    }
+
+    var body: some View {
+        Button(action: { viewModel.toggleDisplayMode() }) {
+            HStack(spacing: 4) {
+                Text("F")
+                    .foregroundColor(isShowingFrames ? .accentColor : .primary)
+
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.secondary)
+
+                Text("TC")
+                    .foregroundColor(!isShowingFrames ? .accentColor : .primary)
+            }
+            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+        }
+        .buttonStyle(CalculatorButtonStyle(style: .secondary, isSelected: true))
+        .help(isShowingFrames ? "Show as Timecode" : "Show as Frames")
     }
 }
 

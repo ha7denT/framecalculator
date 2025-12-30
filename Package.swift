@@ -2,30 +2,30 @@
 import PackageDescription
 
 // This Package.swift is for running tests via `swift test`.
-// For building the app, use the Xcode project (FrameCalculator.xcodeproj).
+// For building the app, use the Xcode project (Timecoder.xcodeproj).
 
 let package = Package(
-    name: "FrameCalculator",
+    name: "Timecoder",
     platforms: [
         .macOS(.v13)
     ],
     products: [
         .library(
-            name: "FrameCalculatorCore",
-            targets: ["FrameCalculatorCore"]
+            name: "TimecoderCore",
+            targets: ["TimecoderCore"]
         )
     ],
     targets: [
         // Core library (Models only - for testing)
         .target(
-            name: "FrameCalculatorCore",
-            path: "FrameCalculator/Models"
+            name: "TimecoderCore",
+            path: "Timecoder/Models"
         ),
         // Tests
         .testTarget(
-            name: "FrameCalculatorTests",
-            dependencies: ["FrameCalculatorCore"],
-            path: "FrameCalculatorTests"
+            name: "TimecoderTests",
+            dependencies: ["TimecoderCore"],
+            path: "TimecoderTests"
         )
     ]
 )

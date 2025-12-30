@@ -4,6 +4,18 @@ import SwiftUI
 struct TransportControls: View {
     @ObservedObject var viewModel: VideoPlayerViewModel
 
+    /// Callback to navigate to the previous marker.
+    var onPreviousMarker: (() -> Void)?
+
+    /// Callback to navigate to the next marker.
+    var onNextMarker: (() -> Void)?
+
+    /// Whether there's a previous marker to navigate to.
+    var hasPreviousMarker: Bool = false
+
+    /// Whether there's a next marker to navigate to.
+    var hasNextMarker: Bool = false
+
     var body: some View {
         HStack(spacing: 16) {
             // Frame step backward
@@ -47,6 +59,32 @@ struct TransportControls: View {
             )
             .help("Step forward (→)")
 
+            // Marker navigation (only shown if callbacks provided)
+            if onPreviousMarker != nil || onNextMarker != nil {
+                Divider()
+                    .frame(height: 20)
+
+                HStack(spacing: 8) {
+                    // Previous marker
+                    transportButton(
+                        icon: "bookmark.fill",
+                        isDisabled: !hasPreviousMarker,
+                        showLeftArrow: true,
+                        action: { onPreviousMarker?() }
+                    )
+                    .help("Previous marker (↑)")
+
+                    // Next marker
+                    transportButton(
+                        icon: "bookmark.fill",
+                        isDisabled: !hasNextMarker,
+                        showRightArrow: true,
+                        action: { onNextMarker?() }
+                    )
+                    .help("Next marker (↓)")
+                }
+            }
+
             Spacer()
 
             // Shuttle speed indicator
@@ -60,18 +98,38 @@ struct TransportControls: View {
     // MARK: - Subviews
 
     @ViewBuilder
-    private func transportButton(icon: String, isActive: Bool = false, action: @escaping () -> Void) -> some View {
+    private func transportButton(
+        icon: String,
+        isActive: Bool = false,
+        isDisabled: Bool = false,
+        showLeftArrow: Bool = false,
+        showRightArrow: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .frame(width: 32, height: 32)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(isActive ? Color.accentColor : Color.clear)
-                )
+            HStack(spacing: 2) {
+                if showLeftArrow {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 8, weight: .bold))
+                }
+
+                Image(systemName: icon)
+                    .font(.system(size: showLeftArrow || showRightArrow ? 12 : 16, weight: .medium))
+
+                if showRightArrow {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8, weight: .bold))
+                }
+            }
+            .frame(width: 32, height: 32)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isActive ? Color.accentColor : Color.clear)
+            )
         }
         .buttonStyle(.plain)
-        .foregroundColor(isActive ? .white : .primary)
+        .foregroundColor(isDisabled ? .secondary.opacity(0.5) : (isActive ? .white : .primary))
+        .disabled(isDisabled)
     }
 
     @ViewBuilder

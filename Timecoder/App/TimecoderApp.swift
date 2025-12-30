@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct FrameCalculatorApp: App {
+struct TimecoderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject private var preferences = UserPreferences.shared
 
@@ -29,7 +29,7 @@ struct FrameCalculatorApp: App {
 
             // Help menu
             CommandGroup(replacing: .help) {
-                Button("Frame Calculator Help") {
+                Button("Timecoder Help") {
                     if let url = URL(string: "https://github.com") {
                         NSWorkspace.shared.open(url)
                     }

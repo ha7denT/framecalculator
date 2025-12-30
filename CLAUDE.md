@@ -1,10 +1,10 @@
-# Frame Calculator
+# Timecoder
 
 A native macOS timecode calculator and video logging tool for post-production professionals.
 
 ## Project Overview
 
-Frame Calculator operates in two modes:
+Timecoder operates in two modes:
 1. **Standalone Calculator** — Compact timecode calculator (add, subtract, multiply, frame↔TC conversion)
 2. **Video Inspection** — Video player + calculator with metadata display and marker export
 
@@ -21,7 +21,7 @@ Target: Mac App Store distribution. One-time purchase, no subscriptions.
 ## Project Structure
 
 ```
-FrameCalculator/
+Timecoder/
 ├── App/                    # App entry point, global state
 ├── Models/                 # Timecode, FrameRate, Marker, VideoMetadata
 ├── ViewModels/             # CalculatorVM, VideoPlayerVM, MarkerListVM
@@ -38,10 +38,10 @@ FrameCalculator/
 
 ```bash
 # Build
-xcodebuild -scheme FrameCalculator -configuration Debug build
+xcodebuild -scheme Timecoder -configuration Debug build
 
 # Test
-xcodebuild -scheme FrameCalculator test
+xcodebuild -scheme Timecoder test
 
 # Run SwiftLint (if installed)
 swiftlint
@@ -91,10 +91,10 @@ enum FrameRate {
 ### DaVinci Resolve
 Export as EDL. Resolve imports via "Timeline > Import > Timeline Markers from EDL".
 
-### Avid Media Composer  
+### Avid Media Composer
 Tab-delimited text: `[User]\t[Timecode]\t[Track]\t[Color]\t[Comment]`
 ```
-FrameCalc    01:02:15:08    V1    red    Note text here
+Timecoder    01:02:15:08    V1    red    Note text here
 ```
 
 ### CSV
@@ -134,7 +134,7 @@ Required for App Store:
 
 ## Reference Documentation
 
-- PRD: See `docs/Frame_Calculator_PRD.md` for full requirements
+- PRD: See `docs/Timecoder_PRD.md` for full requirements
 - Apple docs: AVFoundation, AVKit, SwiftUI
 
 ## Common Pitfalls

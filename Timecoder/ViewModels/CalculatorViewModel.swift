@@ -81,6 +81,10 @@ final class CalculatorViewModel: ObservableObject {
         if isEntering && !digitBuffer.isEmpty {
             return formatDigitBuffer()
         }
+        // Show as frames if in frame display mode
+        if entryMode == .frames {
+            return "\(currentTimecode.frames)f"
+        }
         return currentTimecode.formatted()
     }
 
@@ -208,9 +212,13 @@ final class CalculatorViewModel: ObservableObject {
     func selectOperation(_ operation: CalculatorOperation) {
         clearErrorIfNeeded()
 
-        // Commit any pending entry
+        // Commit any pending entry (respecting current entry mode)
         if isEntering {
-            commitEntry()
+            if entryMode == .frames {
+                commitFrameEntry()
+            } else {
+                commitEntry()
+            }
         }
 
         switch operation {
@@ -285,10 +293,10 @@ final class CalculatorViewModel: ObservableObject {
             break
         }
 
-        // Reset state
+        // Reset state (preserve display mode)
         storedTimecode = nil
         pendingOperation = nil
-        entryMode = .timecode
+        // Don't reset entryMode - keep user's preferred display mode
         shouldClearOnNextEntry = true
         justCalculated = true
     }
@@ -304,7 +312,36 @@ final class CalculatorViewModel: ObservableObject {
         digitBuffer = ""
         isEntering = false
         shouldClearOnNextEntry = true
-        entryMode = .timecode
+        // Don't reset entryMode - stay in frame mode
+    }
+
+    /// Toggles between frames and timecode display modes.
+    /// The underlying value stays the same, only the display format changes.
+    func toggleDisplayMode() {
+        // Commit any pending entry first
+        if isEntering && !digitBuffer.isEmpty {
+            if entryMode == .frames {
+                // Parse as frame count
+                if let frames = Int(digitBuffer) {
+                    currentTimecode = Timecode(frames: frames, frameRate: frameRate)
+                }
+            } else {
+                // Parse as timecode
+                commitEntry()
+            }
+            digitBuffer = ""
+            isEntering = false
+        }
+
+        // Toggle the display mode
+        if entryMode == .frames {
+            entryMode = .timecode
+        } else {
+            entryMode = .frames
+        }
+
+        pendingOperation = nil
+        shouldClearOnNextEntry = true
     }
 
     // MARK: - Direct Value Setting
@@ -340,8 +377,8 @@ final class CalculatorViewModel: ObservableObject {
 
     /// Returns the current value as a copyable string.
     func copyableString() -> String {
-        if entryMode == .frames && pendingOperation == .timecodeToFrames {
-            return String(currentTimecode.frames)
+        if entryMode == .frames {
+            return "\(currentTimecode.frames)f"
         }
         return currentTimecode.formatted()
     }
@@ -351,7 +388,7 @@ final class CalculatorViewModel: ObservableObject {
     /// Formats the digit buffer as a timecode string for display.
     private func formatDigitBuffer() -> String {
         if entryMode == .frames {
-            return digitBuffer.isEmpty ? "0" : digitBuffer
+            return (digitBuffer.isEmpty ? "0" : digitBuffer) + "f"
         }
 
         // Pad to 8 digits for HH:MM:SS:FF

@@ -57,7 +57,9 @@ struct VideoInspectorView: View {
                 playerVM: playerVM,
                 calculatorVM: calculatorVM,
                 markerVM: markerVM,
-                onExportRequested: { isExportDialogPresented = true }
+                onExportRequested: { isExportDialogPresented = true },
+                onPreviousMarker: goToPreviousMarker,
+                onNextMarker: goToNextMarker
             )
                 .frame(width: 0, height: 0)
         )
@@ -143,7 +145,13 @@ struct VideoInspectorView: View {
             .background(Color(NSColor.windowBackgroundColor))
 
             // Transport controls
-            TransportControls(viewModel: playerVM)
+            TransportControls(
+                viewModel: playerVM,
+                onPreviousMarker: goToPreviousMarker,
+                onNextMarker: goToNextMarker,
+                hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
+                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil
+            )
         }
     }
 
@@ -212,6 +220,18 @@ struct VideoInspectorView: View {
         markerVM.addMarker(at: playerVM.currentFrames)
     }
 
+    private func goToPreviousMarker() {
+        if let frames = markerVM.previousMarkerFrames(before: playerVM.currentFrames) {
+            playerVM.seek(toFrame: frames)
+        }
+    }
+
+    private func goToNextMarker() {
+        if let frames = markerVM.nextMarkerFrames(after: playerVM.currentFrames) {
+            playerVM.seek(toFrame: frames)
+        }
+    }
+
     private func configurePlayer() {
         guard let player = appState.player,
               let metadata = appState.currentMetadata,
@@ -237,6 +257,8 @@ struct VideoKeyboardHandler: NSViewRepresentable {
     let calculatorVM: CalculatorViewModel
     let markerVM: MarkerListViewModel
     var onExportRequested: (() -> Void)?
+    var onPreviousMarker: (() -> Void)?
+    var onNextMarker: (() -> Void)?
 
     func makeNSView(context: Context) -> VideoKeyboardCaptureView {
         let view = VideoKeyboardCaptureView()
@@ -244,6 +266,8 @@ struct VideoKeyboardHandler: NSViewRepresentable {
         view.calculatorVM = calculatorVM
         view.markerVM = markerVM
         view.onExportRequested = onExportRequested
+        view.onPreviousMarker = onPreviousMarker
+        view.onNextMarker = onNextMarker
         return view
     }
 
@@ -255,6 +279,8 @@ struct VideoKeyboardHandler: NSViewRepresentable {
         nsView.calculatorVM = calculatorVM
         nsView.markerVM = markerVM
         nsView.onExportRequested = onExportRequested
+        nsView.onPreviousMarker = onPreviousMarker
+        nsView.onNextMarker = onNextMarker
         nsView.wasEditorOpen = isEditorOpen
 
         // Reclaim focus when editor closes
@@ -272,6 +298,8 @@ class VideoKeyboardCaptureView: NSView {
     var calculatorVM: CalculatorViewModel?
     var markerVM: MarkerListViewModel?
     var onExportRequested: (() -> Void)?
+    var onPreviousMarker: (() -> Void)?
+    var onNextMarker: (() -> Void)?
     var wasEditorOpen: Bool = false
     private var focusObserver: NSObjectProtocol?
 
@@ -362,6 +390,18 @@ class VideoKeyboardCaptureView: NSView {
         case 124: // Right arrow
             Task { @MainActor in
                 playerVM.stepForward()
+            }
+            return true
+
+        case 125: // Down arrow - next marker
+            Task { @MainActor in
+                self.onNextMarker?()
+            }
+            return true
+
+        case 126: // Up arrow - previous marker
+            Task { @MainActor in
+                self.onPreviousMarker?()
             }
             return true
 
@@ -512,26 +552,6 @@ struct InOutPanel: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // Header
-            HStack {
-                Text("In/Out")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                Spacer()
-
-                // Clear button (only shown when points exist)
-                if viewModel.inPointFrames != nil || viewModel.outPointFrames != nil {
-                    Button(action: { viewModel.clearInOutPoints() }) {
-                        Text("Clear")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Clear In/Out points (⌥X)")
-                }
-            }
-
             // In/Out point rows
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                 // In point row
@@ -545,6 +565,7 @@ struct InOutPanel: View {
                         Text(inTC.formatted())
                             .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.primary)
+                            .textSelection(.enabled)
 
                         Button(action: { viewModel.seekToInPoint() }) {
                             Image(systemName: "arrow.right.circle")
@@ -573,6 +594,7 @@ struct InOutPanel: View {
                         Text(outTC.formatted())
                             .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.primary)
+                            .textSelection(.enabled)
 
                         Button(action: { viewModel.seekToOutPoint() }) {
                             Image(systemName: "arrow.right.circle")
@@ -601,6 +623,7 @@ struct InOutPanel: View {
                         Text(duration.formatted())
                             .font(.spaceMono(size: 13, weight: .bold))
                             .foregroundColor(.yellow)
+                            .textSelection(.enabled)
 
                         Text("")
                             .frame(width: 16)
@@ -608,14 +631,19 @@ struct InOutPanel: View {
                 }
             }
 
-            // Keyboard hints
-            HStack(spacing: 16) {
-                Text("I = In")
-                Text("O = Out")
-                Text("⌥X = Clear")
+            // Clear button (only shown when points exist)
+            if viewModel.inPointFrames != nil || viewModel.outPointFrames != nil {
+                HStack {
+                    Spacer()
+                    Button(action: { viewModel.clearInOutPoints() }) {
+                        Label("Clear", systemImage: "xmark.circle")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Clear In/Out points (⌥X)")
+                }
             }
-            .font(.system(size: 10))
-            .foregroundColor(.secondary.opacity(0.7))
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))

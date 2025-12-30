@@ -179,4 +179,34 @@ final class MarkerListViewModel: ObservableObject {
         guard totalFrames > 0 else { return 0 }
         return Double(marker.timecodeFrames) / Double(totalFrames)
     }
+
+    // MARK: - Marker Navigation
+
+    /// Finds the next marker after the specified frame position.
+    /// - Parameter currentFrames: The current playhead position in frames.
+    /// - Returns: The next marker if one exists, nil otherwise.
+    func nextMarker(after currentFrames: Int) -> Marker? {
+        sortedMarkers.first { $0.timecodeFrames > currentFrames }
+    }
+
+    /// Finds the previous marker before the specified frame position.
+    /// - Parameter currentFrames: The current playhead position in frames.
+    /// - Returns: The previous marker if one exists, nil otherwise.
+    func previousMarker(before currentFrames: Int) -> Marker? {
+        sortedMarkers.last { $0.timecodeFrames < currentFrames }
+    }
+
+    /// Returns the frame position of the next marker, or nil if none exists.
+    /// - Parameter currentFrames: The current playhead position in frames.
+    /// - Returns: Frame position of the next marker, or nil.
+    func nextMarkerFrames(after currentFrames: Int) -> Int? {
+        nextMarker(after: currentFrames)?.timecodeFrames
+    }
+
+    /// Returns the frame position of the previous marker, or nil if none exists.
+    /// - Parameter currentFrames: The current playhead position in frames.
+    /// - Returns: Frame position of the previous marker, or nil.
+    func previousMarkerFrames(before currentFrames: Int) -> Int? {
+        previousMarker(before: currentFrames)?.timecodeFrames
+    }
 }

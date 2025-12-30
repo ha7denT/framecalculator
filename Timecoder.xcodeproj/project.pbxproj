@@ -15,7 +15,7 @@
 		9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */; };
 		E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */; };
 		F3C60314DAE520505FAA2008 /* Marker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D3365CC63152809B0FE50E /* Marker.swift */; };
-		FC000001001 /* FrameCalculatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000001000 /* FrameCalculatorApp.swift */; };
+		FC000001001 /* TimecoderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000001000 /* TimecoderApp.swift */; };
 		FC000002001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000002000 /* ContentView.swift */; };
 		FC000003001 /* Timecode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000003000 /* Timecode.swift */; };
 		FC000004001 /* FrameRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000004000 /* FrameRate.swift */; };
@@ -48,8 +48,8 @@
 		CC7CCDAF4342677F1085A400 /* MarkerListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerListView.swift; sourceTree = "<group>"; };
 		E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerEditorSheet.swift; sourceTree = "<group>"; };
 		F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportDialogView.swift; sourceTree = "<group>"; };
-		FC000000100 /* FrameCalculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FrameCalculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FC000001000 /* FrameCalculatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCalculatorApp.swift; sourceTree = "<group>"; };
+		FC000000100 /* Timecoder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Timecoder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC000001000 /* TimecoderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimecoderApp.swift; sourceTree = "<group>"; };
 		FC000002000 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FC000003000 /* Timecode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timecode.swift; sourceTree = "<group>"; };
 		FC000004000 /* FrameRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameRate.swift; sourceTree = "<group>"; };
@@ -121,12 +121,12 @@
 		FC000000300 = {
 			isa = PBXGroup;
 			children = (
-				FC000000400 /* FrameCalculator */,
+				FC000000400 /* Timecoder */,
 				FC000000500 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		FC000000400 /* FrameCalculator */ = {
+		FC000000400 /* Timecoder */ = {
 			isa = PBXGroup;
 			children = (
 				FC000000600 /* App */,
@@ -136,13 +136,13 @@
 				FC00000F000 /* Services */,
 				FC000022000 /* Resources */,
 			);
-			path = FrameCalculator;
+			path = Timecoder;
 			sourceTree = "<group>";
 		};
 		FC000000500 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				FC000000100 /* FrameCalculator.app */,
+				FC000000100 /* Timecoder.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -150,7 +150,7 @@
 		FC000000600 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				FC000001000 /* FrameCalculatorApp.swift */,
+				FC000001000 /* TimecoderApp.swift */,
 				FC00000A000 /* AppState.swift */,
 			);
 			path = App;
@@ -240,9 +240,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FC000000C00 /* FrameCalculator */ = {
+		FC000000C00 /* Timecoder */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FC000000D00 /* Build configuration list for PBXNativeTarget "FrameCalculator" */;
+			buildConfigurationList = FC000000D00 /* Build configuration list for PBXNativeTarget "Timecoder" */;
 			buildPhases = (
 				FC000000E00 /* Sources */,
 				FC000000200 /* Frameworks */,
@@ -252,9 +252,9 @@
 			);
 			dependencies = (
 			);
-			name = FrameCalculator;
-			productName = FrameCalculator;
-			productReference = FC000000100 /* FrameCalculator.app */;
+			name = Timecoder;
+			productName = Timecoder;
+			productReference = FC000000100 /* Timecoder.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -272,7 +272,7 @@
 					};
 				};
 			};
-			buildConfigurationList = FC000001200 /* Build configuration list for PBXProject "FrameCalculator" */;
+			buildConfigurationList = FC000001200 /* Build configuration list for PBXProject "Timecoder" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -285,7 +285,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				FC000000C00 /* FrameCalculator */,
+				FC000000C00 /* Timecoder */,
 			);
 		};
 /* End PBXProject section */
@@ -307,7 +307,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FC000001001 /* FrameCalculatorApp.swift in Sources */,
+				FC000001001 /* TimecoderApp.swift in Sources */,
 				FC000002001 /* ContentView.swift in Sources */,
 				FC000003001 /* Timecode.swift in Sources */,
 				FC000004001 /* FrameRate.swift in Sources */,
@@ -460,7 +460,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = FrameCalculator/FrameCalculator.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -468,7 +468,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FrameCalculator/Info.plist;
+				INFOPLIST_FILE = Timecoder/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -476,7 +476,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.framecalculator.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.timecoder.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -488,7 +488,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = FrameCalculator/FrameCalculator.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -496,7 +496,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FrameCalculator/Info.plist;
+				INFOPLIST_FILE = Timecoder/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -504,7 +504,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.framecalculator.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.timecoder.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -514,7 +514,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		FC000000D00 /* Build configuration list for PBXNativeTarget "FrameCalculator" */ = {
+		FC000000D00 /* Build configuration list for PBXNativeTarget "Timecoder" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FC000001500 /* Debug */,
@@ -523,7 +523,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FC000001200 /* Build configuration list for PBXProject "FrameCalculator" */ = {
+		FC000001200 /* Build configuration list for PBXProject "Timecoder" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FC000001300 /* Debug */,

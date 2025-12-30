@@ -1,8 +1,8 @@
-# Frame Calculator — Sprint Plans
+# Timecoder — Sprint Plans
 
 ## Overview
 
-This document breaks down the development of Frame Calculator into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
+This document breaks down the development of Timecoder into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
 **Total Estimated Sprints:** 9
 **Target MVP (Sprints 1-6):** Core calculator + video player + markers
@@ -45,7 +45,7 @@ This sprint has no UI. Focus entirely on getting the math right — everything e
 
 **Project Structure:**
 - Using Swift Package Manager (`Package.swift`) for building and testing
-- App entry point (`@main`) is in `FrameCalculator/App/` but excluded from the library target to avoid duplicate symbol errors during testing
+- App entry point (`@main`) is in `Timecoder/App/` but excluded from the library target to avoid duplicate symbol errors during testing
 - UI folders (`Views/`, `ViewModels/`) also excluded from library target for now
 
 **Drop Frame Algorithm:**
@@ -65,9 +65,9 @@ Key formula for drops within a 10-minute block:
 - Edge cases tested: minute boundaries, 10-minute boundaries, hour mark, negative durations
 
 **Key Files:**
-- `FrameCalculator/Models/FrameRate.swift` — enum with computed properties
-- `FrameCalculator/Models/Timecode.swift` — value type with all arithmetic and parsing
-- `FrameCalculatorTests/TimecodeTests.swift` — comprehensive test coverage
+- `Timecoder/Models/FrameRate.swift` — enum with computed properties
+- `Timecoder/Models/Timecode.swift` — value type with all arithmetic and parsing
+- `TimecoderTests/TimecodeTests.swift` — comprehensive test coverage
 
 **Build Commands:**
 ```bash
@@ -112,7 +112,7 @@ Keep the window compact (~320×480pt). This is the "calculator app" mode users w
 ### Implementation Notes (for future reference)
 
 **Project Structure:**
-- Xcode project created (`FrameCalculator.xcodeproj`) for building and running the app
+- Xcode project created (`Timecoder.xcodeproj`) for building and running the app
 - SPM (`Package.swift`) retained for running unit tests via `swift test`
 - App entry point with dark mode by default and hidden title bar window style
 
@@ -145,21 +145,21 @@ Keep the window compact (~320×480pt). This is the "calculator app" mode users w
 **Build Commands:**
 ```bash
 # Build via Xcode
-xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+xcodebuild -project Timecoder.xcodeproj -scheme Timecoder build
 
 # Run tests via SPM
 swift test
 
 # Open in Xcode
-open FrameCalculator.xcodeproj
+open Timecoder.xcodeproj
 ```
 
 **Key Files:**
-- `FrameCalculator/ViewModels/CalculatorViewModel.swift` — Main calculator logic
-- `FrameCalculator/Views/Calculator/CalculatorView.swift` — Main UI composition
-- `FrameCalculator/Views/Calculator/KeypadView.swift` — Button UI
-- `FrameCalculator/Views/Calculator/TimecodeDisplayView.swift` — Display component
-- `FrameCalculator/Views/Calculator/FrameRatePicker.swift` — Frame rate dropdown
+- `Timecoder/ViewModels/CalculatorViewModel.swift` — Main calculator logic
+- `Timecoder/Views/Calculator/CalculatorView.swift` — Main UI composition
+- `Timecoder/Views/Calculator/KeypadView.swift` — Button UI
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift` — Display component
+- `Timecoder/Views/Calculator/FrameRatePicker.swift` — Frame rate dropdown
 
 **Known Issues (deferred to Sprint 8):**
 - Entry validation visual feedback: Invalid timecode components (e.g., seconds > 59) are shown during entry but only validated on commit. Need clearer visual indication that entry is "draft" and may fail. See Sprint 8 notes.
@@ -196,11 +196,11 @@ Use `AVAsset.load(_:)` with async/await for metadata extraction. Handle files wi
 ### Implementation Notes (for future reference)
 
 **New Files Created:**
-- `FrameCalculator/Models/VideoMetadata.swift` — Video metadata value type with formatted display properties
-- `FrameCalculator/Services/VideoLoader.swift` — AVFoundation-based async video loader service (actor)
-- `FrameCalculator/App/AppState.swift` — Global app state managing mode and video loading
-- `FrameCalculator/Views/Metadata/MetadataPanel.swift` — Metadata display panel with Grid layout
-- `FrameCalculator/Views/Main/VideoInspectorView.swift` — Combined video player + calculator layout
+- `Timecoder/Models/VideoMetadata.swift` — Video metadata value type with formatted display properties
+- `Timecoder/Services/VideoLoader.swift` — AVFoundation-based async video loader service (actor)
+- `Timecoder/App/AppState.swift` — Global app state managing mode and video loading
+- `Timecoder/Views/Metadata/MetadataPanel.swift` — Metadata display panel with Grid layout
+- `Timecoder/Views/Main/VideoInspectorView.swift` — Combined video player + calculator layout
 
 **Key Architecture Decisions:**
 - `VideoLoader` is an actor for thread-safe async video loading
@@ -223,7 +223,7 @@ Use `AVAsset.load(_:)` with async/await for metadata extraction. Handle files wi
 **Build Commands:**
 ```bash
 # Build via Xcode
-xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+xcodebuild -project Timecoder.xcodeproj -scheme Timecoder build
 
 # Run tests via SPM
 swift test
@@ -275,9 +275,9 @@ Use `addPeriodicTimeObserver` with interval of `CMTime(value: 1, timescale: fram
 ### Implementation Notes (for future reference)
 
 **New Files Created:**
-- `FrameCalculator/ViewModels/VideoPlayerViewModel.swift` — Manages AVPlayer state, shuttle control, time observer, frame stepping
-- `FrameCalculator/Views/VideoPlayer/TransportControls.swift` — Play/pause, JKL shuttle buttons, speed indicator
-- `FrameCalculator/Views/VideoPlayer/TimelineView.swift` — Scrubber, playhead, click-to-seek
+- `Timecoder/ViewModels/VideoPlayerViewModel.swift` — Manages AVPlayer state, shuttle control, time observer, frame stepping
+- `Timecoder/Views/VideoPlayer/TransportControls.swift` — Play/pause, JKL shuttle buttons, speed indicator
+- `Timecoder/Views/VideoPlayer/TimelineView.swift` — Scrubber, playhead, click-to-seek
 
 **Key Architecture Decisions:**
 - `VideoPlayerViewModel` is `@MainActor` isolated for thread-safe UI updates
@@ -299,7 +299,7 @@ Use `addPeriodicTimeObserver` with interval of `CMTime(value: 1, timescale: fram
 **Build Commands:**
 ```bash
 # Build via Xcode
-xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+xcodebuild -project Timecoder.xcodeproj -scheme Timecoder build
 
 # Run tests via SPM
 swift test
@@ -435,10 +435,10 @@ Consider keyboard shortcuts for quick color assignment (1-8 keys after M?). Mark
 **Design Decision:** Markers display only on timeline (no sidebar list). Editor appears as popover overlay centered on video, matching NLE behavior. This keeps the UI compact and prevents layout overflow on smaller screens.
 
 **New Files Created:**
-- `FrameCalculator/Models/Marker.swift` — Marker struct + MarkerColor enum with 8 NLE-compatible colors (exact hex values from PRD)
-- `FrameCalculator/ViewModels/MarkerListViewModel.swift` — CRUD operations, selection, editor state
-- `FrameCalculator/Views/Markers/TimelineMarkerView.swift` — Triangle + line indicator for timeline
-- `FrameCalculator/Views/Markers/MarkerEditorPopover.swift` — Compact overlay editor (timecode, color picker, note field, delete/done)
+- `Timecoder/Models/Marker.swift` — Marker struct + MarkerColor enum with 8 NLE-compatible colors (exact hex values from PRD)
+- `Timecoder/ViewModels/MarkerListViewModel.swift` — CRUD operations, selection, editor state
+- `Timecoder/Views/Markers/TimelineMarkerView.swift` — Triangle + line indicator for timeline
+- `Timecoder/Views/Markers/MarkerEditorPopover.swift` — Compact overlay editor (timecode, color picker, note field, delete/done)
 
 **Modified Files:**
 - `TimelineView.swift` — Added markers array parameter, renders TimelineMarkerView for each, added onMarkerTapped callback
@@ -453,13 +453,13 @@ Consider keyboard shortcuts for quick color assignment (1-8 keys after M?). Mark
 The VideoKeyboardCaptureView aggressively captures keyboard focus for JKL/arrow/space controls. When marker editor opens, it releases focus to allow text input. Uses NotificationCenter to reclaim focus when editor closes.
 
 **Key Files:**
-- `FrameCalculator/Models/Marker.swift` — MarkerColor enum with displayColor (SwiftUI), avidColorName, resolveColorName
-- `FrameCalculator/ViewModels/MarkerListViewModel.swift` — @MainActor, @Published markers array, CRUD methods
-- `FrameCalculator/Views/Markers/MarkerEditorPopover.swift` — Auto-saves color changes, commits note on Done/Enter
+- `Timecoder/Models/Marker.swift` — MarkerColor enum with displayColor (SwiftUI), avidColorName, resolveColorName
+- `Timecoder/ViewModels/MarkerListViewModel.swift` — @MainActor, @Published markers array, CRUD methods
+- `Timecoder/Views/Markers/MarkerEditorPopover.swift` — Auto-saves color changes, commits note on Done/Enter
 
 **Build Commands:**
 ```bash
-xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+xcodebuild -project Timecoder.xcodeproj -scheme Timecoder build
 swift test
 ```
 
@@ -493,7 +493,7 @@ FCM: NON-DROP FRAME
 
 ### Avid Format
 ```
-FrameCalc	[Timecode]	V1	[color]	[Note]
+Timecoder	[Timecode]	V1	[color]	[Note]
 ```
 
 ### CSV Format
@@ -519,8 +519,8 @@ Test actual import in Resolve and Avid. Format quirks often only surface during 
 ### Implementation Notes (for future reference)
 
 **New Files Created:**
-- `FrameCalculator/Services/MarkerExporter.swift` — Actor-based export service with format generators
-- `FrameCalculator/Views/Export/ExportDialogView.swift` — SwiftUI sheet with format picker + NSSavePanel
+- `Timecoder/Services/MarkerExporter.swift` — Actor-based export service with format generators
+- `Timecoder/Views/Export/ExportDialogView.swift` — SwiftUI sheet with format picker + NSSavePanel
 
 **Key Architecture Decisions:**
 - `MarkerExporter` is an actor for thread-safe async file operations
@@ -535,12 +535,12 @@ Test actual import in Resolve and Avid. Format quirks often only surface during 
 
 **Modified Files:**
 - `VideoInspectorView.swift` — Added export dialog sheet, ⌘E keyboard handler, NotificationCenter listener
-- `FrameCalculatorApp.swift` — Added File > Export Markers... menu item
+- `TimecoderApp.swift` — Added File > Export Markers... menu item
 - `Marker.swift` — Added `avidExportColorName` computed property for fallback colors
 
 **Build Commands:**
 ```bash
-xcodebuild -project FrameCalculator.xcodeproj -scheme FrameCalculator build
+xcodebuild -project Timecoder.xcodeproj -scheme Timecoder build
 swift test
 ```
 
@@ -549,7 +549,7 @@ swift test
 - Clicking "Export..." button has no effect
 - Possible causes: SwiftUI sheet button action not firing, Task not executing, or NSSavePanel issue
 - Debug approach: Add print statements to `exportMarkers()` to trace execution flow
-- File to investigate: `FrameCalculator/Views/Export/ExportDialogView.swift`
+- File to investigate: `Timecoder/Views/Export/ExportDialogView.swift`
 
 ---
 
@@ -613,7 +613,7 @@ Focus on making the app feel like a polished, native macOS application before mo
 - `NSSavePanel.runModal()` doesn't work properly when called from within a SwiftUI sheet context
 
 **Space Mono Font:**
-- Downloaded from GitHub (googlefonts/spacemono) to `FrameCalculator/Resources/Fonts/`
+- Downloaded from GitHub (googlefonts/spacemono) to `Timecoder/Resources/Fonts/`
 - Font extension added to `AppState.swift` with fallback to system monospace
 - Updated all timecode displays: TimecodeDisplayView, VideoInspectorView (In/Out panel), MarkerEditorSheet, MarkerRowView, TimelineView, FrameRatePicker, TransportControls
 - **User Action Required:** Add font files to Xcode project with target membership and add `ATSApplicationFontsPath` to Info.plist
@@ -629,12 +629,12 @@ Focus on making the app feel like a polished, native macOS application before mo
 - Uses JSON encoding for FrameRate storage in UserDefaults
 
 **Preferences Window:**
-- Added `PreferencesView` to `FrameCalculatorApp.swift`
+- Added `PreferencesView` to `TimecoderApp.swift`
 - Settings: Default Frame Rate picker, Default Marker Color picker with color preview, Theme selector (System/Light/Dark), Window restoration toggle
 - Uses SwiftUI Form with grouped style
 
 **Menu Bar & Keyboard Shortcuts:**
-- Help menu with "Frame Calculator Help" and "Keyboard Shortcuts" (Cmd+Shift+?)
+- Help menu with "Timecoder Help" and "Keyboard Shortcuts" (Cmd+Shift+?)
 - Keyboard shortcuts window shows all available shortcuts via NSAlert
 - Export Markers menu item (Cmd+E)
 
@@ -653,8 +653,8 @@ Focus on making the app feel like a polished, native macOS application before mo
 - Added file references for SpaceMono-Regular.ttf and SpaceMono-Bold.ttf to project.pbxproj
 - Created Resources and Fonts groups in project structure
 - Added fonts to PBXResourcesBuildPhase for copying to app bundle
-- Created `FrameCalculator/Info.plist` with `ATSApplicationFontsPath = "."` (fonts in bundle root)
-- Set `INFOPLIST_FILE = FrameCalculator/Info.plist` in both Debug and Release build settings
+- Created `Timecoder/Info.plist` with `ATSApplicationFontsPath = "."` (fonts in bundle root)
+- Set `INFOPLIST_FILE = Timecoder/Info.plist` in both Debug and Release build settings
 
 **Crash Bug Fix (Text Selection):**
 - Crash occurred when user attempted to select text in calculator timecode display
@@ -664,41 +664,78 @@ Focus on making the app feel like a polished, native macOS application before mo
 - This allows copy/paste in normal mode while avoiding the crash during validation display
 
 **Key Files Modified:**
-- `FrameCalculator/Views/Export/ExportDialogView.swift` - Export bug fix
-- `FrameCalculator/App/AppState.swift` - UserPreferences, Font extension
-- `FrameCalculator/App/FrameCalculatorApp.swift` - PreferencesView, Settings scene, menus, @ObservedObject for preferences
-- `FrameCalculator/ViewModels/CalculatorViewModel.swift` - Entry validation, TimecodeComponent enum
-- `FrameCalculator/Views/Calculator/TimecodeDisplayView.swift` - Validation UI, Space Mono, text selection crash fix
-- `FrameCalculator/Views/VideoPlayer/TimelineView.swift` - Empty state hint, Space Mono
-- `FrameCalculator.xcodeproj/project.pbxproj` - Font file references, build phase, Info.plist config
-- `FrameCalculator/Info.plist` - NEW: ATSApplicationFontsPath for font loading
+- `Timecoder/Views/Export/ExportDialogView.swift` - Export bug fix
+- `Timecoder/App/AppState.swift` - UserPreferences, Font extension
+- `Timecoder/App/TimecoderApp.swift` - PreferencesView, Settings scene, menus, @ObservedObject for preferences
+- `Timecoder/ViewModels/CalculatorViewModel.swift` - Entry validation, TimecodeComponent enum
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift` - Validation UI, Space Mono, text selection crash fix
+- `Timecoder/Views/VideoPlayer/TimelineView.swift` - Empty state hint, Space Mono
+- `Timecoder.xcodeproj/project.pbxproj` - Font file references, build phase, Info.plist config
+- `Timecoder/Info.plist` - NEW: ATSApplicationFontsPath for font loading
 
 **New Files Created:**
-- `FrameCalculator/Resources/Fonts/SpaceMono-Regular.ttf`
-- `FrameCalculator/Resources/Fonts/SpaceMono-Bold.ttf`
-- `FrameCalculator/Resources/Fonts/OFL.txt` - Open Font License
-- `FrameCalculator/Info.plist` - App Info.plist with font path
+- `Timecoder/Resources/Fonts/SpaceMono-Regular.ttf`
+- `Timecoder/Resources/Fonts/SpaceMono-Bold.ttf`
+- `Timecoder/Resources/Fonts/OFL.txt` - Open Font License
+- `Timecoder/Info.plist` - App Info.plist with font path
 
 ---
 
 ## Sprint 9: Quality & App Store Submission
 
 ### Goal
-Final quality assurance, accessibility audit, and App Store submission preparation.
+Final UI polish, quality assurance, accessibility audit, and App Store submission preparation.
 
-### Deliverables
+---
+
+### Phase 1: Final UI Polish
+
+Complete these UI refinements before taking App Store screenshots.
+
+#### Calculator Improvements
+
+- [x] **Combine F→TC/TC→F buttons** — Replace two separate buttons with single F↔TC toggle button
+  - Single button cycles between modes or shows current conversion direction
+  - Simplifies keypad layout and reduces cognitive load
+
+- [x] **Add grid lines to keypad** — Visual grid between calculator number buttons
+  - Subtle lines to suggest button boundaries
+  - Improves visual hierarchy and touch target clarity
+
+#### In/Out Panel Cleanup
+
+- [x] **Remove "In/Out" header** — Section is self-explanatory, header wastes space
+- [x] **Remove legend below In/Out** — Unnecessary UI chrome
+- [x] **Make In/Out values selectable** — Enable text selection on In, Out, and Duration timecodes
+  - Users need to copy these values to other applications
+  - Use `.textSelection(.enabled)` modifier
+
+#### Marker Navigation
+
+- [x] **Add next/previous marker buttons** — Quick navigation between markers
+  - Previous marker: Jump to nearest marker before playhead
+  - Next marker: Jump to nearest marker after playhead
+  - Keyboard shortcuts: ↑ (previous marker), ↓ (next marker)
+  - Buttons in transport controls area
+
+---
+
+### Phase 2: Quality & App Store Prep
+
+#### Deliverables
 
 - [ ] Accessibility audit (VoiceOver, keyboard navigation)
 - [ ] Error handling and user-facing error messages
 - [ ] App Sandbox configuration and testing
 - [ ] Privacy manifest (if required)
 - [ ] App icon (multiple sizes)
-- [ ] App Store screenshots (dark mode)
+- [ ] App Store screenshots (after Phase 1 complete)
 - [ ] App Store description and metadata
 - [ ] TestFlight build for beta testing
 
 ### Acceptance Criteria
 
+- All Phase 1 UI changes implemented and tested
 - VoiceOver can navigate all controls
 - No crashes in normal usage
 - Passes App Store review guidelines
@@ -707,7 +744,40 @@ Final quality assurance, accessibility audit, and App Store submission preparati
 
 ### Notes
 
-Consider a soft launch via TestFlight to gather feedback from actual video professionals before full App Store release.
+Complete Phase 1 before taking screenshots. Consider a soft launch via TestFlight to gather feedback from actual video professionals before full App Store release.
+
+### Implementation Notes — Phase 1 (for future reference)
+
+**F↔TC Toggle Button:**
+- Created `FrameTimecodeToggleButton` component in `KeypadView.swift`
+- Single button shows "F ⟷ TC" with visual feedback indicating current mode
+- Tapping toggles between `framesToTimecode` and `timecodeToFrames` operations
+- Uses accent color highlighting on the active direction indicator
+
+**Keypad Grid Lines:**
+- Created `NumberPadGrid` component wrapping the number buttons
+- Uses SwiftUI `Canvas` to draw subtle grid lines between button rows/columns
+- Grid lines color: `Color.primary.opacity(0.1)` for subtle appearance
+- Lines drawn at midpoint of spacing between buttons
+
+**In/Out Panel Cleanup:**
+- Removed "In/Out" header text
+- Removed keyboard hints legend (I = In, O = Out, ⌥X = Clear)
+- Added `.textSelection(.enabled)` to In, Out, and Duration timecode Text views
+- Moved Clear button to bottom-right of panel with icon
+
+**Marker Navigation:**
+- Added `nextMarker(after:)` and `previousMarker(before:)` methods to `MarkerListViewModel`
+- Added navigation buttons to `TransportControls` with bookmark icons and chevron arrows
+- Buttons disabled when no marker exists in that direction
+- Keyboard shortcuts: ↑ (key code 126) for previous, ↓ (key code 125) for next
+- Updated `VideoKeyboardHandler` and `VideoKeyboardCaptureView` with navigation callbacks
+
+**Key Files Modified:**
+- `Timecoder/Views/Calculator/KeypadView.swift` — F↔TC toggle, NumberPadGrid with grid lines
+- `Timecoder/Views/Main/VideoInspectorView.swift` — InOutPanel cleanup, marker navigation handlers
+- `Timecoder/Views/VideoPlayer/TransportControls.swift` — Marker navigation buttons
+- `Timecoder/ViewModels/MarkerListViewModel.swift` — Navigation methods
 
 ---
 
@@ -744,8 +814,8 @@ Features explicitly deferred from 1.0:
 | 6 - Markers | ✅ Complete | 2025-12-17 | 2025-12-17 | Timeline markers, popover editor, M key add/edit, NLE color palette |
 | 7 - Export | ✅ Complete | 2025-12-17 | 2025-12-17 | MarkerExporter service, EDL/Avid/CSV formats, export dialog, ⌘E shortcut, menu bar item |
 | 8 - Polish & Infrastructure | ✅ Complete | 2025-12-17 | 2025-12-17 | Export fix, Space Mono, entry validation, preferences, menus, dark/light mode |
-| 9 - Quality & App Store | Not Started | | | Accessibility, sandbox testing, App Store submission |
+| 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker navigation. Phase 2: Accessibility, App Store |
 
 ---
 
-*Last Updated: 2025-12-17*
+*Last Updated: 2025-12-30*
