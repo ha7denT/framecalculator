@@ -13,14 +13,9 @@ struct CalculatorView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Header with frame rate picker
+            // Frame rate picker (right-aligned)
             HStack {
-                Text("Timecode Calculator")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-
                 Spacer()
-
                 CompactFrameRatePicker(selection: $viewModel.frameRate)
             }
             .padding(.horizontal, 16)
@@ -176,6 +171,10 @@ private class KeyboardCaptureView: NSView {
                 viewModel.selectOperation(.multiply)
                 return true
 
+            case "/":
+                viewModel.selectOperation(.divide)
+                return true
+
             case "=":
                 if event.modifierFlags.contains(.shift) {
                     viewModel.selectOperation(.add) // Shift+= is +
@@ -242,7 +241,7 @@ private struct PendingOperationView: View {
                 .foregroundColor(.secondary)
             Text(operation.symbol)
                 .font(.spaceMono(size: 14, weight: .bold))
-                .foregroundColor(.accentColor)
+                .foregroundColor(.timecoderTeal)
         }
         .font(.system(size: 13))
         .padding(.horizontal, 16)

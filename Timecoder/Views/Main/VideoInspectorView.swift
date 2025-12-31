@@ -30,9 +30,10 @@ struct VideoInspectorView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Left side: Video player with controls
+        HStack(alignment: .top, spacing: 0) {
+            // Left side: Video player with controls (top-aligned)
             videoPlayerArea
+                .frame(minWidth: 500, idealWidth: 700, maxWidth: 900)
 
             Divider()
 
@@ -40,6 +41,7 @@ struct VideoInspectorView: View {
             rightPanel
                 .frame(width: 320)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             configurePlayer()
         }
@@ -86,51 +88,31 @@ struct VideoInspectorView: View {
     @ViewBuilder
     private var videoPlayerArea: some View {
         VStack(spacing: 0) {
-            // Video display - fills available space maintaining aspect ratio
-            GeometryReader { geometry in
-                let availableHeight = geometry.size.height
-                let availableWidth = geometry.size.width
-
-                // Calculate size that fits within available space while maintaining aspect ratio
-                let widthFromHeight = availableHeight * videoAspectRatio
-                let heightFromWidth = availableWidth / videoAspectRatio
-
-                let (displayWidth, displayHeight): (CGFloat, CGFloat) = {
-                    if widthFromHeight <= availableWidth {
-                        // Height-constrained
-                        return (widthFromHeight, availableHeight)
+            // Video display - responsive, maintains aspect ratio
+            ZStack {
+                ZStack(alignment: .topTrailing) {
+                    if let player = appState.player {
+                        CustomVideoPlayerView(player: player)
+                            .aspectRatio(videoAspectRatio, contentMode: .fit)
                     } else {
-                        // Width-constrained
-                        return (availableWidth, heightFromWidth)
-                    }
-                }()
-
-                ZStack {
-                    ZStack(alignment: .topTrailing) {
-                        if let player = appState.player {
-                            CustomVideoPlayerView(player: player)
-                                .frame(width: displayWidth, height: displayHeight)
-                        } else {
-                            Color.black
-                                .frame(width: displayWidth, height: displayHeight)
-                                .overlay(emptyPlayerState)
-                        }
-
-                        // Close button overlay
-                        closeButton
-                            .padding(4)
+                        Color.black
+                            .aspectRatio(16.0/9.0, contentMode: .fit)
+                            .overlay(emptyPlayerState)
                     }
 
-                    // Marker editor popover (centered over video)
-                    if markerVM.isEditorPresented {
-                        MarkerEditorPopover(
-                            markerVM: markerVM,
-                            frameRate: playerVM.frameRate,
-                            startTimecodeFrames: playerVM.startTimecodeFrames
-                        )
-                    }
+                    // Close button overlay
+                    closeButton
+                        .padding(4)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Marker editor popover (centered over video)
+                if markerVM.isEditorPresented {
+                    MarkerEditorPopover(
+                        markerVM: markerVM,
+                        frameRate: playerVM.frameRate,
+                        startTimecodeFrames: playerVM.startTimecodeFrames
+                    )
+                }
             }
 
             // Timeline
@@ -569,7 +551,7 @@ struct InOutPanel: View {
 
                         Button(action: { viewModel.seekToInPoint() }) {
                             Image(systemName: "arrow.right.circle")
-                                .foregroundColor(.accentColor)
+                                .foregroundColor(.timecoderTeal)
                         }
                         .buttonStyle(.plain)
                         .help("Go to In point (⇧I)")
@@ -598,7 +580,7 @@ struct InOutPanel: View {
 
                         Button(action: { viewModel.seekToOutPoint() }) {
                             Image(systemName: "arrow.right.circle")
-                                .foregroundColor(.accentColor)
+                                .foregroundColor(.timecoderTeal)
                         }
                         .buttonStyle(.plain)
                         .help("Go to Out point (⇧O)")
@@ -622,7 +604,7 @@ struct InOutPanel: View {
 
                         Text(duration.formatted())
                             .font(.spaceMono(size: 13, weight: .bold))
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.timecoderOrange)
                             .textSelection(.enabled)
 
                         Text("")

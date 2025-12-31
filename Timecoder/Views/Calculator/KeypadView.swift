@@ -51,6 +51,12 @@ struct KeypadView: View {
                         action: { viewModel.selectOperation(.multiply) }
                     )
                     OperationButton(
+                        title: "÷",
+                        isSelected: viewModel.pendingOperation == .divide,
+                        style: .primary,
+                        action: { viewModel.selectOperation(.divide) }
+                    )
+                    OperationButton(
                         title: "=",
                         style: .accent,
                         action: { viewModel.executeOperation() }
@@ -58,9 +64,12 @@ struct KeypadView: View {
                 }
             }
 
-            // Multiplier input (shown when multiply is selected)
-            if viewModel.pendingOperation == .multiply {
-                MultiplierInput(value: $viewModel.multiplierText)
+            // Multiplier/divisor input (shown when multiply or divide is selected)
+            if viewModel.pendingOperation == .multiply || viewModel.pendingOperation == .divide {
+                ScalarInput(
+                    value: $viewModel.multiplierText,
+                    label: viewModel.pendingOperation == .divide ? "Divide by:" : "Multiply by:"
+                )
             }
         }
         .padding(buttonSpacing)
@@ -186,13 +195,14 @@ private struct OperationButton: View {
     }
 }
 
-/// Input field for multiplier value.
-private struct MultiplierInput: View {
+/// Input field for multiplier/divisor value.
+private struct ScalarInput: View {
     @Binding var value: String
+    var label: String = "Multiply by:"
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("Multiply by:")
+            Text(label)
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
 
@@ -220,14 +230,14 @@ private struct FrameTimecodeToggleButton: View {
         Button(action: { viewModel.toggleDisplayMode() }) {
             HStack(spacing: 4) {
                 Text("F")
-                    .foregroundColor(isShowingFrames ? .accentColor : .primary)
+                    .foregroundColor(isShowingFrames ? .timecoderTeal : .primary)
 
                 Image(systemName: "arrow.left.arrow.right")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.secondary)
 
                 Text("TC")
-                    .foregroundColor(!isShowingFrames ? .accentColor : .primary)
+                    .foregroundColor(!isShowingFrames ? .timecoderTeal : .primary)
             }
             .font(.system(size: 16, weight: .semibold, design: .rounded))
             .frame(maxWidth: .infinity)
@@ -264,7 +274,7 @@ struct CalculatorButtonStyle: ButtonStyle {
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(
-                        isSelected ? Color.accentColor : Color.clear,
+                        isSelected ? Color.timecoderTeal : Color.clear,
                         lineWidth: 2
                     )
             )
@@ -291,15 +301,15 @@ struct CalculatorButtonStyle: ButtonStyle {
         let baseColor: Color
         switch style {
         case .number:
-            baseColor = Color(nsColor: .controlBackgroundColor)
+            baseColor = .timecoderButtonBackground
         case .secondary:
-            baseColor = Color(nsColor: .controlBackgroundColor).opacity(0.8)
+            baseColor = .timecoderButtonBackground.opacity(0.8)
         case .primary:
-            baseColor = .accentColor.opacity(0.8)
+            baseColor = .timecoderTeal.opacity(0.85)
         case .accent:
-            baseColor = .accentColor
+            baseColor = .timecoderTeal
         case .destructive:
-            baseColor = .red.opacity(0.8)
+            baseColor = .timecoderOrange.opacity(0.9)
         }
 
         return isPressed ? baseColor.opacity(0.7) : baseColor

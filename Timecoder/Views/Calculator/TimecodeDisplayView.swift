@@ -43,9 +43,9 @@ struct TimecodeDisplayView: View {
         if hasError {
             return .red.opacity(0.7)
         } else if !invalidComponents.isEmpty {
-            return .orange.opacity(0.7)
+            return .timecoderOrange.opacity(0.7)
         } else if isPendingOperation {
-            return .accentColor.opacity(0.5)
+            return .timecoderTeal.opacity(0.5)
         }
         return .clear
     }

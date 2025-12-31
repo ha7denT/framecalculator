@@ -248,3 +248,18 @@ extension Font {
         return .system(size: size, weight: weight, design: .monospaced)
     }
 }
+
+// MARK: - Timecoder Color Theme
+
+extension Color {
+    /// Teal accent color - primary accent for buttons, selections, highlights
+    /// Hex: #65DEF1
+    static let timecoderTeal = Color(red: 0.396, green: 0.871, blue: 0.945)
+
+    /// Orange accent color - secondary accent for operations, warnings, In/Out points
+    /// Hex: #F96900
+    static let timecoderOrange = Color(red: 0.976, green: 0.412, blue: 0.0)
+
+    /// Dark button background color
+    static let timecoderButtonBackground = Color(red: 0.2, green: 0.2, blue: 0.21)
+}

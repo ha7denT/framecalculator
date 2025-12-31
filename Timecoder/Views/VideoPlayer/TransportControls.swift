@@ -124,7 +124,7 @@ struct TransportControls: View {
             .frame(width: 32, height: 32)
             .background(
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(isActive ? Color.accentColor : Color.clear)
+                    .fill(isActive ? Color.timecoderTeal : Color.clear)
             )
         }
         .buttonStyle(.plain)

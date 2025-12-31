@@ -6,6 +6,7 @@ enum CalculatorOperation: String, CaseIterable {
     case add = "+"
     case subtract = "−"
     case multiply = "×"
+    case divide = "÷"
     case framesToTimecode = "F→TC"
     case timecodeToFrames = "TC→F"
 
@@ -228,8 +229,8 @@ final class CalculatorViewModel: ObservableObject {
             pendingOperation = operation
             shouldClearOnNextEntry = true
 
-        case .multiply:
-            // Multiply needs a scalar, handled separately
+        case .multiply, .divide:
+            // Multiply/divide needs a scalar, handled separately
             storedTimecode = currentTimecode
             pendingOperation = operation
             shouldClearOnNextEntry = true
@@ -283,6 +284,13 @@ final class CalculatorViewModel: ObservableObject {
                 return
             }
             currentTimecode = currentTimecode * multiplier
+
+        case .divide:
+            guard let divisor = Int(multiplierText), divisor > 0 else {
+                errorMessage = "Invalid divisor"
+                return
+            }
+            currentTimecode = Timecode(frames: currentTimecode.frames / divisor, frameRate: frameRate)
 
         case .framesToTimecode:
             // Conversion already done when frame entry was committed

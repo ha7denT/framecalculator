@@ -718,6 +718,30 @@ Complete these UI refinements before taking App Store screenshots.
   - Keyboard shortcuts: ↑ (previous marker), ↓ (next marker)
   - Buttons in transport controls area
 
+#### Color Scheme & Branding
+
+- [x] **Implement custom color scheme** — Orange and teal highlights with dark grey background
+  - Teal accent: #65DEF1
+  - Orange accent: #F96900
+  - Dark grey background, black and white for text/UI elements
+  - Apply consistently across calculator and logging UI
+
+#### Additional Calculator Improvements
+
+- [x] **Add division button** — Complete arithmetic operations
+  - Add ÷ button to the operators column
+  - Implement division operation in CalculatorViewModel
+
+- [x] **Remove "Timecode Calculator" header** — Redundant text at top of calculator UI
+  - Title wastes vertical space and is self-evident
+
+#### Window & Layout Improvements
+
+- [ ] **Dynamic video player sizing** — Video should fill available space without letterboxing/pillarboxing
+  - **⚠️ BLOCKED: See Sprint 10 for dedicated fix**
+  - Multiple approaches attempted and failed
+  - Deferred to dedicated sprint with simplified two-mode design
+
 ---
 
 ### Phase 2: Quality & App Store Prep
@@ -779,6 +803,275 @@ Complete Phase 1 before taking screenshots. Consider a soft launch via TestFligh
 - `Timecoder/Views/VideoPlayer/TransportControls.swift` — Marker navigation buttons
 - `Timecoder/ViewModels/MarkerListViewModel.swift` — Navigation methods
 
+**Session 2 Implementation (2025-12-31):**
+
+**Custom Color Scheme:**
+- Added `Color.timecoderTeal` (#65DEF1), `Color.timecoderOrange` (#F96900), `Color.timecoderButtonBackground` extensions to `AppState.swift`
+- Updated all button styles in `KeypadView.swift` to use theme colors:
+  - Primary buttons: timecoderTeal
+  - Accent buttons: timecoderTeal
+  - Destructive buttons: timecoderOrange
+  - Number/secondary buttons: timecoderButtonBackground
+- Updated accent colors across: `TimelineView.swift`, `TransportControls.swift`, `TimecodeDisplayView.swift`, `MarkerRowView.swift`
+
+**Division Button:**
+- Added `divide` case to `CalculatorOperation` enum in `CalculatorViewModel.swift`
+- Implemented division execution logic (divides timecode frames by scalar)
+- Added ÷ button to `KeypadView.swift` operators column
+- Renamed `MultiplierInput` to `ScalarInput` with configurable label (shows "Divisor" or "Multiplier")
+- Added "/" keyboard shortcut for division
+
+**Header Removal:**
+- Removed "Timecode Calculator" header text from `CalculatorView.swift`
+
+**Window Resizing (Partial):**
+- Simplified window resizing logic in `ContentView.swift`
+- Window resizes to 320×520 when returning to calculator mode
+- Manual window sizing removed for video mode (SwiftUI handles it)
+- 9:16 videos display correctly; 16:9 videos do not (see Sprint 10)
+
+---
+
+## Sprint 10: Responsive Video Layout (Dedicated Fix)
+
+### Goal
+Fix the video inspector layout so both 16:9 and 9:16 videos display correctly without unwanted letterboxing or pillarboxing within the UI frame.
+
+### Problem Statement
+
+The current implementation correctly displays 9:16 (portrait) videos but fails for 16:9 (landscape) videos. Landscape videos appear pillarboxed within an incorrect frame size, with excessive black bars.
+
+The root issue is that SwiftUI's layout system and the interaction between `aspectRatio`, `frame` modifiers, and window sizing don't behave predictably when trying to create a responsive layout that adapts to arbitrary video aspect ratios.
+
+---
+
+### Failed Approaches (Documented for Reference)
+
+#### Attempt 1: aspectRatio with contentMode .fit
+```swift
+CustomVideoPlayerView(player: player)
+    .aspectRatio(videoAspectRatio, contentMode: .fit)
+```
+**Result:** Letterboxing above video player. The container doesn't shrink to match the fitted content.
+
+#### Attempt 2: GeometryReader with Explicit Frame
+```swift
+GeometryReader { geo in
+    CustomVideoPlayerView(player: player)
+        .frame(width: calculatedWidth, height: calculatedHeight)
+}
+```
+**Result:** UI clipping issues. GeometryReader's proposed size doesn't account for other UI elements, causing overflow.
+
+#### Attempt 3: Increased controlsHeight Constant
+Increased timeline/transport area height from 85 to 110 to account for controls.
+**Result:** Still incorrect spacing. The fundamental layout calculation was wrong.
+
+#### Attempt 4: fixedSize Modifier
+```swift
+HStack(alignment: .top, spacing: 0) { ... }
+    .fixedSize(horizontal: false, vertical: true)
+```
+**Result:** Inconsistent results. 16:9 initial load had too much space; third load had cropped UI.
+
+#### Attempt 5: Calculated Video Dimensions
+Added computed properties to calculate video width/height based on aspect ratio and available space.
+```swift
+private var calculatedVideoWidth: CGFloat { ... }
+private var calculatedVideoHeight: CGFloat { ... }
+```
+**Result:** Still incorrect spacing. The calculations didn't account for SwiftUI's layout pass correctly.
+
+#### Attempt 6: rightPanelMinHeight with max()
+Added minimum height constraint to ensure right panel was at least as tall as video area.
+```swift
+.frame(width: 320, minHeight: rightPanelMinHeight)
+```
+**Result:** Both 16:9 versions displayed incorrectly.
+
+#### Attempt 7: Remove Manual Window Sizing for Video Mode
+Removed all manual `NSWindow.setFrame()` calls for video mode, letting SwiftUI handle window sizing via `.windowResizability(.contentSize)`.
+```swift
+.onChange(of: appState.mode) { newMode in
+    if newMode == .calculator {
+        resizeWindowForCalculator()
+    }
+    // No manual sizing for video mode
+}
+```
+**Result:** 9:16 works correctly. 16:9 fails (pillarboxed in wrong frame).
+
+---
+
+### Current State of Code
+
+**VideoInspectorView.swift:**
+```swift
+var body: some View {
+    HStack(alignment: .top, spacing: 0) {
+        videoPlayerArea
+            .frame(minWidth: 500, idealWidth: 700, maxWidth: 900)
+        Divider()
+        rightPanel
+            .frame(width: 320)
+    }
+    .fixedSize(horizontal: false, vertical: true)
+}
+
+private var videoPlayerArea: some View {
+    VStack(spacing: 0) {
+        ZStack {
+            if let player = appState.player {
+                CustomVideoPlayerView(player: player)
+                    .aspectRatio(videoAspectRatio, contentMode: .fit)
+            } else {
+                Color.black
+                    .aspectRatio(16.0/9.0, contentMode: .fit)
+            }
+        }
+        // Timeline and transport controls below
+    }
+}
+```
+
+**ContentView.swift:**
+- Only resizes window for calculator mode (320×520)
+- Video mode relies on SwiftUI's natural sizing
+
+---
+
+### Proposed Solution: Two-Mode Layout
+
+**Design Principle:** Simplify by supporting only two layout modes:
+1. **Landscape Mode (16:9)** — For videos with aspect ratio ≥ 1.0
+2. **Portrait Mode (9:16)** — For videos with aspect ratio < 1.0
+
+Videos with non-standard aspect ratios (e.g., 4:3, 2.35:1, 1:1) will be letterboxed or pillarboxed within the appropriate mode's frame.
+
+#### Implementation Plan
+
+1. **Detect Video Orientation**
+   - Check `videoAspectRatio >= 1.0` for landscape, `< 1.0` for portrait
+   - Store as enum: `enum VideoOrientation { case landscape, portrait }`
+
+2. **Fixed Frame Sizes**
+   - Landscape mode: Video area 700×394 (16:9), window ~1020×520
+   - Portrait mode: Video area 394×700 (9:16), window ~714×826
+   - Right panel: Always 320 width
+
+3. **Window Sizing on Video Load**
+   - Calculate target window size based on detected orientation
+   - Use `NSWindow.setFrame()` with animation
+   - Center expansion from current position (don't go off-screen)
+
+4. **Video Display Within Frame**
+   - Use `aspectRatio(contentMode: .fit)` within the fixed frame
+   - Non-standard ratios naturally letterbox/pillarbox within the mode's frame
+   - Example: 4:3 video in landscape mode shows with pillarboxing
+   - Example: 1:1 video in portrait mode shows with letterboxing top/bottom
+
+5. **Resize on New Video**
+   - When dropping a new video, detect its orientation
+   - If orientation changes (landscape→portrait or vice versa), animate window resize
+   - If same orientation, no resize needed
+
+#### Key Code Changes
+
+**AppState.swift:**
+```swift
+enum VideoOrientation {
+    case landscape  // aspect ratio >= 1.0
+    case portrait   // aspect ratio < 1.0
+
+    static func from(aspectRatio: CGFloat) -> VideoOrientation {
+        aspectRatio >= 1.0 ? .landscape : .portrait
+    }
+}
+```
+
+**VideoInspectorView.swift:**
+```swift
+private var videoOrientation: VideoOrientation {
+    VideoOrientation.from(aspectRatio: videoAspectRatio)
+}
+
+private var videoFrameSize: CGSize {
+    switch videoOrientation {
+    case .landscape:
+        return CGSize(width: 700, height: 394)  // 16:9
+    case .portrait:
+        return CGSize(width: 394, height: 700)  // 9:16
+    }
+}
+
+private var videoPlayerArea: some View {
+    VStack(spacing: 0) {
+        ZStack {
+            Color.black  // Background for letterboxing
+            if let player = appState.player {
+                CustomVideoPlayerView(player: player)
+                    .aspectRatio(videoAspectRatio, contentMode: .fit)
+            }
+        }
+        .frame(width: videoFrameSize.width, height: videoFrameSize.height)
+        // Timeline and controls below
+    }
+}
+```
+
+**ContentView.swift:**
+```swift
+private func resizeWindowForVideo(orientation: VideoOrientation) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        guard let window = NSApplication.shared.keyWindow else { return }
+
+        let targetSize: NSSize
+        switch orientation {
+        case .landscape:
+            targetSize = NSSize(width: 1020, height: 520)
+        case .portrait:
+            targetSize = NSSize(width: 714, height: 826)
+        }
+
+        // Calculate new frame keeping window on screen
+        let screenFrame = window.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        var newFrame = window.frame
+        newFrame.size = targetSize
+
+        // Adjust origin to keep on screen
+        if newFrame.maxX > screenFrame.maxX {
+            newFrame.origin.x = screenFrame.maxX - targetSize.width
+        }
+        if newFrame.origin.y < screenFrame.origin.y {
+            newFrame.origin.y = screenFrame.origin.y
+        }
+
+        window.setFrame(newFrame, display: true, animate: true)
+    }
+}
+```
+
+---
+
+### Acceptance Criteria
+
+- [ ] 16:9 video displays correctly (fills video area width, no excessive black bars)
+- [ ] 9:16 video displays correctly (fills video area height, no excessive black bars)
+- [ ] 4:3 video displays with subtle pillarboxing in landscape mode
+- [ ] 2.35:1 video displays with subtle letterboxing in landscape mode
+- [ ] 1:1 video displays centered in portrait mode (or landscape, TBD)
+- [ ] Window stays on screen when expanding for video
+- [ ] Window animates smoothly between orientations
+- [ ] Dropping new video with different orientation resizes correctly
+
+---
+
+### Notes
+
+This sprint is a focused fix for a specific layout issue. The two-mode approach trades flexibility for reliability — we accept that some videos will have minor letterboxing/pillarboxing in exchange for a predictable, working layout.
+
+The key insight from failed attempts: trying to make the UI "perfectly responsive" to arbitrary aspect ratios within SwiftUI's constraint-based layout system leads to edge cases. Fixed frames with content fitting inside them is more predictable.
+
 ---
 
 ## Post-1.0 Backlog
@@ -814,8 +1107,9 @@ Features explicitly deferred from 1.0:
 | 6 - Markers | ✅ Complete | 2025-12-17 | 2025-12-17 | Timeline markers, popover editor, M key add/edit, NLE color palette |
 | 7 - Export | ✅ Complete | 2025-12-17 | 2025-12-17 | MarkerExporter service, EDL/Avid/CSV formats, export dialog, ⌘E shortcut, menu bar item |
 | 8 - Polish & Infrastructure | ✅ Complete | 2025-12-17 | 2025-12-17 | Export fix, Space Mono, entry validation, preferences, menus, dark/light mode |
-| 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker navigation. Phase 2: Accessibility, App Store |
+| 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | 2025-12-31 | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker nav, color scheme, division, header removal. Layout blocked → Sprint 10 |
+| 10 - Responsive Video Layout | 📋 Planned | | | Dedicated fix for 16:9/9:16 layout. Two-mode approach with fixed frames. |
 
 ---
 
-*Last Updated: 2025-12-30*
+*Last Updated: 2025-12-31*

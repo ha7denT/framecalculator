@@ -39,32 +39,31 @@ struct ContentView: View {
             }
         }
         .onChange(of: appState.mode) { newMode in
-            // Only resize when returning to calculator mode
-            resizeWindowForMode(newMode)
+            // Only resize when returning to calculator mode (compact size)
+            if newMode == .calculator {
+                resizeWindowForCalculator()
+            }
         }
         .onAppear {
             // Set correct size on launch
-            resizeWindowForMode(.calculator)
+            resizeWindowForCalculator()
         }
     }
 
     // MARK: - Window Management
 
-    private func resizeWindowForMode(_ mode: AppMode) {
-        // Only resize when returning to calculator mode
-        // Video mode sizes itself naturally via SwiftUI content sizing
-        guard mode == .calculator else { return }
-
+    /// Resizes window to calculator-only mode (compact)
+    private func resizeWindowForCalculator() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             guard let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first else { return }
 
             let targetSize = NSSize(width: 320, height: 520)
             let currentFrame = window.frame
+            let newOriginY = currentFrame.origin.y + currentFrame.height - targetSize.height
+
             let newFrame = NSRect(
-                x: currentFrame.origin.x,
-                y: currentFrame.origin.y + currentFrame.height - targetSize.height,
-                width: targetSize.width,
-                height: targetSize.height
+                origin: NSPoint(x: currentFrame.origin.x, y: newOriginY),
+                size: targetSize
             )
             window.setFrame(newFrame, display: true, animate: true)
         }
@@ -120,12 +119,12 @@ struct ContentView: View {
     private var dropOverlay: some View {
         if isDropTargeted {
             ZStack {
-                Color.accentColor.opacity(0.15)
+                Color.timecoderTeal.opacity(0.15)
 
                 VStack(spacing: 16) {
                     Image(systemName: "arrow.down.doc.fill")
                         .font(.system(size: 48))
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(.timecoderTeal)
 
                     Text("Drop video file to inspect")
                         .font(.headline)
