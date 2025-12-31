@@ -30,10 +30,16 @@ struct TimecodeDisplayView: View {
 
             // Secondary frame count display
             if showFrameCount {
-                Text("\(frameCount) frames")
-                    .font(.spaceMono(size: 14))
-                    .foregroundColor(.secondary)
-                    .padding(.trailing, 16)
+                HStack(spacing: 4) {
+                    Text("\(frameCount)")
+                        .font(.spaceMono(size: 14))
+                        .foregroundColor(.secondary)
+                        .textSelection(.enabled)
+                    Text("frames")
+                        .font(.spaceMono(size: 14))
+                        .foregroundColor(.secondary.opacity(0.7))
+                }
+                .padding(.trailing, 16)
             }
         }
     }
@@ -50,10 +56,33 @@ struct TimecodeDisplayView: View {
         return .clear
     }
 
+    /// Whether the display is showing frame count (ends with "f")
+    private var isFrameDisplay: Bool {
+        timecode.hasSuffix("f")
+    }
+
+    /// The frame number portion (without the "f" suffix)
+    private var frameNumber: String {
+        String(timecode.dropLast())
+    }
+
     /// The main display content with appropriate text selection behavior
     @ViewBuilder
     private var displayContent: some View {
-        if invalidComponents.isEmpty {
+        if isFrameDisplay {
+            // Frame mode - separate number from "f" suffix for selection
+            HStack(spacing: 0) {
+                Text(frameNumber)
+                    .font(.spaceMono(size: 48))
+                    .foregroundColor(hasError ? .red : .primary)
+                    .textSelection(.enabled)
+                Text("f")
+                    .font(.spaceMono(size: 48))
+                    .foregroundColor(.secondary.opacity(0.5))
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+        } else if invalidComponents.isEmpty {
             // Simple case - text selection enabled for normal display
             Text(timecode)
                 .font(.spaceMono(size: 48))

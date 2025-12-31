@@ -1055,14 +1055,68 @@ private func resizeWindowForVideo(orientation: VideoOrientation) {
 
 ### Acceptance Criteria
 
-- [ ] 16:9 video displays correctly (fills video area width, no excessive black bars)
-- [ ] 9:16 video displays correctly (fills video area height, no excessive black bars)
-- [ ] 4:3 video displays with subtle pillarboxing in landscape mode
-- [ ] 2.35:1 video displays with subtle letterboxing in landscape mode
-- [ ] 1:1 video displays centered in portrait mode (or landscape, TBD)
-- [ ] Window stays on screen when expanding for video
-- [ ] Window animates smoothly between orientations
-- [ ] Dropping new video with different orientation resizes correctly
+- [x] 16:9 video displays correctly (fills video area width, no excessive black bars)
+- [x] 9:16 video displays correctly (fills video area height, no excessive black bars)
+- [x] 4:3 video displays with subtle pillarboxing in landscape mode
+- [x] 2.35:1 video displays with subtle letterboxing in landscape mode
+- [x] 1:1 video displays centered in landscape mode (aspect ratio >= 1.0)
+- [x] Window stays on screen when expanding for video
+- [x] Window animates smoothly between orientations
+- [x] Dropping new video with different orientation resizes correctly
+
+---
+
+### Implementation Notes (for future reference)
+
+**VideoOrientation Enum (AppState.swift):**
+- Added `VideoOrientation` enum with `.landscape` and `.portrait` cases
+- `from(aspectRatio:)` factory method: returns `.landscape` for ratio >= 1.0, `.portrait` otherwise
+- `controlsHeight` constant: 110px for timeline and transport controls
+- `videoFrameSize` computed property: returns fixed CGSize for each orientation
+  - Landscape: 960×540 (16:9 qHD proportions)
+  - Portrait: 394×700 (9:16 proportions)
+- `videoAreaHeight` computed property: videoFrameSize.height + controlsHeight
+- `windowSize` computed property: calculated from video area height + title bar
+  - Landscape: 1296×678
+  - Portrait: 730×838
+
+**VideoInspectorView.swift Changes:**
+- Added `videoOrientation` and `videoFrameSize` computed properties
+- Added `contentHeight` computed property using `videoOrientation.videoAreaHeight`
+- Video container uses fixed `.frame(width:height:)` with `videoFrameSize`
+- Right panel wrapped in ScrollView with explicit height matching video area
+- Both panels use explicit height constraints for proper alignment
+- `VideoKeyboardCaptureView.resignFirstResponder()` now checks for NSTextView/NSText before reclaiming focus (allows text selection)
+
+**ContentView.swift Changes:**
+- Added `resizeWindowForVideo(orientation:)` method
+- Window resizes based on detected video orientation when metadata loads
+- Screen bounds checking ensures window stays on screen
+- Animated transition between sizes using `setFrame(animate: true)`
+
+**CalculatorView.swift Changes:**
+- Reduced VStack spacing from 16 to 4
+- Reduced top padding from 12 to 4
+- Tighter layout between fps picker and timecode display
+
+**KeypadView.swift Changes:**
+- Reorganized operator buttons to align with number pad rows (4 operators for 4 rows)
+- Moved "=" button to full-width row at bottom with orange (destructive) style
+- Operators column now properly aligned: +, −, ×, ÷
+
+**TimecodeDisplayView.swift Changes:**
+- Added `isFrameDisplay` and `frameNumber` computed properties
+- Frame mode display separates number from "f" suffix
+- Number is selectable, "f" suffix is dimmed and not selectable
+- Secondary frame count display also separates number from "frames" label
+
+**Key Files Modified:**
+- `Timecoder/App/AppState.swift` — VideoOrientation enum with updated dimensions
+- `Timecoder/Views/Main/VideoInspectorView.swift` — Fixed frame sizing, ScrollView for right panel, text selection fix
+- `Timecoder/Views/Main/ContentView.swift` — Orientation-based window sizing
+- `Timecoder/Views/Calculator/CalculatorView.swift` — Reduced spacing
+- `Timecoder/Views/Calculator/KeypadView.swift` — Reorganized button layout
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift` — Frame display text selection
 
 ---
 
@@ -1108,7 +1162,7 @@ Features explicitly deferred from 1.0:
 | 7 - Export | ✅ Complete | 2025-12-17 | 2025-12-17 | MarkerExporter service, EDL/Avid/CSV formats, export dialog, ⌘E shortcut, menu bar item |
 | 8 - Polish & Infrastructure | ✅ Complete | 2025-12-17 | 2025-12-17 | Export fix, Space Mono, entry validation, preferences, menus, dark/light mode |
 | 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | 2025-12-31 | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker nav, color scheme, division, header removal. Layout blocked → Sprint 10 |
-| 10 - Responsive Video Layout | 📋 Planned | | | Dedicated fix for 16:9/9:16 layout. Two-mode approach with fixed frames. |
+| 10 - Responsive Video Layout | ✅ Complete | 2025-12-31 | 2025-12-31 | Two-mode layout (960×540 landscape, 394×700 portrait). Keypad reorganized with full-width = button. Text selection fixed. Spacing refined. |
 
 ---
 

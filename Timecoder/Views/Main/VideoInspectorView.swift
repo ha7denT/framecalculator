@@ -29,19 +29,37 @@ struct VideoInspectorView: View {
         return metadata.resolution.width / metadata.resolution.height
     }
 
+    /// Video orientation determines which fixed frame size to use
+    private var videoOrientation: VideoOrientation {
+        VideoOrientation.from(aspectRatio: videoAspectRatio)
+    }
+
+    /// Fixed frame size for the video player based on orientation
+    private var videoFrameSize: CGSize {
+        videoOrientation.videoFrameSize
+    }
+
+    /// Content height for the layout (matches video area height)
+    private var contentHeight: CGFloat {
+        videoOrientation.videoAreaHeight
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             // Left side: Video player with controls (top-aligned)
+            // Uses fixed frame size based on video orientation
             videoPlayerArea
-                .frame(minWidth: 500, idealWidth: 700, maxWidth: 900)
+                .frame(width: videoFrameSize.width, height: contentHeight, alignment: .top)
 
             Divider()
 
             // Right side: Calculator + Metadata
-            rightPanel
-                .frame(width: 320)
+            ScrollView {
+                rightPanel
+            }
+            .frame(width: 320, height: contentHeight)
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(height: contentHeight)
         .onAppear {
             configurePlayer()
         }
@@ -88,15 +106,18 @@ struct VideoInspectorView: View {
     @ViewBuilder
     private var videoPlayerArea: some View {
         VStack(spacing: 0) {
-            // Video display - responsive, maintains aspect ratio
+            // Video display - fixed frame size based on orientation
+            // Video content fits within frame, letterboxing/pillarboxing as needed
             ZStack {
+                // Black background for letterboxing/pillarboxing
+                Color.black
+
                 ZStack(alignment: .topTrailing) {
                     if let player = appState.player {
                         CustomVideoPlayerView(player: player)
                             .aspectRatio(videoAspectRatio, contentMode: .fit)
                     } else {
                         Color.black
-                            .aspectRatio(16.0/9.0, contentMode: .fit)
                             .overlay(emptyPlayerState)
                     }
 
@@ -114,6 +135,7 @@ struct VideoInspectorView: View {
                     )
                 }
             }
+            .frame(width: videoFrameSize.width, height: videoFrameSize.height)
 
             // Timeline
             TimelineWithTimecode(
@@ -183,10 +205,9 @@ struct VideoInspectorView: View {
                 // Metadata panel (static file info at bottom)
                 MetadataPanel(metadata: appState.currentMetadata!)
                     .padding()
-
-                Spacer()
             }
         }
+        .frame(width: 320)
         .background(Color(NSColor.windowBackgroundColor))
     }
 
@@ -324,12 +345,21 @@ class VideoKeyboardCaptureView: NSView {
 
         // Try to reclaim first responder status after a brief delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+
             // Don't reclaim if editor is now open
-            if self?.markerVM?.isEditorPresented == true {
+            if self.markerVM?.isEditorPresented == true {
                 return
             }
-            if self?.window?.firstResponder != self {
-                self?.window?.makeFirstResponder(self)
+
+            // Don't reclaim if user is interacting with text (for copy/paste)
+            if let firstResponder = self.window?.firstResponder,
+               firstResponder is NSTextView || firstResponder is NSText {
+                return
+            }
+
+            if self.window?.firstResponder != self {
+                self.window?.makeFirstResponder(self)
             }
         }
         return true

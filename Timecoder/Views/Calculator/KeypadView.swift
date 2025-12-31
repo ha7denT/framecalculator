@@ -25,12 +25,12 @@ struct KeypadView: View {
                 )
             }
 
-            // Number pad with operators
+            // Number pad with operators (4 rows aligned)
             HStack(spacing: buttonSpacing) {
                 // Numbers grid with grid lines
                 NumberPadGrid(viewModel: viewModel, buttonSpacing: buttonSpacing)
 
-                // Operators column
+                // Operators column (4 buttons to match 4 number rows)
                 VStack(spacing: buttonSpacing) {
                     OperationButton(
                         title: "+",
@@ -56,13 +56,17 @@ struct KeypadView: View {
                         style: .primary,
                         action: { viewModel.selectOperation(.divide) }
                     )
-                    OperationButton(
-                        title: "=",
-                        style: .accent,
-                        action: { viewModel.executeOperation() }
-                    )
                 }
             }
+
+            // Equals button (full width, orange)
+            Button(action: { viewModel.executeOperation() }) {
+                Text("=")
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+            }
+            .buttonStyle(CalculatorButtonStyle(style: .destructive))
 
             // Multiplier/divisor input (shown when multiply or divide is selected)
             if viewModel.pendingOperation == .multiply || viewModel.pendingOperation == .divide {

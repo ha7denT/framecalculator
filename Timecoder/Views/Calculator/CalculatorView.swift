@@ -12,14 +12,14 @@ struct CalculatorView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 4) {
             // Frame rate picker (right-aligned)
             HStack {
                 Spacer()
                 CompactFrameRatePicker(selection: $viewModel.frameRate)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.top, 4)
 
             // Error message
             if let error = viewModel.errorMessage {

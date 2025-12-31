@@ -36,10 +36,14 @@ struct ContentView: View {
             // Sync frame rate when video is loaded
             if let metadata = metadata {
                 calculatorVM.frameRate = metadata.matchingFrameRate
+                // Resize window for video orientation
+                let aspectRatio = metadata.resolution.width / metadata.resolution.height
+                let orientation = VideoOrientation.from(aspectRatio: aspectRatio)
+                resizeWindowForVideo(orientation: orientation)
             }
         }
         .onChange(of: appState.mode) { newMode in
-            // Only resize when returning to calculator mode (compact size)
+            // Resize when returning to calculator mode (compact size)
             if newMode == .calculator {
                 resizeWindowForCalculator()
             }
@@ -65,6 +69,51 @@ struct ContentView: View {
                 origin: NSPoint(x: currentFrame.origin.x, y: newOriginY),
                 size: targetSize
             )
+            window.setFrame(newFrame, display: true, animate: true)
+        }
+    }
+
+    /// Resizes window for video mode based on video orientation
+    /// - Parameter orientation: The detected video orientation (landscape or portrait)
+    private func resizeWindowForVideo(orientation: VideoOrientation) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            guard let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first else { return }
+
+            let targetSize = orientation.windowSize
+            let currentFrame = window.frame
+
+            // Calculate new frame, keeping top-left position stable
+            let newOriginY = currentFrame.origin.y + currentFrame.height - targetSize.height
+            var newFrame = NSRect(
+                origin: NSPoint(x: currentFrame.origin.x, y: newOriginY),
+                size: targetSize
+            )
+
+            // Ensure window stays on screen
+            if let screen = window.screen ?? NSScreen.main {
+                let visibleFrame = screen.visibleFrame
+
+                // Adjust if window would go off the right edge
+                if newFrame.maxX > visibleFrame.maxX {
+                    newFrame.origin.x = visibleFrame.maxX - targetSize.width
+                }
+
+                // Adjust if window would go off the left edge
+                if newFrame.origin.x < visibleFrame.origin.x {
+                    newFrame.origin.x = visibleFrame.origin.x
+                }
+
+                // Adjust if window would go below the bottom edge
+                if newFrame.origin.y < visibleFrame.origin.y {
+                    newFrame.origin.y = visibleFrame.origin.y
+                }
+
+                // Adjust if window would go above the top edge
+                if newFrame.maxY > visibleFrame.maxY {
+                    newFrame.origin.y = visibleFrame.maxY - targetSize.height
+                }
+            }
+
             window.setFrame(newFrame, display: true, animate: true)
         }
     }

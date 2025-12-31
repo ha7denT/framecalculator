@@ -11,6 +11,51 @@ public enum AppMode: Equatable {
     case videoInspector
 }
 
+/// Represents video orientation for layout purposes.
+/// Videos are categorized into two modes for predictable UI layout.
+public enum VideoOrientation: Equatable {
+    /// Landscape orientation (aspect ratio >= 1.0)
+    /// Includes: 16:9, 4:3, 2.35:1, 1:1, etc.
+    case landscape
+
+    /// Portrait orientation (aspect ratio < 1.0)
+    /// Includes: 9:16, 3:4, etc.
+    case portrait
+
+    /// Determines orientation from aspect ratio.
+    /// - Parameter aspectRatio: Width divided by height
+    /// - Returns: `.landscape` if ratio >= 1.0, otherwise `.portrait`
+    static func from(aspectRatio: CGFloat) -> VideoOrientation {
+        aspectRatio >= 1.0 ? .landscape : .portrait
+    }
+
+    /// Height for timeline and transport controls below the video
+    static let controlsHeight: CGFloat = 110
+
+    /// Fixed frame size for the video player area in this orientation.
+    var videoFrameSize: CGSize {
+        switch self {
+        case .landscape:
+            return CGSize(width: 960, height: 540)  // 16:9 proportions (qHD)
+        case .portrait:
+            return CGSize(width: 394, height: 700)  // 9:16 proportions
+        }
+    }
+
+    /// Total height of video area (video frame + timeline + transport controls)
+    var videoAreaHeight: CGFloat {
+        videoFrameSize.height + Self.controlsHeight
+    }
+
+    /// Target window size for this orientation.
+    /// Height is based on video area - right panel scrolls within this height.
+    var windowSize: NSSize {
+        let contentHeight = videoAreaHeight + 28  // Add title bar
+        let contentWidth = videoFrameSize.width + 320 + 16  // video + right panel + divider/padding
+        return NSSize(width: contentWidth, height: contentHeight)
+    }
+}
+
 /// Represents the state of video loading.
 public enum VideoLoadingState: Equatable {
     case idle
