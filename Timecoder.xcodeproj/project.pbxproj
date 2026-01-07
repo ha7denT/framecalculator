@@ -7,11 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FC000020001 /* SpaceMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000020000 /* SpaceMono-Regular.ttf */; };
-		FC000021001 /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000021000 /* SpaceMono-Bold.ttf */; };
 		2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */; };
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
 		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
+		3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */; };
 		9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */; };
 		E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */; };
 		F3C60314DAE520505FAA2008 /* Marker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D3365CC63152809B0FE50E /* Marker.swift */; };
@@ -33,14 +32,15 @@
 		FC000012001 /* TransportControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000012000 /* TransportControls.swift */; };
 		FC000013001 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000013000 /* TimelineView.swift */; };
 		FC000015001 /* CustomVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000015000 /* CustomVideoPlayerView.swift */; };
+		FC000020001 /* SpaceMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000020000 /* SpaceMono-Regular.ttf */; };
+		FC000021001 /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC000021000 /* SpaceMono-Bold.ttf */; };
 		FCC6E48B9310C7C35B51CAFD /* MarkerListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6177DD14F7E0AF882DE1A4 /* MarkerListViewModel.swift */; };
 		FD40E9E30667FA962F6881E8 /* TimelineMarkerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A972022BAA1DDEED330268C3 /* TimelineMarkerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		FC000020000 /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Regular.ttf"; sourceTree = "<group>"; };
-		FC000021000 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
 		366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerRowView.swift; sourceTree = "<group>"; };
+		3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Timecoder01.icon; sourceTree = "<group>"; };
 		58D3365CC63152809B0FE50E /* Marker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Marker.swift; sourceTree = "<group>"; };
 		793A032AA16E395D28CF02A1 /* MarkerExporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerExporter.swift; sourceTree = "<group>"; };
 		A972022BAA1DDEED330268C3 /* TimelineMarkerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineMarkerView.swift; sourceTree = "<group>"; };
@@ -67,6 +67,8 @@
 		FC000012000 /* TransportControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportControls.swift; sourceTree = "<group>"; };
 		FC000013000 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
 		FC000015000 /* CustomVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomVideoPlayerView.swift; sourceTree = "<group>"; };
+		FC000020000 /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Regular.ttf"; sourceTree = "<group>"; };
+		FC000021000 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,29 +82,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		FC000022000 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				FC000023000 /* Fonts */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		FC000023000 /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				FC000020000 /* SpaceMono-Regular.ttf */,
-				FC000021000 /* SpaceMono-Bold.ttf */,
-			);
-			path = Fonts;
-			sourceTree = "<group>";
-		};
 		A98C64B4864F4502DC1E39B2 /* Export */ = {
 			isa = PBXGroup;
 			children = (
 				F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */,
 			);
-			name = Export;
 			path = Export;
 			sourceTree = "<group>";
 		};
@@ -114,7 +98,6 @@
 				E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */,
 				CC7CCDAF4342677F1085A400 /* MarkerListView.swift */,
 			);
-			name = Markers;
 			path = Markers;
 			sourceTree = "<group>";
 		};
@@ -237,6 +220,24 @@
 			path = VideoPlayer;
 			sourceTree = "<group>";
 		};
+		FC000022000 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FC000023000 /* Fonts */,
+				3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		FC000023000 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FC000020000 /* SpaceMono-Regular.ttf */,
+				FC000021000 /* SpaceMono-Bold.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -296,6 +297,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC000020001 /* SpaceMono-Regular.ttf in Resources */,
+				3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */,
 				FC000021001 /* SpaceMono-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -458,8 +460,9 @@
 		FC000001500 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder01;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -486,8 +489,9 @@
 		FC000001600 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder01;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
