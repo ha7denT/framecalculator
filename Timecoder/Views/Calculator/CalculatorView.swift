@@ -12,14 +12,14 @@ struct CalculatorView: View {
     }
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
             // Frame rate picker (right-aligned)
             HStack {
                 Spacer()
                 CompactFrameRatePicker(selection: $viewModel.frameRate)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
 
             // Error message
             if let error = viewModel.errorMessage {
@@ -43,19 +43,13 @@ struct CalculatorView: View {
                 isPendingOperation: viewModel.hasPendingOperation,
                 invalidComponents: viewModel.invalidComponents
             )
-            .padding(.horizontal, 8)
-
-            Divider()
-                .padding(.horizontal, 16)
+            .padding(.horizontal, 12)
 
             // Keypad
             KeypadView(viewModel: viewModel)
-
-            Spacer(minLength: 0)
         }
-        .frame(minWidth: 300, idealWidth: 320, maxWidth: 400)
-        .frame(minHeight: 480, idealHeight: 520)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .padding(.bottom, 12)
+        .frame(minWidth: 280, idealWidth: 300, maxWidth: 340)
         .background(KeyboardHandlerView(viewModel: viewModel))
         .onCopyCommand {
             copyTimecode()
@@ -241,7 +235,7 @@ private struct PendingOperationView: View {
                 .foregroundColor(.secondary)
             Text(operation.symbol)
                 .font(.spaceMono(size: 14, weight: .bold))
-                .foregroundColor(.timecoderTeal)
+                .foregroundColor(.accentColor)
         }
         .font(.system(size: 13))
         .padding(.horizontal, 16)
@@ -250,10 +244,12 @@ private struct PendingOperationView: View {
 
 #Preview {
     CalculatorView(viewModel: CalculatorViewModel())
+        .frame(width: 300, height: 540)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Light Mode") {
     CalculatorView(viewModel: CalculatorViewModel())
+        .frame(width: 300, height: 540)
         .preferredColorScheme(.light)
 }

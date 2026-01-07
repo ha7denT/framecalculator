@@ -17,7 +17,7 @@ struct FrameRatePicker: View {
     }
 }
 
-/// Compact frame rate picker showing just the current rate.
+/// Compact frame rate picker with glass effect styling.
 struct CompactFrameRatePicker: View {
     @Binding var selection: FrameRate
 
@@ -44,12 +44,9 @@ struct CompactFrameRatePicker: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.secondary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .glassEffect(in: .capsule)
         }
         .buttonStyle(.plain)
     }

@@ -32,7 +32,7 @@ struct MarkerRowView: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
-        .background(isSelected ? Color.timecoderTeal.opacity(0.2) : Color.clear)
+        .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .cornerRadius(4)
         .contentShape(Rectangle())
         .onTapGesture(count: 2, perform: onDoubleTap)

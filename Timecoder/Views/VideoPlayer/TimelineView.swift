@@ -17,9 +17,9 @@ struct TimelineView: View {
     @State private var dragProgress: Double = 0
 
     /// Colors for In/Out point markers
-    private let inPointColor = Color.timecoderOrange
-    private let outPointColor = Color.timecoderOrange
-    private let rangeColor = Color.timecoderOrange.opacity(0.2)
+    private let inPointColor = Color.orange
+    private let outPointColor = Color.orange
+    private let rangeColor = Color.orange.opacity(0.2)
 
     var body: some View {
         GeometryReader { geometry in
@@ -42,7 +42,7 @@ struct TimelineView: View {
 
                 // Progress fill
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.timecoderTeal)
+                    .fill(Color.accentColor)
                     .frame(width: progressWidth(in: geometry), height: 4)
 
                 // In point marker

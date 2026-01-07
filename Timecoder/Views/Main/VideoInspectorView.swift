@@ -57,9 +57,10 @@ struct VideoInspectorView: View {
             ScrollView {
                 rightPanel
             }
-            .frame(width: 320, height: contentHeight)
+            .frame(width: 340, height: contentHeight)
         }
         .frame(height: contentHeight)
+        .padding(.bottom, 12)
         .onAppear {
             configurePlayer()
         }
@@ -188,27 +189,33 @@ struct VideoInspectorView: View {
     @ViewBuilder
     private var rightPanel: some View {
         VStack(spacing: 0) {
-            // Calculator (always at top)
+            // Calculator (always at top, fixed height to prevent overlap)
             CalculatorView(viewModel: calculatorVM)
+                .frame(height: 520)
 
             // Supplementary info below calculator (when video loaded)
             if appState.currentMetadata != nil {
                 Divider()
+                    .padding(.horizontal, 12)
 
                 // In/Out panel
                 InOutPanel(viewModel: playerVM)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 8)
 
                 Divider()
+                    .padding(.horizontal, 12)
 
                 // Metadata panel (static file info at bottom)
                 MetadataPanel(metadata: appState.currentMetadata!)
-                    .padding()
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
             }
+
+            Spacer(minLength: 0)
         }
-        .frame(width: 320)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(.top, 8)
+        .frame(width: 340)
     }
 
     // MARK: - Actions
@@ -558,7 +565,7 @@ class VideoKeyboardCaptureView: NSView {
 
 // MARK: - In/Out Panel
 
-/// Panel displaying In/Out point timecodes and duration.
+/// Panel displaying In/Out point timecodes and duration with glass effect.
 struct InOutPanel: View {
     @ObservedObject var viewModel: VideoPlayerViewModel
 
@@ -581,7 +588,7 @@ struct InOutPanel: View {
 
                         Button(action: { viewModel.seekToInPoint() }) {
                             Image(systemName: "arrow.right.circle")
-                                .foregroundColor(.timecoderTeal)
+                                .foregroundColor(.accentColor)
                         }
                         .buttonStyle(.plain)
                         .help("Go to In point (⇧I)")
@@ -610,7 +617,7 @@ struct InOutPanel: View {
 
                         Button(action: { viewModel.seekToOutPoint() }) {
                             Image(systemName: "arrow.right.circle")
-                                .foregroundColor(.timecoderTeal)
+                                .foregroundColor(.accentColor)
                         }
                         .buttonStyle(.plain)
                         .help("Go to Out point (⇧O)")
@@ -634,7 +641,7 @@ struct InOutPanel: View {
 
                         Text(duration.formatted())
                             .font(.spaceMono(size: 13, weight: .bold))
-                            .foregroundColor(.timecoderOrange)
+                            .foregroundColor(.orange)
                             .textSelection(.enabled)
 
                         Text("")
@@ -650,16 +657,14 @@ struct InOutPanel: View {
                     Button(action: { viewModel.clearInOutPoints() }) {
                         Label("Clear", systemImage: "xmark.circle")
                             .font(.caption)
-                            .foregroundColor(.secondary)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.glass)
                     .help("Clear In/Out points (⌥X)")
                 }
             }
         }
         .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .cornerRadius(8)
+        .glassEffect(in: .rect(cornerRadius: 12))
     }
 }
 

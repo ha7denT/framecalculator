@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Transport controls for video playback with JKL shuttle support.
+/// Transport controls for video playback with JKL shuttle support and glass styling.
 struct TransportControls: View {
     @ObservedObject var viewModel: VideoPlayerViewModel
 
@@ -19,41 +19,42 @@ struct TransportControls: View {
     var body: some View {
         HStack(spacing: 16) {
             // Frame step backward
-            transportButton(
+            GlassTransportButton(
                 icon: "backward.frame",
                 action: viewModel.stepBackward
             )
             .help("Step backward (←)")
 
             // Shuttle controls group
-            HStack(spacing: 8) {
-                // Reverse (J key)
-                transportButton(
-                    icon: "backward.fill",
-                    isActive: viewModel.shuttleState.rawValue < 0,
-                    action: viewModel.handleJ
-                )
-                .help("Reverse (J)")
+            GlassEffectContainer {
+                HStack(spacing: 8) {
+                    // Reverse (J key)
+                    GlassTransportButton(
+                        icon: "backward.fill",
+                        isActive: viewModel.shuttleState.rawValue < 0,
+                        action: viewModel.handleJ
+                    )
+                    .help("Reverse (J)")
 
-                // Play/Pause
-                transportButton(
-                    icon: viewModel.isPlaying ? "pause.fill" : "play.fill",
-                    isActive: false,
-                    action: viewModel.togglePlayPause
-                )
-                .help("Play/Pause (Space)")
+                    // Play/Pause
+                    GlassTransportButton(
+                        icon: viewModel.isPlaying ? "pause.fill" : "play.fill",
+                        action: viewModel.togglePlayPause
+                    )
+                    .help("Play/Pause (Space)")
 
-                // Forward (L key)
-                transportButton(
-                    icon: "forward.fill",
-                    isActive: viewModel.shuttleState.rawValue > 0,
-                    action: viewModel.handleL
-                )
-                .help("Forward (L)")
+                    // Forward (L key)
+                    GlassTransportButton(
+                        icon: "forward.fill",
+                        isActive: viewModel.shuttleState.rawValue > 0,
+                        action: viewModel.handleL
+                    )
+                    .help("Forward (L)")
+                }
             }
 
             // Frame step forward
-            transportButton(
+            GlassTransportButton(
                 icon: "forward.frame",
                 action: viewModel.stepForward
             )
@@ -66,7 +67,7 @@ struct TransportControls: View {
 
                 HStack(spacing: 8) {
                     // Previous marker
-                    transportButton(
+                    GlassTransportButton(
                         icon: "bookmark.fill",
                         isDisabled: !hasPreviousMarker,
                         showLeftArrow: true,
@@ -75,7 +76,7 @@ struct TransportControls: View {
                     .help("Previous marker (↑)")
 
                     // Next marker
-                    transportButton(
+                    GlassTransportButton(
                         icon: "bookmark.fill",
                         isDisabled: !hasNextMarker,
                         showRightArrow: true,
@@ -91,46 +92,10 @@ struct TransportControls: View {
             shuttleIndicator
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.8))
+        .padding(.vertical, 10)
     }
 
-    // MARK: - Subviews
-
-    @ViewBuilder
-    private func transportButton(
-        icon: String,
-        isActive: Bool = false,
-        isDisabled: Bool = false,
-        showLeftArrow: Bool = false,
-        showRightArrow: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 2) {
-                if showLeftArrow {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 8, weight: .bold))
-                }
-
-                Image(systemName: icon)
-                    .font(.system(size: showLeftArrow || showRightArrow ? 12 : 16, weight: .medium))
-
-                if showRightArrow {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .bold))
-                }
-            }
-            .frame(width: 32, height: 32)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(isActive ? Color.timecoderTeal : Color.clear)
-            )
-        }
-        .buttonStyle(.plain)
-        .foregroundColor(isDisabled ? .secondary.opacity(0.5) : (isActive ? .white : .primary))
-        .disabled(isDisabled)
-    }
+    // MARK: - Shuttle Indicator
 
     @ViewBuilder
     private var shuttleIndicator: some View {
@@ -192,6 +157,43 @@ struct TransportControls: View {
         case .reverse4x:
             return "-4×"
         }
+    }
+}
+
+// MARK: - Glass Transport Button
+
+/// A transport control button with glass styling.
+private struct GlassTransportButton: View {
+    let icon: String
+    var isActive: Bool = false
+    var isDisabled: Bool = false
+    var showLeftArrow: Bool = false
+    var showRightArrow: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 2) {
+                if showLeftArrow {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 8, weight: .bold))
+                }
+
+                Image(systemName: icon)
+                    .font(.system(size: showLeftArrow || showRightArrow ? 12 : 16, weight: .medium))
+
+                if showRightArrow {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8, weight: .bold))
+                }
+            }
+            .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.glass)
+        .tint(isActive ? .accentColor : nil)
+        .clipShape(Circle())
+        .opacity(isDisabled ? 0.5 : 1.0)
+        .disabled(isDisabled)
     }
 }
 

@@ -61,7 +61,7 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             guard let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first else { return }
 
-            let targetSize = NSSize(width: 320, height: 520)
+            let targetSize = NSSize(width: 300, height: 540)
             let currentFrame = window.frame
             let newOriginY = currentFrame.origin.y + currentFrame.height - targetSize.height
 
@@ -168,12 +168,12 @@ struct ContentView: View {
     private var dropOverlay: some View {
         if isDropTargeted {
             ZStack {
-                Color.timecoderTeal.opacity(0.15)
+                Color.accentColor.opacity(0.15)
 
                 VStack(spacing: 16) {
                     Image(systemName: "arrow.down.doc.fill")
                         .font(.system(size: 48))
-                        .foregroundColor(.timecoderTeal)
+                        .foregroundColor(.accentColor)
 
                     Text("Drop video file to inspect")
                         .font(.headline)

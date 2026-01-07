@@ -7,7 +7,7 @@ import PackageDescription
 let package = Package(
     name: "Timecoder",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v26)
     ],
     products: [
         .library(

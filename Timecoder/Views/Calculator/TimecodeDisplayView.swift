@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Large timecode display with monospace font and selection support.
+/// Large timecode display with monospace font, glass effect, and selection support.
 struct TimecodeDisplayView: View {
     let timecode: String
     let frameCount: Int
@@ -10,50 +10,41 @@ struct TimecodeDisplayView: View {
     var invalidComponents: Set<TimecodeComponent> = []
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            // Main timecode display
+        VStack(alignment: .trailing, spacing: 8) {
+            // Main timecode display with glass effect
             displayContent
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(nsColor: .textBackgroundColor).opacity(0.5))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            borderColor,
-                            lineWidth: 2
-                        )
-                )
+                .glassEffect(in: .rect(cornerRadius: 12))
+                .tint(tintColor)
 
             // Secondary frame count display
             if showFrameCount {
                 HStack(spacing: 4) {
                     Text("\(frameCount)")
-                        .font(.spaceMono(size: 14))
+                        .font(.spaceMono(size: 12))
                         .foregroundColor(.secondary)
                         .textSelection(.enabled)
                     Text("frames")
-                        .font(.spaceMono(size: 14))
-                        .foregroundColor(.secondary.opacity(0.7))
+                        .font(.spaceMono(size: 12))
+                        .foregroundColor(.secondary.opacity(0.6))
                 }
                 .padding(.trailing, 16)
             }
         }
     }
 
-    /// The border color based on validation state
-    private var borderColor: Color {
+    /// Tint color for glass effect based on state
+    private var tintColor: Color? {
         if hasError {
-            return .red.opacity(0.7)
+            return .red
         } else if !invalidComponents.isEmpty {
-            return .timecoderOrange.opacity(0.7)
+            return .orange
         } else if isPendingOperation {
-            return .timecoderTeal.opacity(0.5)
+            return .accentColor
         }
-        return .clear
+        return nil
     }
 
     /// Whether the display is showing frame count (ends with "f")
@@ -73,19 +64,19 @@ struct TimecodeDisplayView: View {
             // Frame mode - separate number from "f" suffix for selection
             HStack(spacing: 0) {
                 Text(frameNumber)
-                    .font(.spaceMono(size: 48))
+                    .font(.spaceMono(size: 36))
                     .foregroundColor(hasError ? .red : .primary)
                     .textSelection(.enabled)
                 Text("f")
-                    .font(.spaceMono(size: 48))
-                    .foregroundColor(.secondary.opacity(0.5))
+                    .font(.spaceMono(size: 36))
+                    .foregroundColor(.secondary.opacity(0.4))
             }
             .lineLimit(1)
             .minimumScaleFactor(0.5)
         } else if invalidComponents.isEmpty {
             // Simple case - text selection enabled for normal display
             Text(timecode)
-                .font(.spaceMono(size: 48))
+                .font(.spaceMono(size: 36))
                 .foregroundColor(hasError ? .red : .primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -93,7 +84,7 @@ struct TimecodeDisplayView: View {
         } else {
             // Complex case with colored components - text selection disabled to avoid crash
             coloredTimecodeText
-                .font(.spaceMono(size: 48))
+                .font(.spaceMono(size: 36))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
         }
@@ -143,7 +134,7 @@ struct TimecodeDisplayView: View {
         isPendingOperation: false
     )
     .padding()
-    .frame(width: 320)
+    .frame(width: 300)
 }
 
 #Preview("Error State") {
@@ -155,7 +146,7 @@ struct TimecodeDisplayView: View {
         isPendingOperation: false
     )
     .padding()
-    .frame(width: 320)
+    .frame(width: 300)
 }
 
 #Preview("Pending Operation") {
@@ -167,7 +158,7 @@ struct TimecodeDisplayView: View {
         isPendingOperation: true
     )
     .padding()
-    .frame(width: 320)
+    .frame(width: 300)
 }
 
 #Preview("Invalid Entry") {
@@ -180,5 +171,5 @@ struct TimecodeDisplayView: View {
         invalidComponents: [.seconds, .frames]
     )
     .padding()
-    .frame(width: 320)
+    .frame(width: 300)
 }

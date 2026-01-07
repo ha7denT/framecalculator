@@ -4,9 +4,9 @@
 
 This document breaks down the development of Timecoder into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
-**Total Estimated Sprints:** 9
+**Total Sprints:** 11
 **Target MVP (Sprints 1-6):** Core calculator + video player + markers
-**Target 1.0 (Sprints 7-9):** Export + polish + App Store submission
+**Target 1.0 (Sprints 7-11):** Export + polish + responsive layout + Liquid Glass UI
 
 ---
 
@@ -1128,6 +1128,115 @@ The key insight from failed attempts: trying to make the UI "perfectly responsiv
 
 ---
 
+## Sprint 11: Liquid Glass UI Adoption
+
+### Goal
+Adopt Apple's native Liquid Glass design from macOS 26 Tahoe using official SwiftUI APIs.
+
+### Background
+
+Apple introduced "Liquid Glass" design philosophy in macOS 26 Tahoe (WWDC 2025). Apps compiled with Xcode 26 automatically adopt the new design for standard controls, with additional APIs for custom styling.
+
+### Deliverables
+
+- [x] Update deployment target to macOS 26
+- [x] Replace custom button styles with `.buttonStyle(.glass)` and `.buttonStyle(.glassProminent)`
+- [x] Add `.glassEffect()` modifier to custom views (timecode display, In/Out panel)
+- [x] Circular buttons for keypad with proper spacing
+- [x] Capsule-shaped equals button spanning full keypad width
+- [x] Orange operator buttons using `timecoderOrange`
+- [x] Teal equals button using `timecoderTeal`
+- [x] Glass styling for video transport controls
+- [x] Proper bottom padding in video inspector mode
+
+### Key API Changes
+
+**Button Styles:**
+```swift
+.buttonStyle(.glass)           // Standard glass button
+.buttonStyle(.glassProminent)  // Prominent/accent glass button
+```
+
+**Glass Effect:**
+```swift
+.glassEffect(in: .rect(cornerRadius: 12))  // Rounded rectangle
+.glassEffect(in: .capsule)                  // Capsule shape
+.glassEffect(in: .circle)                   // Circle shape
+```
+
+**Tinting Glass:**
+```swift
+.tint(.timecoderOrange)  // Custom tint color
+```
+
+### Acceptance Criteria
+
+- [x] Number buttons use `.buttonStyle(.glass)` with `.clipShape(Circle())`
+- [x] Operator buttons use `.buttonStyle(.glassProminent)` with `.tint(.timecoderOrange)`
+- [x] Equals button uses `.buttonStyle(.glassProminent)` with `.tint(.timecoderTeal)`
+- [x] Timecode display has `.glassEffect(in: .rect(cornerRadius: 12))`
+- [x] In/Out panel has `.glassEffect(in: .rect(cornerRadius: 12))`
+- [x] Calculator window sized to 300×540
+- [x] Video inspector has proper bottom padding (12pt)
+- [x] All keyboard shortcuts continue to work
+
+### Implementation Notes (for future reference)
+
+**Project Configuration:**
+- Deployment target changed from macOS 13.0 to macOS 26.0
+- Updated both `Package.swift` and `project.pbxproj`
+
+**KeypadView.swift:**
+- Button size: 48pt, spacing: 8pt
+- Keypad width calculated: `buttonSize * 4 + buttonSpacing * 3` = 216pt
+- Wrapped keypad + equals in fixed-width VStack for proper alignment
+- Operators VStack uses `.tint(.timecoderOrange)`
+- Equals button uses `.tint(.timecoderTeal)` and `maxWidth: .infinity` within container
+- Removed custom `CalculatorButtonStyle` in favor of native glass styles
+- Removed grid lines (don't fit liquid glass aesthetic)
+
+**TimecodeDisplayView.swift:**
+- Added `.glassEffect(in: .rect(cornerRadius: 12))`
+- Tint changes based on state: red for error, orange for invalid, accent for pending operation
+
+**VideoInspectorView.swift:**
+- Calculator height increased to 520pt to prevent clipping
+- Removed `.clipped()` from calculator
+- Added `.padding(.bottom, 12)` to body after frame constraint
+- In/Out panel uses `.glassEffect(in: .rect(cornerRadius: 12))`
+
+**TransportControls.swift:**
+- Transport buttons use `.buttonStyle(.glass).clipShape(Circle())`
+
+**FrameRatePicker.swift:**
+- Uses `.glassEffect(in: .capsule)` for compact picker
+
+**ContentView.swift:**
+- Calculator window size: 300×540
+
+**Color Scheme:**
+- `timecoderOrange` (RGB 0.976, 0.412, 0.0) for operator buttons
+- `timecoderTeal` (RGB 0.396, 0.871, 0.945) for equals button
+- System colors retained where appropriate
+
+**Key Files Modified:**
+- `Package.swift` — macOS 26 deployment target
+- `Timecoder.xcodeproj/project.pbxproj` — macOS 26 deployment target
+- `Timecoder/Views/Calculator/KeypadView.swift` — Glass buttons, layout restructure
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift` — Glass effect
+- `Timecoder/Views/Calculator/CalculatorView.swift` — Window sizing
+- `Timecoder/Views/Calculator/FrameRatePicker.swift` — Glass effect
+- `Timecoder/Views/Main/ContentView.swift` — Window dimensions
+- `Timecoder/Views/Main/VideoInspectorView.swift` — Glass effects, padding fixes
+- `Timecoder/Views/VideoPlayer/TransportControls.swift` — Glass buttons
+
+### References
+
+- [Build a SwiftUI app with the new design - WWDC25](https://developer.apple.com/videos/play/wwdc2025/323/)
+- [Adopting Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass)
+
+---
+
 ## Post-1.0 Backlog
 
 Features explicitly deferred from 1.0:
@@ -1163,7 +1272,8 @@ Features explicitly deferred from 1.0:
 | 8 - Polish & Infrastructure | ✅ Complete | 2025-12-17 | 2025-12-17 | Export fix, Space Mono, entry validation, preferences, menus, dark/light mode |
 | 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | 2025-12-31 | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker nav, color scheme, division, header removal. Layout blocked → Sprint 10 |
 | 10 - Responsive Video Layout | ✅ Complete | 2025-12-31 | 2025-12-31 | Two-mode layout (960×540 landscape, 394×700 portrait). Keypad reorganized with full-width = button. Text selection fixed. Spacing refined. |
+| 11 - Liquid Glass UI | ✅ Complete | 2026-01-07 | 2026-01-07 | macOS 26 Tahoe design adoption with native SwiftUI glass effects |
 
 ---
 
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-07*
