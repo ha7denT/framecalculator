@@ -1310,44 +1310,31 @@ Prepare the app for TestFlight distribution so friends can test before App Store
 
 ---
 
-### Phase 1: Project Configuration
+### Phase 1: Project Configuration ✅
 
 #### Code Signing Setup
 
-- [ ] **Set Development Team ID** — Currently empty in project settings
-  - Open Xcode > Timecoder target > Signing & Capabilities
-  - Select your Apple Developer team
-  - Xcode will automatically manage provisioning profiles
+- [x] **Set Development Team ID** — `P2VY4WT259`
+  - Updated in project.pbxproj for both Debug and Release configurations
 
-- [ ] **Verify Bundle Identifier** — Currently `com.timecoder.app`
-  - Update to match your Apple Developer registration (e.g., `com.yourteam.timecoder`)
-  - Must be unique across all apps in the App Store
+- [x] **Verify Bundle Identifier** — `com.haydentoppeross.timecoder`
+  - Updated from `com.timecoder.app` to match Apple Developer registration
 
-- [ ] **Set Copyright** — Currently empty
-  - Add to Info.plist: `© 2026 Your Name. All rights reserved.`
+- [x] **Set Copyright** — `© 2026 Hayden Toppeross. All rights reserved.`
+  - Added via `INFOPLIST_KEY_NSHumanReadableCopyright` in build settings
 
 #### Privacy Manifest
 
 The app uses `UserDefaults` for storing preferences. While this specific usage (app preferences) doesn't require a "Required Reason API" declaration, adding a privacy manifest is best practice for App Store submission.
 
-- [ ] **Create PrivacyInfo.xcprivacy** — Add to project root
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-  <dict>
-      <key>NSPrivacyTracking</key>
-      <false/>
-      <key>NSPrivacyTrackingDomains</key>
-      <array/>
-      <key>NSPrivacyCollectedDataTypes</key>
-      <array/>
-      <key>NSPrivacyAccessedAPITypes</key>
-      <array/>
-  </dict>
-  </plist>
-  ```
-  - This declares: no tracking, no data collection, no required-reason APIs
+- [x] **Create PrivacyInfo.xcprivacy** — Added to Timecoder/ directory
+  - Declares: no tracking, no data collection, no required-reason APIs
+  - Added to Xcode project and Resources build phase
+
+#### Privacy Policy
+
+- [x] **Privacy Policy URL** — https://ha7dent.github.io/timecoder-privacy/
+  - Hosted on GitHub Pages
 
 ---
 
@@ -1573,7 +1560,7 @@ Features explicitly deferred from 1.0:
 | 10 - Responsive Video Layout | ✅ Complete | 2025-12-31 | 2025-12-31 | Two-mode layout (960×540 landscape, 394×700 portrait). Keypad reorganized with full-width = button. Text selection fixed. Spacing refined. |
 | 11 - Liquid Glass UI | ✅ Complete | 2026-01-07 | 2026-01-07 | macOS 26 Tahoe design adoption with native SwiftUI glass effects |
 | 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
-| 13 - TestFlight Distribution | 📋 Planned | — | — | Beta testing for friends before App Store submission |
+| 13 - TestFlight Distribution | 🚧 In Progress | 2026-01-09 | — | Phase 1 complete: Team ID, Bundle ID, Copyright, Privacy Manifest, Privacy Policy URL configured. Ready for App Store Connect setup and archive. |
 
 ---
 
