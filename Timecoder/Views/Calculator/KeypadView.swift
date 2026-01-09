@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Calculator keypad with numeric and operation buttons using Liquid Glass styling.
+/// Calculator keypad with numeric and operation buttons.
 struct KeypadView: View {
     @ObservedObject var viewModel: CalculatorViewModel
 
@@ -19,16 +19,12 @@ struct KeypadView: View {
                 // Frame/Timecode toggle button
                 FrameTimecodeToggleButton(viewModel: viewModel, size: buttonSize)
 
-                GlassButton(
-                    label: "AC",
-                    size: buttonSize,
-                    action: { viewModel.clearAll() }
-                )
-                GlassButton(
-                    label: "C",
-                    size: buttonSize,
-                    action: { viewModel.clearEntry() }
-                )
+                SecondaryButton(label: "AC", size: buttonSize) {
+                    viewModel.clearAll()
+                }
+                SecondaryButton(label: "C", size: buttonSize) {
+                    viewModel.clearEntry()
+                }
             }
 
             // Keypad area with fixed width (ensures equals button matches)
@@ -54,19 +50,14 @@ struct KeypadView: View {
                         }
                         HStack(spacing: buttonSpacing) {
                             // Wide 0 button spanning two columns
-                            Button(action: { viewModel.enterDigit(0) }) {
-                                Text("0")
-                                    .font(.system(size: 20, weight: .regular, design: .rounded))
-                                    .frame(width: buttonSize * 2 + buttonSpacing, height: buttonSize)
+                            WideZeroButton(size: buttonSize, spacing: buttonSpacing) {
+                                viewModel.enterDigit(0)
                             }
-                            .buttonStyle(.glass)
-                            .clipShape(Capsule())
-
                             DeleteButton(size: buttonSize) { viewModel.deleteDigit() }
                         }
                     }
 
-                    // Operators column (4 buttons to match 4 number rows) - Orange tint
+                    // Operators column (4 buttons to match 4 number rows)
                     VStack(spacing: buttonSpacing) {
                         OperatorButton(
                             symbol: "÷",
@@ -93,18 +84,12 @@ struct KeypadView: View {
                             action: { viewModel.selectOperation(.add) }
                         )
                     }
-                    .tint(.timecoderOrange)
                 }
 
-                // Equals button (fills keypad width) - Teal accent
-                Button(action: { viewModel.executeOperation() }) {
-                    Text("=")
-                        .font(.system(size: 22, weight: .medium, design: .rounded))
-                        .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
+                // Equals button (fills keypad width)
+                EqualsButton(width: keypadWidth) {
+                    viewModel.executeOperation()
                 }
-                .buttonStyle(.glassProminent)
-                .tint(.timecoderTeal)
-                .clipShape(Capsule())
             }
             .frame(width: keypadWidth)
 
@@ -122,24 +107,67 @@ struct KeypadView: View {
 
 // MARK: - Button Components
 
-/// A numeric button (0-9) with circular glass styling.
+/// Off-white/cream color for number buttons
+private let numberButtonColor = Color(red: 0.95, green: 0.93, blue: 0.90)
+private let numberButtonPressedColor = Color.white
+
+/// A numeric button (0-9) with off-white background and black text.
 private struct NumberButton: View {
     let digit: Int
     let size: CGFloat
     let action: () -> Void
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            Text("\(digit)")
-                .font(.system(size: 20, weight: .regular, design: .rounded))
-                .frame(width: size, height: size)
-        }
-        .buttonStyle(.glass)
-        .clipShape(Circle())
+        Text("\(digit)")
+            .font(.system(size: 20, weight: .medium, design: .rounded))
+            .foregroundColor(.black)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(isPressed ? numberButtonPressedColor : numberButtonColor)
+            )
+            .contentShape(Circle())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
     }
 }
 
-/// Delete/backspace button with circular glass styling.
+/// Wide 0 button spanning two columns.
+private struct WideZeroButton: View {
+    let size: CGFloat
+    let spacing: CGFloat
+    let action: () -> Void
+    @State private var isPressed = false
+
+    var body: some View {
+        Text("0")
+            .font(.system(size: 20, weight: .medium, design: .rounded))
+            .foregroundColor(.black)
+            .frame(width: size * 2 + spacing, height: size)
+            .background(
+                Capsule()
+                    .fill(isPressed ? numberButtonPressedColor : numberButtonColor)
+            )
+            .contentShape(Capsule())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+    }
+}
+
+/// Delete/backspace button with glass styling.
 private struct DeleteButton: View {
     let size: CGFloat
     let action: () -> Void
@@ -148,6 +176,7 @@ private struct DeleteButton: View {
         Button(action: action) {
             Image(systemName: "delete.backward")
                 .font(.system(size: 18, weight: .regular))
+                .foregroundColor(.primary)
                 .frame(width: size, height: size)
         }
         .buttonStyle(.glass)
@@ -155,47 +184,87 @@ private struct DeleteButton: View {
     }
 }
 
-/// A generic glass button with text or SF Symbol.
-private struct GlassButton: View {
-    var label: String? = nil
-    var systemImage: String? = nil
+/// Secondary button (AC, C) with glass styling.
+private struct SecondaryButton: View {
+    let label: String
     let size: CGFloat
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Group {
-                if let label = label {
-                    Text(label)
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                } else if let systemImage = systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 16, weight: .regular))
-                }
-            }
-            .frame(width: size, height: size)
+            Text(label)
+                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .frame(width: size, height: size)
         }
         .buttonStyle(.glass)
         .clipShape(Circle())
     }
 }
 
-/// An operator button (+, -, ×, ÷) with prominent glass styling.
+/// An operator button (+, -, ×, ÷) with orange background.
 private struct OperatorButton: View {
     let symbol: String
     var isSelected: Bool = false
     let size: CGFloat
     let action: () -> Void
+    @State private var isPressed = false
+
+    private var backgroundColor: Color {
+        if isPressed {
+            return Color.timecoderOrange.opacity(0.6)
+        }
+        return isSelected ? Color.timecoderOrange : Color.timecoderOrange.opacity(0.85)
+    }
 
     var body: some View {
-        Button(action: action) {
-            Text(symbol)
-                .font(.system(size: 20, weight: .medium, design: .rounded))
-                .frame(width: size, height: size)
-        }
-        .buttonStyle(.glassProminent)
-        .clipShape(Circle())
-        .opacity(isSelected ? 1.0 : 0.85)
+        Text(symbol)
+            .font(.system(size: 20, weight: .semibold, design: .rounded))
+            .foregroundColor(.white)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(backgroundColor)
+            )
+            .contentShape(Circle())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+    }
+}
+
+/// Equals button with teal background spanning full width.
+private struct EqualsButton: View {
+    let width: CGFloat
+    let action: () -> Void
+    @State private var isPressed = false
+
+    private var backgroundColor: Color {
+        isPressed ? Color.timecoderTeal.opacity(0.6) : Color.timecoderTeal
+    }
+
+    var body: some View {
+        Text("=")
+            .font(.system(size: 22, weight: .semibold, design: .rounded))
+            .foregroundColor(.black)
+            .frame(width: width, height: 44)
+            .background(
+                Capsule()
+                    .fill(backgroundColor)
+            )
+            .contentShape(Capsule())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
     }
 }
 
@@ -235,14 +304,14 @@ private struct FrameTimecodeToggleButton: View {
         Button(action: { viewModel.toggleDisplayMode() }) {
             HStack(spacing: 1) {
                 Text("F")
-                    .foregroundColor(isShowingFrames ? .accentColor : .primary.opacity(0.6))
+                    .foregroundColor(isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
 
                 Image(systemName: "arrow.left.arrow.right")
                     .font(.system(size: 8, weight: .medium))
                     .foregroundColor(.secondary)
 
                 Text("TC")
-                    .foregroundColor(!isShowingFrames ? .accentColor : .primary.opacity(0.6))
+                    .foregroundColor(!isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
             }
             .font(.system(size: 11, weight: .medium, design: .rounded))
             .frame(width: size, height: size)
@@ -257,4 +326,5 @@ private struct FrameTimecodeToggleButton: View {
     KeypadView(viewModel: CalculatorViewModel())
         .frame(width: 300)
         .padding()
+        .preferredColorScheme(.dark)
 }

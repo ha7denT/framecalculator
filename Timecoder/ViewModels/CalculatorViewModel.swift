@@ -77,21 +77,31 @@ final class CalculatorViewModel: ObservableObject {
 
     // MARK: - Computed Properties
 
-    /// The display string for the current value.
+    /// The display string for the current value (used for clipboard operations).
     var displayString: String {
         if isEntering && !digitBuffer.isEmpty {
             return formatDigitBuffer()
         }
-        // Show as frames if in frame display mode
         if entryMode == .frames {
             return "\(currentTimecode.frames)f"
         }
         return currentTimecode.formatted()
     }
 
+    /// Always returns the formatted timecode string (for display purposes).
+    var formattedTimecodeString: String {
+        if isEntering && !digitBuffer.isEmpty && entryMode == .timecode {
+            return formatDigitBuffer()
+        }
+        return currentTimecode.formatted()
+    }
+
     /// The frame count of the current timecode.
     var currentFrameCount: Int {
-        currentTimecode.frames
+        if isEntering && !digitBuffer.isEmpty && entryMode == .frames {
+            return Int(digitBuffer) ?? 0
+        }
+        return currentTimecode.frames
     }
 
     /// Whether there's a pending operation with a stored value.

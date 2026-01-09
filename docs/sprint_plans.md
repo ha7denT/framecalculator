@@ -4,9 +4,10 @@
 
 This document breaks down the development of Timecoder into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
-**Total Sprints:** 11
+**Total Sprints:** 13
 **Target MVP (Sprints 1-6):** Core calculator + video player + markers
-**Target 1.0 (Sprints 7-11):** Export + polish + responsive layout + Liquid Glass UI
+**Target 1.0 (Sprints 7-12):** Export + polish + responsive layout + Liquid Glass UI + visual polish
+**Target TestFlight (Sprint 13):** Beta distribution for testing
 
 ---
 
@@ -1237,6 +1238,304 @@ Apple introduced "Liquid Glass" design philosophy in macOS 26 Tahoe (WWDC 2025).
 
 ---
 
+## Sprint 12: Visual Polish
+
+### Goal
+Final visual refinements to button styling and display consistency before TestFlight distribution.
+
+---
+
+### Deliverables
+
+- [x] **Number button styling** — Off-white background (#F2EDE5) with black text
+- [x] **Button press feedback** — White flash on number buttons when pressed
+- [x] **Operator button feedback** — Lighter orange (60% opacity) when pressed
+- [x] **Equals button feedback** — Lighter teal (60% opacity) when pressed
+- [x] **Unified display** — Frame mode shows frame count large with timecode below (matches timecode mode layout)
+- [x] **Equals button width** — Now spans full keypad width using explicit frame
+
+---
+
+### Implementation Notes
+
+**KeypadView.swift Changes:**
+
+Custom button components replace system `.glass` style for number buttons:
+- `NumberButton` — Off-white circular button with white pressed state
+- `WideZeroButton` — Capsule-shaped 0 button spanning two columns
+- `OperatorButton` — Orange background with 60% opacity pressed state
+- `EqualsButton` — Teal capsule with explicit width parameter and 60% opacity pressed state
+- `SecondaryButton` — AC, C buttons retain glass styling
+- `DeleteButton` — Backspace retains glass styling
+
+Press detection uses `DragGesture(minimumDistance: 0)` for responsive visual feedback.
+
+**Color Values:**
+- Number button background: `Color(red: 0.95, green: 0.93, blue: 0.90)` (off-white/cream)
+- Number button pressed: `Color.white`
+- Operator pressed: `Color.timecoderOrange.opacity(0.6)`
+- Equals pressed: `Color.timecoderTeal.opacity(0.6)`
+
+**TimecodeDisplayView.swift Changes:**
+
+New `TimecodeDisplayMode` enum with `.timecode` and `.frames` cases.
+
+Updated interface:
+- `formattedTimecode: String` — Always the HH:MM:SS:FF formatted string
+- `frameCount: Int` — Always the frame number
+- `displayMode: TimecodeDisplayMode` — Controls which is shown large vs. secondary
+
+Both modes now show secondary value below primary:
+- Timecode mode: "01:00:00:00" large, "86400 frames" below
+- Frames mode: "86400" large, "01:00:00:00" below
+
+**CalculatorViewModel.swift Changes:**
+
+Added `formattedTimecodeString` computed property that always returns timecode format (never "Nf").
+
+Updated `currentFrameCount` to return entered value during frame entry mode.
+
+**Key Files Modified:**
+- `Timecoder/Views/Calculator/KeypadView.swift`
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift`
+- `Timecoder/Views/Calculator/CalculatorView.swift`
+- `Timecoder/ViewModels/CalculatorViewModel.swift`
+
+---
+
+## Sprint 13: TestFlight Distribution
+
+### Goal
+Prepare the app for TestFlight distribution so friends can test before App Store submission.
+
+---
+
+### Phase 1: Project Configuration
+
+#### Code Signing Setup
+
+- [ ] **Set Development Team ID** — Currently empty in project settings
+  - Open Xcode > Timecoder target > Signing & Capabilities
+  - Select your Apple Developer team
+  - Xcode will automatically manage provisioning profiles
+
+- [ ] **Verify Bundle Identifier** — Currently `com.timecoder.app`
+  - Update to match your Apple Developer registration (e.g., `com.yourteam.timecoder`)
+  - Must be unique across all apps in the App Store
+
+- [ ] **Set Copyright** — Currently empty
+  - Add to Info.plist: `© 2026 Your Name. All rights reserved.`
+
+#### Privacy Manifest
+
+The app uses `UserDefaults` for storing preferences. While this specific usage (app preferences) doesn't require a "Required Reason API" declaration, adding a privacy manifest is best practice for App Store submission.
+
+- [ ] **Create PrivacyInfo.xcprivacy** — Add to project root
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+  <dict>
+      <key>NSPrivacyTracking</key>
+      <false/>
+      <key>NSPrivacyTrackingDomains</key>
+      <array/>
+      <key>NSPrivacyCollectedDataTypes</key>
+      <array/>
+      <key>NSPrivacyAccessedAPITypes</key>
+      <array/>
+  </dict>
+  </plist>
+  ```
+  - This declares: no tracking, no data collection, no required-reason APIs
+
+---
+
+### Phase 2: App Store Connect Setup
+
+#### Create App Record
+
+- [ ] **Log in to App Store Connect** — https://appstoreconnect.apple.com
+- [ ] **Create new app** — Apps > + > New App
+  - Platform: macOS
+  - Name: Timecoder
+  - Primary Language: English (U.S.)
+  - Bundle ID: Select from dropdown (must match Xcode)
+  - SKU: `timecoder-macos-1`
+
+#### App Information
+
+- [ ] **Category** — Developer Tools or Video (already set to Utilities in Xcode)
+- [ ] **Privacy Policy URL** — Required for TestFlight external testing
+  - Option 1: Create simple privacy policy page
+  - Option 2: Use a privacy policy generator service
+  - Content: "Timecoder does not collect, store, or transmit any personal data."
+
+- [ ] **App Description** (draft for later App Store submission):
+  ```
+  Timecoder is a professional timecode calculator and video logging tool
+  for post-production workflows.
+
+  CALCULATOR MODE
+  • Add, subtract, multiply, and divide timecodes
+  • Convert between frame numbers and timecode
+  • Support for all standard frame rates including drop frame
+
+  VIDEO INSPECTION MODE
+  • Drag and drop video files for instant metadata display
+  • JKL shuttle controls for professional playback
+  • Frame-accurate In/Out point marking
+  • Marker system with notes and colors
+
+  MARKER EXPORT
+  • Export to DaVinci Resolve (EDL)
+  • Export to Avid Media Composer (tab-delimited)
+  • Export to CSV for spreadsheets
+
+  Designed for editors, colorists, and post-production professionals.
+  ```
+
+---
+
+### Phase 3: Archive & Upload
+
+#### Build Archive
+
+- [ ] **Select "Any Mac" as destination** — In Xcode scheme selector
+- [ ] **Product > Archive** — Creates release build
+- [ ] **Validate archive** — In Organizer, click "Validate App"
+  - Fixes any code signing or entitlement issues
+- [ ] **Distribute App** — Click "Distribute App"
+  - Select: App Store Connect
+  - Upload
+
+#### Version Numbers
+
+- [ ] **Marketing Version** — Currently 1.0 (good for first release)
+- [ ] **Build Number** — Currently 1 (increment for each upload)
+  - Each TestFlight upload needs a unique build number
+  - Recommend: 1, 2, 3... or date-based like 20260108
+
+---
+
+### Phase 4: TestFlight Configuration
+
+#### Internal Testing (Immediate)
+
+- [ ] **Add internal testers** — App Store Connect > TestFlight > Internal Testing
+  - Internal testers must be App Store Connect users on your team
+  - Builds are available immediately after processing (no review)
+
+#### External Testing (For Friends)
+
+- [ ] **Create external testing group** — TestFlight > External Testing > +
+  - Name: "Beta Testers" or "Friends & Family"
+
+- [ ] **Add testers by email** — Enter email addresses
+  - They'll receive TestFlight invitation
+  - Must install TestFlight app (macOS 12+)
+
+- [ ] **Submit for Beta App Review** — Required for external testing
+  - Usually approved within 24-48 hours for macOS
+  - Provide: test account info (N/A), beta description, contact info
+
+- [ ] **Beta App Description**:
+  ```
+  Timecoder beta for testing timecode calculator and video inspection features.
+
+  Please test:
+  - Calculator operations (add, subtract, multiply, divide)
+  - Video drag-and-drop loading
+  - JKL playback controls
+  - Marker creation and export
+
+  Report issues to: [your email]
+  ```
+
+---
+
+### Phase 5: Testing Guide for Testers
+
+Create a brief testing guide to share with friends:
+
+#### Installation
+1. Accept TestFlight invitation email
+2. Install TestFlight from Mac App Store (if not installed)
+3. Open TestFlight and install Timecoder
+
+#### What to Test
+
+**Calculator Mode:**
+- [ ] Enter timecodes using keyboard (0-9, colons)
+- [ ] Test all operations: +, −, ×, ÷
+- [ ] Test frame ↔ timecode conversion (F⟷TC button)
+- [ ] Change frame rates and verify recalculation
+- [ ] Copy/paste timecode (⌘C, ⌘V)
+
+**Video Mode:**
+- [ ] Drag and drop a video file onto the window
+- [ ] Verify metadata displays correctly
+- [ ] Test playback controls: Space (play/pause), J/K/L (shuttle)
+- [ ] Test frame stepping: ← → arrow keys
+- [ ] Set In/Out points: I and O keys
+- [ ] Verify duration calculation
+
+**Markers:**
+- [ ] Add marker: M key
+- [ ] Edit marker note and color
+- [ ] Navigate between markers: ↑ ↓ keys
+- [ ] Export markers: ⌘E → select format
+
+**Edge Cases:**
+- [ ] Very long videos (1+ hours)
+- [ ] Portrait (9:16) videos
+- [ ] Videos with unusual frame rates
+- [ ] Drop frame timecode (29.97 DF)
+
+#### Feedback
+- Note any crashes, freezes, or unexpected behavior
+- Note any confusing UI elements
+- Note any missing features you expected
+- Send feedback to: [your email]
+
+---
+
+### Acceptance Criteria
+
+- [ ] App successfully archives without errors
+- [ ] App uploads to App Store Connect without validation errors
+- [ ] Build appears in TestFlight within 30 minutes
+- [ ] Internal testers can install and launch app
+- [ ] External testing group created (pending review)
+- [ ] At least 2 friends successfully test the app
+
+---
+
+### Prerequisites (User Action Required)
+
+Before starting this sprint, you need:
+
+1. **Apple Developer Program membership** ($99/year)
+   - https://developer.apple.com/programs/
+
+2. **Apple Developer Team ID** — Find in:
+   - https://developer.apple.com/account → Membership → Team ID
+
+3. **Privacy Policy URL** — Can be:
+   - GitHub Pages site
+   - Simple webpage anywhere
+   - Privacy policy generator output
+
+---
+
+### Notes
+
+TestFlight builds expire after 90 days. For ongoing beta testing, you'll need to upload new builds periodically.
+
+External TestFlight testers are limited to 10,000 per app. For friends/family testing, this is more than sufficient.
+
+---
+
 ## Post-1.0 Backlog
 
 Features explicitly deferred from 1.0:
@@ -1273,7 +1572,9 @@ Features explicitly deferred from 1.0:
 | 9 - Quality & App Store | Phase 1 ✅ | 2025-12-30 | 2025-12-31 | Phase 1 complete: F↔TC toggle, grid lines, In/Out cleanup, marker nav, color scheme, division, header removal. Layout blocked → Sprint 10 |
 | 10 - Responsive Video Layout | ✅ Complete | 2025-12-31 | 2025-12-31 | Two-mode layout (960×540 landscape, 394×700 portrait). Keypad reorganized with full-width = button. Text selection fixed. Spacing refined. |
 | 11 - Liquid Glass UI | ✅ Complete | 2026-01-07 | 2026-01-07 | macOS 26 Tahoe design adoption with native SwiftUI glass effects |
+| 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
+| 13 - TestFlight Distribution | 📋 Planned | — | — | Beta testing for friends before App Store submission |
 
 ---
 
-*Last Updated: 2026-01-07*
+*Last Updated: 2026-01-09*

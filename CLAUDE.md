@@ -103,7 +103,7 @@ Standard columns: `Timecode In,Timecode Out,Color,Name,Duration`
 ## App Sandbox Entitlements
 
 Required for App Store:
-- `com.apple.security.files.user-selected.read-only` — drag/drop video files
+- `com.apple.security.files.user-selected.read-write` — drag/drop video files + save panel for export
 - `com.apple.security.files.downloads.read-write` — marker export
 
 ## UI Guidelines

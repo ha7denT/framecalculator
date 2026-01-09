@@ -36,9 +36,9 @@ struct CalculatorView: View {
 
             // Main timecode display
             TimecodeDisplayView(
-                timecode: viewModel.displayString,
+                formattedTimecode: viewModel.formattedTimecodeString,
                 frameCount: viewModel.currentFrameCount,
-                showFrameCount: viewModel.entryMode == .timecode,
+                displayMode: viewModel.entryMode == .frames ? .frames : .timecode,
                 hasError: viewModel.errorMessage != nil,
                 isPendingOperation: viewModel.hasPendingOperation,
                 invalidComponents: viewModel.invalidComponents

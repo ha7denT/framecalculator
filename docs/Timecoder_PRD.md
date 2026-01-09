@@ -403,7 +403,7 @@ Required entitlements for App Store submission:
 <dict>
     <key>com.apple.security.app-sandbox</key>
     <true/>
-    <key>com.apple.security.files.user-selected.read-only</key>
+    <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
     <key>com.apple.security.files.downloads.read-write</key>
     <true/>
@@ -411,7 +411,7 @@ Required entitlements for App Store submission:
 </plist>
 ```
 
-- **User-selected files (read-only):** Required for drag-and-drop video loading
+- **User-selected files (read-write):** Required for drag-and-drop video loading AND NSSavePanel for marker export
 - **Downloads (read-write):** Required for marker export to Downloads folder
 
 ### 6.5 Supported Video Formats

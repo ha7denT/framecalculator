@@ -1,37 +1,34 @@
 import SwiftUI
 
+/// Display mode for the timecode display.
+enum TimecodeDisplayMode {
+    case timecode   // Show timecode large, frame count below
+    case frames     // Show frame count large, timecode below
+}
+
 /// Large timecode display with monospace font, glass effect, and selection support.
+/// Shows primary value large with secondary value below (always shows both).
 struct TimecodeDisplayView: View {
-    let timecode: String
+    let formattedTimecode: String
     let frameCount: Int
-    let showFrameCount: Bool
+    let displayMode: TimecodeDisplayMode
     let hasError: Bool
     let isPendingOperation: Bool
     var invalidComponents: Set<TimecodeComponent> = []
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 8) {
-            // Main timecode display with glass effect
-            displayContent
+            // Main display with glass effect
+            primaryDisplay
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .glassEffect(in: .rect(cornerRadius: 12))
                 .tint(tintColor)
 
-            // Secondary frame count display
-            if showFrameCount {
-                HStack(spacing: 4) {
-                    Text("\(frameCount)")
-                        .font(.spaceMono(size: 12))
-                        .foregroundColor(.secondary)
-                        .textSelection(.enabled)
-                    Text("frames")
-                        .font(.spaceMono(size: 12))
-                        .foregroundColor(.secondary.opacity(0.6))
-                }
+            // Secondary display (always shown)
+            secondaryDisplay
                 .padding(.trailing, 16)
-            }
         }
     }
 
@@ -47,42 +44,52 @@ struct TimecodeDisplayView: View {
         return nil
     }
 
-    /// Whether the display is showing frame count (ends with "f")
-    private var isFrameDisplay: Bool {
-        timecode.hasSuffix("f")
-    }
-
-    /// The frame number portion (without the "f" suffix)
-    private var frameNumber: String {
-        String(timecode.dropLast())
-    }
-
-    /// The main display content with appropriate text selection behavior
+    /// Primary display content based on mode
     @ViewBuilder
-    private var displayContent: some View {
-        if isFrameDisplay {
-            // Frame mode - separate number from "f" suffix for selection
-            HStack(spacing: 0) {
-                Text(frameNumber)
-                    .font(.spaceMono(size: 36))
-                    .foregroundColor(hasError ? .red : .primary)
+    private var primaryDisplay: some View {
+        switch displayMode {
+        case .timecode:
+            timecodeText
+        case .frames:
+            frameCountText
+        }
+    }
+
+    /// Secondary display content based on mode
+    @ViewBuilder
+    private var secondaryDisplay: some View {
+        switch displayMode {
+        case .timecode:
+            // Show frame count below timecode
+            HStack(spacing: 4) {
+                Text("\(frameCount)")
+                    .font(.spaceMono(size: 12))
+                    .foregroundColor(.secondary)
                     .textSelection(.enabled)
-                Text("f")
-                    .font(.spaceMono(size: 36))
-                    .foregroundColor(.secondary.opacity(0.4))
+                Text("frames")
+                    .font(.spaceMono(size: 12))
+                    .foregroundColor(.secondary.opacity(0.6))
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-        } else if invalidComponents.isEmpty {
-            // Simple case - text selection enabled for normal display
-            Text(timecode)
+        case .frames:
+            // Show timecode below frame count
+            Text(formattedTimecode)
+                .font(.spaceMono(size: 12))
+                .foregroundColor(.secondary)
+                .textSelection(.enabled)
+        }
+    }
+
+    /// Large timecode display
+    @ViewBuilder
+    private var timecodeText: some View {
+        if invalidComponents.isEmpty {
+            Text(formattedTimecode)
                 .font(.spaceMono(size: 36))
                 .foregroundColor(hasError ? .red : .primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .textSelection(.enabled)
         } else {
-            // Complex case with colored components - text selection disabled to avoid crash
             coloredTimecodeText
                 .font(.spaceMono(size: 36))
                 .lineLimit(1)
@@ -90,10 +97,19 @@ struct TimecodeDisplayView: View {
         }
     }
 
+    /// Large frame count display
+    private var frameCountText: some View {
+        Text("\(frameCount)")
+            .font(.spaceMono(size: 36))
+            .foregroundColor(hasError ? .red : .primary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            .textSelection(.enabled)
+    }
+
     /// Builds timecode with different colors for invalid components
     private var coloredTimecodeText: Text {
-        // Parse timecode string (format: HH:MM:SS:FF or HH:MM:SS;FF)
-        let parts = parseTimecode(timecode)
+        let parts = parseTimecode(formattedTimecode)
 
         let hoursColor: Color = invalidComponents.contains(.hours) ? .orange : .primary
         let minutesColor: Color = invalidComponents.contains(.minutes) ? .orange : .primary
@@ -111,7 +127,6 @@ struct TimecodeDisplayView: View {
 
     /// Parses a timecode string into its components
     private func parseTimecode(_ tc: String) -> (hours: String, minutes: String, seconds: String, frames: String, separator: String) {
-        // Handle both : and ; separators
         let hasSemicolon = tc.contains(";")
         let normalized = tc.replacingOccurrences(of: ";", with: ":")
         let components = normalized.split(separator: ":").map(String.init)
@@ -125,51 +140,68 @@ struct TimecodeDisplayView: View {
 }
 
 /// Preview for TimecodeDisplayView
-#Preview("Normal") {
+#Preview("Timecode Mode") {
     TimecodeDisplayView(
-        timecode: "01:23:45:12",
+        formattedTimecode: "01:23:45:12",
         frameCount: 123456,
-        showFrameCount: true,
+        displayMode: .timecode,
         hasError: false,
         isPendingOperation: false
     )
     .padding()
     .frame(width: 300)
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Frames Mode") {
+    TimecodeDisplayView(
+        formattedTimecode: "00:00:00:06",
+        frameCount: 6,
+        displayMode: .frames,
+        hasError: false,
+        isPendingOperation: false
+    )
+    .padding()
+    .frame(width: 300)
+    .preferredColorScheme(.dark)
 }
 
 #Preview("Error State") {
     TimecodeDisplayView(
-        timecode: "01:23:45:12",
+        formattedTimecode: "01:23:45:12",
         frameCount: 0,
-        showFrameCount: false,
+        displayMode: .timecode,
         hasError: true,
         isPendingOperation: false
     )
     .padding()
     .frame(width: 300)
+    .preferredColorScheme(.dark)
 }
 
 #Preview("Pending Operation") {
     TimecodeDisplayView(
-        timecode: "01:00:00:00",
+        formattedTimecode: "01:00:00:00",
         frameCount: 86400,
-        showFrameCount: true,
+        displayMode: .timecode,
         hasError: false,
         isPendingOperation: true
     )
     .padding()
     .frame(width: 300)
+    .preferredColorScheme(.dark)
 }
 
 #Preview("Invalid Entry") {
     TimecodeDisplayView(
-        timecode: "00:06:75:30",
+        formattedTimecode: "00:06:75:30",
         frameCount: 0,
-        showFrameCount: false,
+        displayMode: .timecode,
         hasError: false,
         isPendingOperation: false,
         invalidComponents: [.seconds, .frames]
     )
     .padding()
     .frame(width: 300)
+    .preferredColorScheme(.dark)
 }
