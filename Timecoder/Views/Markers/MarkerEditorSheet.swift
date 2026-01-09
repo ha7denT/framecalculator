@@ -69,7 +69,7 @@ struct MarkerEditorPopover: View {
         .onAppear {
             loadMarkerValues()
         }
-        .onChange(of: markerVM.editingMarker) { _ in
+        .onChange(of: markerVM.editingMarker) { _, _ in
             loadMarkerValues()
         }
     }

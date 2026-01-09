@@ -64,10 +64,10 @@ struct VideoInspectorView: View {
         .onAppear {
             configurePlayer()
         }
-        .onChange(of: appState.player) { _ in
+        .onChange(of: appState.player) { _, _ in
             configurePlayer()
         }
-        .onChange(of: markerVM.isEditorPresented) { isPresented in
+        .onChange(of: markerVM.isEditorPresented) { _, isPresented in
             if !isPresented {
                 // Editor closed - post notification to reclaim keyboard focus
                 NotificationCenter.default.post(name: .reclaimKeyboardFocus, object: nil)

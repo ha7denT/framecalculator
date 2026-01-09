@@ -108,7 +108,8 @@ struct TimecodeDisplayView: View {
     }
 
     /// Builds timecode with different colors for invalid components
-    private var coloredTimecodeText: Text {
+    @ViewBuilder
+    private var coloredTimecodeText: some View {
         let parts = parseTimecode(formattedTimecode)
 
         let hoursColor: Color = invalidComponents.contains(.hours) ? .orange : .primary
@@ -116,13 +117,15 @@ struct TimecodeDisplayView: View {
         let secondsColor: Color = invalidComponents.contains(.seconds) ? .orange : .primary
         let framesColor: Color = invalidComponents.contains(.frames) ? .orange : .primary
 
-        return Text(parts.hours).foregroundColor(hoursColor) +
-               Text(":").foregroundColor(.primary) +
-               Text(parts.minutes).foregroundColor(minutesColor) +
-               Text(":").foregroundColor(.primary) +
-               Text(parts.seconds).foregroundColor(secondsColor) +
-               Text(parts.separator).foregroundColor(.primary) +
-               Text(parts.frames).foregroundColor(framesColor)
+        HStack(spacing: 0) {
+            Text(parts.hours).foregroundColor(hoursColor)
+            Text(":").foregroundColor(.primary)
+            Text(parts.minutes).foregroundColor(minutesColor)
+            Text(":").foregroundColor(.primary)
+            Text(parts.seconds).foregroundColor(secondsColor)
+            Text(parts.separator).foregroundColor(.primary)
+            Text(parts.frames).foregroundColor(framesColor)
+        }
     }
 
     /// Parses a timecode string into its components

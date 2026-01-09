@@ -37,6 +37,7 @@
 		FCC6E48B9310C7C35B51CAFD /* MarkerListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6177DD14F7E0AF882DE1A4 /* MarkerListViewModel.swift */; };
 		FD40E9E30667FA962F6881E8 /* TimelineMarkerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A972022BAA1DDEED330268C3 /* TimelineMarkerView.swift */; };
 		FC000030001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FC000030000 /* PrivacyInfo.xcprivacy */; };
+		FC000040001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC000040000 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +72,7 @@
 		FC000020000 /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Regular.ttf"; sourceTree = "<group>"; };
 		FC000021000 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
 		FC000030000 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FC000040000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -228,6 +230,7 @@
 			children = (
 				FC000023000 /* Fonts */,
 				3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */,
+				FC000040000 /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */,
 				FC000021001 /* SpaceMono-Bold.ttf in Resources */,
 				FC000030001 /* PrivacyInfo.xcprivacy in Resources */,
+				FC000040001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

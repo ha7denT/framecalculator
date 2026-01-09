@@ -32,7 +32,7 @@ struct ContentView: View {
                 Text(error)
             }
         }
-        .onChange(of: appState.currentMetadata) { metadata in
+        .onChange(of: appState.currentMetadata) { _, metadata in
             // Sync frame rate when video is loaded
             if let metadata = metadata {
                 calculatorVM.frameRate = metadata.matchingFrameRate
@@ -42,7 +42,7 @@ struct ContentView: View {
                 resizeWindowForVideo(orientation: orientation)
             }
         }
-        .onChange(of: appState.mode) { newMode in
+        .onChange(of: appState.mode) { _, newMode in
             // Resize when returning to calculator mode (compact size)
             if newMode == .calculator {
                 resizeWindowForCalculator()
