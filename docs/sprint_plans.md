@@ -750,13 +750,13 @@ Complete these UI refinements before taking App Store screenshots.
 #### Deliverables
 
 - [ ] Accessibility audit (VoiceOver, keyboard navigation)
-- [ ] Error handling and user-facing error messages
-- [ ] App Sandbox configuration and testing
-- [ ] Privacy manifest (if required)
-- [ ] App icon (multiple sizes)
-- [ ] App Store screenshots (after Phase 1 complete)
+- [x] Error handling and user-facing error messages
+- [x] App Sandbox configuration and testing
+- [x] Privacy manifest
+- [x] App icon (single size - macOS 26 Liquid Glass)
+- [ ] App Store screenshots
 - [ ] App Store description and metadata
-- [ ] TestFlight build for beta testing
+- [x] TestFlight build for beta testing
 
 ### Acceptance Criteria
 
@@ -1679,7 +1679,7 @@ Features explicitly deferred from 1.0:
 | 10 - Responsive Video Layout | ✅ Complete | 2025-12-31 | 2025-12-31 | Two-mode layout (960×540 landscape, 394×700 portrait). Keypad reorganized with full-width = button. Text selection fixed. Spacing refined. |
 | 11 - Liquid Glass UI | ✅ Complete | 2026-01-07 | 2026-01-07 | macOS 26 Tahoe design adoption with native SwiftUI glass effects |
 | 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
-| 13 - TestFlight Distribution | 🚧 In Progress | 2026-01-09 | — | Phase 1 complete: Team ID, Bundle ID, Copyright, Privacy Manifest, Privacy Policy URL configured. Ready for App Store Connect setup and archive. |
+| 13 - TestFlight Distribution | ✅ Complete | 2026-01-09 | 2026-01-13 | App on TestFlight, awaiting beta tester feedback |
 | 14 - Pre-Release UI Refinements | ✅ Complete | 2026-01-13 | 2026-01-13 | Mode-switching buttons, export button, marker button in transport controls, menu items |
 
 ---
