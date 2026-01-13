@@ -100,6 +100,10 @@ struct VideoInspectorView: View {
                 isExportDialogPresented = true
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .addMarkerAtPlayhead)) { _ in
+            // Add marker at current playhead when triggered from menu bar
+            addMarkerAtPlayhead()
+        }
     }
 
     // MARK: - Video Player Area
@@ -113,18 +117,12 @@ struct VideoInspectorView: View {
                 // Black background for letterboxing/pillarboxing
                 Color.black
 
-                ZStack(alignment: .topTrailing) {
-                    if let player = appState.player {
-                        CustomVideoPlayerView(player: player)
-                            .aspectRatio(videoAspectRatio, contentMode: .fit)
-                    } else {
-                        Color.black
-                            .overlay(emptyPlayerState)
-                    }
-
-                    // Close button overlay
-                    closeButton
-                        .padding(4)
+                if let player = appState.player {
+                    CustomVideoPlayerView(player: player)
+                        .aspectRatio(videoAspectRatio, contentMode: .fit)
+                } else {
+                    Color.black
+                        .overlay(emptyPlayerState)
                 }
 
                 // Marker editor popover (centered over video)
@@ -153,9 +151,12 @@ struct VideoInspectorView: View {
             TransportControls(
                 viewModel: playerVM,
                 onPreviousMarker: goToPreviousMarker,
+                onAddMarker: addMarkerAtPlayhead,
                 onNextMarker: goToNextMarker,
+                onExport: { isExportDialogPresented = true },
                 hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
-                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil
+                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil,
+                hasMarkers: !markerVM.markers.isEmpty
             )
         }
     }
@@ -172,26 +173,20 @@ struct VideoInspectorView: View {
         }
     }
 
-    @ViewBuilder
-    private var closeButton: some View {
-        Button(action: closeVideo) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.title2)
-                .foregroundColor(.white.opacity(0.7))
-        }
-        .buttonStyle(.plain)
-        .padding(8)
-        .help("Close video")
-    }
-
     // MARK: - Right Panel
 
     @ViewBuilder
     private var rightPanel: some View {
         VStack(spacing: 0) {
             // Calculator (always at top, fixed height to prevent overlap)
-            CalculatorView(viewModel: calculatorVM)
-                .frame(height: 520)
+            // In logging mode, the mode button returns to calculator
+            CalculatorView(
+                viewModel: calculatorVM,
+                modeButtonIcon: "circle.grid.3x3.circle.fill",
+                modeButtonHelp: "Return to calculator",
+                onModeButtonTapped: closeVideo
+            )
+            .frame(height: 520)
 
             // Supplementary info below calculator (when video loaded)
             if appState.currentMetadata != nil {
@@ -227,7 +222,17 @@ struct VideoInspectorView: View {
     }
 
     private func addMarkerAtPlayhead() {
-        markerVM.addMarker(at: playerVM.currentFrames)
+        let currentFrames = playerVM.currentFrames
+
+        // Check if a marker already exists at this position (within 1 frame tolerance)
+        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: 1) {
+            // Open editor for existing marker
+            markerVM.openEditor(for: existingMarker)
+        } else {
+            // Add new marker and open editor
+            let newMarker = markerVM.addMarker(at: currentFrames)
+            markerVM.openEditor(for: newMarker)
+        }
     }
 
     private func goToPreviousMarker() {

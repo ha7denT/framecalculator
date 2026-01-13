@@ -4,10 +4,10 @@
 
 This document breaks down the development of Timecoder into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
-**Total Sprints:** 13
+**Total Sprints:** 14
 **Target MVP (Sprints 1-6):** Core calculator + video player + markers
 **Target 1.0 (Sprints 7-12):** Export + polish + responsive layout + Liquid Glass UI + visual polish
-**Target TestFlight (Sprint 13):** Beta distribution for testing
+**Target TestFlight (Sprints 13-14):** Beta distribution prep + pre-release UI refinements
 
 ---
 
@@ -1523,6 +1523,125 @@ External TestFlight testers are limited to 10,000 per app. For friends/family te
 
 ---
 
+## Sprint 14: Pre-Release UI Refinements
+
+### Goal
+Add mode-switching buttons and streamline access to key actions before TestFlight distribution.
+
+---
+
+### Deliverables
+
+#### Calculator Mode — Open Video Button
+
+- [x] **Top-left button** — SF Symbol "play.rectangle"
+  - Opens NSOpenPanel file picker for video selection
+  - On file selection, enters logging mode with that video
+  - Position: Top-left corner of calculator window (where red X shown in mockup)
+
+- [x] **File > Open menu item** — ⌘O keyboard shortcut
+  - Same action as button (opens file picker)
+
+#### Logging Mode — Calculator Button
+
+- [x] **Top-left button** — SF Symbol "circle.grid.3x3.circle.fill"
+  - Returns to calculator mode (closes video)
+  - Same position as the open-video button in calculator mode
+
+#### Logging Mode — Export Button
+
+- [x] **Top-right button** — SF Symbol "square.and.arrow.up.circle"
+  - Opens export markers dialog
+  - Position: Top-right corner of the whole logging UI
+
+#### Logging Mode — Add Marker Button
+
+- [x] **Transport controls row** — SF Symbol "pin.circle"
+  - Position: Between previous marker (↑) and next marker (↓) buttons
+  - Action: Adds marker at current playhead position
+
+- [x] **Remove hint text** — Delete "Press M to add marker" from timeline
+
+- [x] **Edit > Add Marker menu item** — M keyboard shortcut (already works, just add menu item)
+
+---
+
+### Acceptance Criteria
+
+- [x] Calculator mode shows "play.rectangle" button top-left
+- [x] Clicking button or ⌘O opens file picker for video files
+- [x] Selecting video enters logging mode
+- [x] Logging mode shows "circle.grid.3x3.circle.fill" button top-left
+- [x] Clicking button returns to calculator mode
+- [x] Logging mode shows "square.and.arrow.up.circle" button top-right
+- [x] Clicking export button opens export dialog
+- [x] Transport controls show "pin.circle" button between marker nav buttons
+- [x] Clicking marker button adds marker at playhead
+- [x] "Press M to add marker" text removed
+- [x] Edit menu contains "Add Marker" item
+- [x] Drag-and-drop still works to load videos
+
+---
+
+### Notes
+
+These changes improve discoverability for users unfamiliar with keyboard shortcuts while maintaining all existing functionality.
+
+---
+
+### Implementation Notes (for future reference)
+
+**CalculatorView.swift Changes:**
+- Added `onOpenVideo` callback parameter
+- Added "play.rectangle" button in top-left HStack alongside frame rate picker
+- Button triggers file picker via callback
+
+**ContentView.swift Changes:**
+- Added `.openVideoFile` and `.addMarkerAtPlayhead` notification names
+- Added `openVideoFile()` method that presents NSOpenPanel with video file types
+- Passes `onOpenVideo` callback to `CalculatorView`
+- Added notification receiver for menu-triggered file open
+
+**TimecoderApp.swift Changes:**
+- Added File > Open menu item (⌘O) posting `.openVideoFile` notification
+- Added Edit > Add Marker menu item (M key) posting `.addMarkerAtPlayhead` notification
+
+**VideoInspectorView.swift Changes:**
+- Replaced single close button overlay with HStack containing:
+  - Top-left: "circle.grid.3x3.circle.fill" calculator button (returns to calculator mode)
+  - Top-right: "square.and.arrow.up.circle" export button (opens export dialog)
+- Export button disabled/dimmed when no markers exist
+- Added notification receiver for `.addMarkerAtPlayhead`
+
+**TransportControls.swift Changes:**
+- Added `onAddMarker` callback parameter
+- Added "pin.circle" button between prev/next marker navigation buttons
+- Button triggers marker addition at current playhead
+
+**TimelineView.swift Changes:**
+- Removed "Press M to add marker" hint text from `TimelineWithTimecode`
+
+**Key Files Modified:**
+- `Timecoder/Views/Calculator/CalculatorView.swift`
+- `Timecoder/Views/Main/ContentView.swift`
+- `Timecoder/Views/Main/VideoInspectorView.swift`
+- `Timecoder/Views/VideoPlayer/TransportControls.swift`
+- `Timecoder/Views/VideoPlayer/TimelineView.swift`
+- `Timecoder/App/TimecoderApp.swift`
+
+**Post-Implementation Fixes (2026-01-13):**
+- Fixed mode button to properly switch icons between modes:
+  - Calculator mode: "play.rectangle" (open video)
+  - Logging mode: "circle.grid.3x3.circle.fill" (return to calculator)
+- Moved export button from video overlay to transport controls row
+- CalculatorView now accepts configurable `modeButtonIcon`, `modeButtonHelp`, and `onModeButtonTapped` parameters
+- TransportControls now includes export button with `onExport` callback and `hasMarkers` state
+- Mode buttons styled with `.glassProminent` and `.tint(.timecoderTeal)` for teal background
+- Marker button now opens editor dialog (matching M key behavior) instead of silent add
+- Editor dialog includes trash button to delete marker
+
+---
+
 ## Post-1.0 Backlog
 
 Features explicitly deferred from 1.0:
@@ -1561,7 +1680,8 @@ Features explicitly deferred from 1.0:
 | 11 - Liquid Glass UI | ✅ Complete | 2026-01-07 | 2026-01-07 | macOS 26 Tahoe design adoption with native SwiftUI glass effects |
 | 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
 | 13 - TestFlight Distribution | 🚧 In Progress | 2026-01-09 | — | Phase 1 complete: Team ID, Bundle ID, Copyright, Privacy Manifest, Privacy Policy URL configured. Ready for App Store Connect setup and archive. |
+| 14 - Pre-Release UI Refinements | ✅ Complete | 2026-01-13 | 2026-01-13 | Mode-switching buttons, export button, marker button in transport controls, menu items |
 
 ---
 
-*Last Updated: 2026-01-09*
+*Last Updated: 2026-01-13*

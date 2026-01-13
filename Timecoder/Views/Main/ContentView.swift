@@ -1,6 +1,13 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - Notification for opening video from menu
+
+extension Notification.Name {
+    static let openVideoFile = Notification.Name("openVideoFile")
+    static let addMarkerAtPlayhead = Notification.Name("addMarkerAtPlayhead")
+}
+
 /// Main content view that switches between calculator and video inspection modes.
 struct ContentView: View {
     @StateObject private var appState = AppState()
@@ -51,6 +58,9 @@ struct ContentView: View {
         .onAppear {
             // Set correct size on launch
             resizeWindowForCalculator()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
+            openVideoFile()
         }
     }
 
@@ -121,7 +131,31 @@ struct ContentView: View {
     // MARK: - Standalone Calculator
 
     private var standaloneCalculatorView: some View {
-        CalculatorView(viewModel: calculatorVM)
+        CalculatorView(
+            viewModel: calculatorVM,
+            modeButtonIcon: "play.rectangle",
+            modeButtonHelp: "Open video (⌘O)",
+            onModeButtonTapped: openVideoFile
+        )
+    }
+
+    // MARK: - Open Video File
+
+    /// Opens a file picker to select a video file.
+    private func openVideoFile() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = supportedDropTypes
+
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                Task { @MainActor in
+                    await appState.loadVideo(from: url)
+                }
+            }
+        }
     }
 
     // MARK: - Drop Handling

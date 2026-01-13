@@ -152,15 +152,6 @@ struct TimelineWithTimecode: View {
 
                 Spacer()
 
-                // Marker hint when no markers exist
-                if markers.isEmpty {
-                    Text("Press M to add marker")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary.opacity(0.6))
-                }
-
-                Spacer()
-
                 // Duration
                 Text(viewModel.durationTimecode.formatted())
                     .font(.spaceMono(size: 11, weight: .bold))

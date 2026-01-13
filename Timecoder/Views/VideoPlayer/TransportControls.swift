@@ -7,14 +7,23 @@ struct TransportControls: View {
     /// Callback to navigate to the previous marker.
     var onPreviousMarker: (() -> Void)?
 
+    /// Callback to add a marker at the current playhead.
+    var onAddMarker: (() -> Void)?
+
     /// Callback to navigate to the next marker.
     var onNextMarker: (() -> Void)?
+
+    /// Callback to export markers.
+    var onExport: (() -> Void)?
 
     /// Whether there's a previous marker to navigate to.
     var hasPreviousMarker: Bool = false
 
     /// Whether there's a next marker to navigate to.
     var hasNextMarker: Bool = false
+
+    /// Whether there are markers to export.
+    var hasMarkers: Bool = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -60,8 +69,8 @@ struct TransportControls: View {
             )
             .help("Step forward (→)")
 
-            // Marker navigation (only shown if callbacks provided)
-            if onPreviousMarker != nil || onNextMarker != nil {
+            // Marker controls (only shown if callbacks provided)
+            if onPreviousMarker != nil || onAddMarker != nil || onNextMarker != nil {
                 Divider()
                     .frame(height: 20)
 
@@ -75,6 +84,13 @@ struct TransportControls: View {
                     )
                     .help("Previous marker (↑)")
 
+                    // Add marker at playhead
+                    GlassTransportButton(
+                        icon: "pin.circle",
+                        action: { onAddMarker?() }
+                    )
+                    .help("Add marker (M)")
+
                     // Next marker
                     GlassTransportButton(
                         icon: "bookmark.fill",
@@ -84,6 +100,19 @@ struct TransportControls: View {
                     )
                     .help("Next marker (↓)")
                 }
+            }
+
+            // Export button
+            if onExport != nil {
+                Divider()
+                    .frame(height: 20)
+
+                GlassTransportButton(
+                    icon: "square.and.arrow.up.circle",
+                    isDisabled: !hasMarkers,
+                    action: { onExport?() }
+                )
+                .help("Export markers (⌘E)")
             }
 
             Spacer()

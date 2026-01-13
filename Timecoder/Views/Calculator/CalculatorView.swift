@@ -5,17 +5,50 @@ import AppKit
 struct CalculatorView: View {
     @ObservedObject var viewModel: CalculatorViewModel
 
-    /// Creates a calculator view with an optional external view model.
-    /// - Parameter viewModel: The view model to use. If nil, creates a new one internally.
-    init(viewModel: CalculatorViewModel? = nil) {
+    /// Icon for the mode button (top-left).
+    var modeButtonIcon: String = "play.rectangle"
+
+    /// Tooltip for the mode button.
+    var modeButtonHelp: String = "Open video (⌘O)"
+
+    /// Callback when the mode button is tapped.
+    var onModeButtonTapped: (() -> Void)?
+
+    /// Creates a calculator view with configurable mode button.
+    /// - Parameters:
+    ///   - viewModel: The view model to use. If nil, creates a new one internally.
+    ///   - modeButtonIcon: SF Symbol name for the mode button.
+    ///   - modeButtonHelp: Tooltip text for the mode button.
+    ///   - onModeButtonTapped: Callback when the mode button is tapped.
+    init(
+        viewModel: CalculatorViewModel? = nil,
+        modeButtonIcon: String = "play.rectangle",
+        modeButtonHelp: String = "Open video (⌘O)",
+        onModeButtonTapped: (() -> Void)? = nil
+    ) {
         self.viewModel = viewModel ?? CalculatorViewModel()
+        self.modeButtonIcon = modeButtonIcon
+        self.modeButtonHelp = modeButtonHelp
+        self.onModeButtonTapped = onModeButtonTapped
     }
 
     var body: some View {
         VStack(spacing: 8) {
-            // Frame rate picker (right-aligned)
+            // Top bar: Mode button (left) and frame rate picker (right)
             HStack {
+                // Mode button (open video in calculator mode, return to calculator in logging mode)
+                Button(action: { onModeButtonTapped?() }) {
+                    Image(systemName: modeButtonIcon)
+                        .font(.system(size: 18, weight: .medium))
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(.timecoderTeal)
+                .clipShape(Circle())
+                .help(modeButtonHelp)
+
                 Spacer()
+
                 CompactFrameRatePicker(selection: $viewModel.frameRate)
             }
             .padding(.horizontal, 12)

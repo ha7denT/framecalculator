@@ -14,9 +14,12 @@ struct TimecoderApp: App {
         .defaultSize(width: 320, height: 520)
         .windowResizability(.contentSize)
         .commands {
-            // Add Edit menu commands for copy/paste
-            CommandGroup(after: .pasteboard) {
-                Divider()
+            // File menu - Open
+            CommandGroup(after: .newItem) {
+                Button("Open...") {
+                    NotificationCenter.default.post(name: .openVideoFile, object: nil)
+                }
+                .keyboardShortcut("o", modifiers: .command)
             }
 
             // File menu - Export Markers
@@ -25,6 +28,16 @@ struct TimecoderApp: App {
                     NotificationCenter.default.post(name: .showExportDialog, object: nil)
                 }
                 .keyboardShortcut("e", modifiers: .command)
+            }
+
+            // Edit menu - Add Marker
+            CommandGroup(after: .pasteboard) {
+                Divider()
+
+                Button("Add Marker") {
+                    NotificationCenter.default.post(name: .addMarkerAtPlayhead, object: nil)
+                }
+                .keyboardShortcut("m", modifiers: [])
             }
 
             // Help menu
