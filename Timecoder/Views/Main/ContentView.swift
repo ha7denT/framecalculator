@@ -12,6 +12,8 @@ extension Notification.Name {
 struct ContentView: View {
     @StateObject private var appState = AppState()
     @StateObject private var calculatorVM = CalculatorViewModel()
+    @StateObject private var playerVM = VideoPlayerViewModel()
+    @StateObject private var markerVM = MarkerListViewModel()
     @State private var isDropTargeted = false
 
     var body: some View {
@@ -21,7 +23,13 @@ struct ContentView: View {
                 standaloneCalculatorView
 
             case .videoInspector:
-                VideoInspectorView(appState: appState, calculatorVM: calculatorVM)
+                VideoInspectorView(
+                    appState: appState,
+                    calculatorVM: calculatorVM,
+                    playerVM: playerVM,
+                    markerVM: markerVM,
+                    onSwitchToCalculator: switchToCalculatorMode
+                )
             }
         }
         .animation(.easeInOut(duration: 0.2), value: appState.mode)
@@ -60,6 +68,49 @@ struct ContentView: View {
             resizeWindowForCalculator()
         }
         .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
+            openVideoFile()
+        }
+    }
+
+    // MARK: - Session Management
+
+    /// Switches to calculator mode, storing the current video session for later.
+    private func switchToCalculatorMode() {
+        appState.switchToCalculatorMode(
+            playerTime: playerVM.currentTime,
+            inPointFrames: playerVM.inPointFrames,
+            outPointFrames: playerVM.outPointFrames,
+            markers: markerVM.markers
+        )
+    }
+
+    /// Restores a stored session (player, markers, in/out points).
+    private func restoreStoredSession() {
+        guard let session = appState.restoreSession() else { return }
+
+        // Restore player position
+        playerVM.seek(to: session.playerTime)
+
+        // Restore in/out points
+        playerVM.restoreInOutPoints(
+            inFrames: session.inPointFrames,
+            outFrames: session.outPointFrames
+        )
+
+        // Restore markers
+        markerVM.restoreMarkers(session.markers)
+
+        // Resize window for video
+        let aspectRatio = session.metadata.resolution.width / session.metadata.resolution.height
+        let orientation = VideoOrientation.from(aspectRatio: aspectRatio)
+        resizeWindowForVideo(orientation: orientation)
+    }
+
+    /// Opens video file, either restoring a stored session or showing file picker.
+    private func openVideoOrRestoreSession() {
+        if appState.hasStoredSession {
+            restoreStoredSession()
+        } else {
             openVideoFile()
         }
     }
@@ -133,9 +184,9 @@ struct ContentView: View {
     private var standaloneCalculatorView: some View {
         CalculatorView(
             viewModel: calculatorVM,
-            modeButtonIcon: "play.rectangle",
-            modeButtonHelp: "Open video (⌘O)",
-            onModeButtonTapped: openVideoFile
+            modeButtonIcon: appState.hasStoredSession ? "film.stack" : "play.rectangle",
+            modeButtonHelp: appState.hasStoredSession ? "Return to video" : "Open video (⌘O)",
+            onModeButtonTapped: openVideoOrRestoreSession
         )
     }
 

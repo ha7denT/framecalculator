@@ -14,7 +14,7 @@ struct KeypadView: View {
 
     var body: some View {
         VStack(spacing: buttonSpacing) {
-            // Operation mode row (centered above keypad)
+            // Top row: F↔TC, AC, C, ⌫ (4 buttons)
             HStack(spacing: buttonSpacing) {
                 // Frame/Timecode toggle button
                 FrameTimecodeToggleButton(viewModel: viewModel, size: buttonSize)
@@ -24,6 +24,9 @@ struct KeypadView: View {
                 }
                 SecondaryButton(label: "C", size: buttonSize) {
                     viewModel.clearEntry()
+                }
+                DeleteButton(size: buttonSize) {
+                    viewModel.deleteDigit()
                 }
             }
 
@@ -53,7 +56,9 @@ struct KeypadView: View {
                             WideZeroButton(size: buttonSize, spacing: buttonSpacing) {
                                 viewModel.enterDigit(0)
                             }
-                            DeleteButton(size: buttonSize) { viewModel.deleteDigit() }
+                            ColonButton(size: buttonSize) {
+                                viewModel.insertColonShift()
+                            }
                         }
                     }
 
@@ -167,37 +172,90 @@ private struct WideZeroButton: View {
     }
 }
 
-/// Delete/backspace button with glass styling.
-private struct DeleteButton: View {
+/// Colon button that shifts entry up one field and inserts :00.
+/// Same styling as number buttons (off-white/cream background).
+private struct ColonButton: View {
     let size: CGFloat
     let action: () -> Void
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: "delete.backward")
-                .font(.system(size: 18, weight: .regular))
-                .foregroundColor(.primary)
-                .frame(width: size, height: size)
-        }
-        .buttonStyle(.glass)
-        .clipShape(Circle())
+        Text(":")
+            .font(.system(size: 24, weight: .medium, design: .rounded))
+            .foregroundColor(.black)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(isPressed ? numberButtonPressedColor : numberButtonColor)
+            )
+            .contentShape(Circle())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
     }
 }
 
-/// Secondary button (AC, C) with glass styling.
+/// Color for top row buttons (lighter than BG, darker than number buttons)
+private let topRowButtonColor = Color.primary.opacity(0.12)
+private let topRowButtonPressedColor = Color.primary.opacity(0.2)
+
+/// Delete/backspace button for top row.
+private struct DeleteButton: View {
+    let size: CGFloat
+    let action: () -> Void
+    @State private var isPressed = false
+
+    var body: some View {
+        Image(systemName: "delete.backward")
+            .font(.system(size: 18, weight: .regular))
+            .foregroundColor(.primary)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(isPressed ? topRowButtonPressedColor : topRowButtonColor)
+            )
+            .contentShape(Circle())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+    }
+}
+
+/// Secondary button (AC, C) for top row.
 private struct SecondaryButton: View {
     let label: String
     let size: CGFloat
     let action: () -> Void
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
-                .frame(width: size, height: size)
-        }
-        .buttonStyle(.glass)
-        .clipShape(Circle())
+        Text(label)
+            .font(.system(size: 16, weight: .regular, design: .rounded))
+            .foregroundColor(.primary)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(isPressed ? topRowButtonPressedColor : topRowButtonColor)
+            )
+            .contentShape(Circle())
+            .onTapGesture {
+                action()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
     }
 }
 
@@ -294,6 +352,7 @@ private struct ScalarInput: View {
 private struct FrameTimecodeToggleButton: View {
     @ObservedObject var viewModel: CalculatorViewModel
     let size: CGFloat
+    @State private var isPressed = false
 
     /// Whether we're currently showing frames
     private var isShowingFrames: Bool {
@@ -301,23 +360,32 @@ private struct FrameTimecodeToggleButton: View {
     }
 
     var body: some View {
-        Button(action: { viewModel.toggleDisplayMode() }) {
-            HStack(spacing: 1) {
-                Text("F")
-                    .foregroundColor(isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
+        HStack(spacing: 1) {
+            Text("F")
+                .foregroundColor(isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
 
-                Image(systemName: "arrow.left.arrow.right")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(.secondary)
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(.secondary)
 
-                Text("TC")
-                    .foregroundColor(!isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
-            }
-            .font(.system(size: 11, weight: .medium, design: .rounded))
-            .frame(width: size, height: size)
+            Text("TC")
+                .foregroundColor(!isShowingFrames ? .timecoderTeal : .primary.opacity(0.6))
         }
-        .buttonStyle(.glass)
-        .clipShape(Circle())
+        .font(.system(size: 11, weight: .medium, design: .rounded))
+        .frame(width: size, height: size)
+        .background(
+            Circle()
+                .fill(isPressed ? topRowButtonPressedColor : topRowButtonColor)
+        )
+        .contentShape(Circle())
+        .onTapGesture {
+            viewModel.toggleDisplayMode()
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
         .help(isShowingFrames ? "Show as Timecode" : "Show as Frames")
     }
 }

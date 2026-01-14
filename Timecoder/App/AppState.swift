@@ -79,6 +79,17 @@ public enum VideoLoadingState: Equatable {
     }
 }
 
+/// Stores video session data for restoration when switching between modes.
+struct StoredVideoSession {
+    let url: URL
+    let metadata: VideoMetadata
+    let player: AVPlayer
+    let playerTime: CMTime
+    let inPointFrames: Int?
+    let outPointFrames: Int?
+    let markers: [Marker]
+}
+
 /// Global application state managing mode and video.
 @MainActor
 public final class AppState: ObservableObject {
@@ -94,9 +105,15 @@ public final class AppState: ObservableObject {
     /// The AVPlayer for video playback (nil when no video loaded).
     @Published public private(set) var player: AVPlayer?
 
+    /// Whether there's a stored session that can be restored.
+    @Published public private(set) var hasStoredSession: Bool = false
+
     // MARK: - Private Properties
 
     private let videoLoader = VideoLoader()
+
+    /// Stored session for restoration when switching back to logger mode.
+    private var storedSession: StoredVideoSession?
 
     // MARK: - Computed Properties
 
@@ -134,6 +151,9 @@ public final class AppState: ObservableObject {
     /// Loads a video from the given URL.
     /// - Parameter url: The URL of the video file.
     public func loadVideo(from url: URL) async {
+        // Clear any stored session when loading a new video
+        clearStoredSession()
+
         videoState = .loading
 
         do {
@@ -149,11 +169,68 @@ public final class AppState: ObservableObject {
     }
 
     /// Closes the current video and returns to calculator mode.
+    /// Also clears any stored session.
     public func closeVideo() {
         player?.pause()
         player = nil
         videoState = .idle
+        storedSession = nil
+        hasStoredSession = false
         mode = .calculator
+    }
+
+    /// Switches to calculator mode, storing the current session for later restoration.
+    /// Call this when the user wants to temporarily use the calculator.
+    /// - Parameters:
+    ///   - playerTime: Current player position
+    ///   - inPointFrames: In point frame number (nil if not set)
+    ///   - outPointFrames: Out point frame number (nil if not set)
+    ///   - markers: Current list of markers
+    func switchToCalculatorMode(
+        playerTime: CMTime,
+        inPointFrames: Int?,
+        outPointFrames: Int?,
+        markers: [Marker]
+    ) {
+        // Store current session
+        if case .loaded(let metadata) = videoState,
+           let player = player,
+           let url = (player.currentItem?.asset as? AVURLAsset)?.url {
+            player.pause()
+            storedSession = StoredVideoSession(
+                url: url,
+                metadata: metadata,
+                player: player,
+                playerTime: playerTime,
+                inPointFrames: inPointFrames,
+                outPointFrames: outPointFrames,
+                markers: markers
+            )
+            hasStoredSession = true
+        }
+
+        mode = .calculator
+    }
+
+    /// Attempts to restore a stored session.
+    /// - Returns: The stored session if one exists, nil otherwise.
+    /// The caller is responsible for configuring the player and marker view models.
+    func restoreSession() -> StoredVideoSession? {
+        guard let session = storedSession else { return nil }
+
+        // Restore player and metadata
+        player = session.player
+        videoState = .loaded(session.metadata)
+        mode = .videoInspector
+
+        return session
+    }
+
+    /// Clears the stored session without switching modes.
+    /// Called when loading a new video to clear the old session.
+    func clearStoredSession() {
+        storedSession = nil
+        hasStoredSession = false
     }
 
     /// Clears any error state.

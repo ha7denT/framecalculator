@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Display mode for the timecode display.
 enum TimecodeDisplayMode {
@@ -6,7 +7,7 @@ enum TimecodeDisplayMode {
     case frames     // Show frame count large, timecode below
 }
 
-/// Large timecode display with monospace font, glass effect, and selection support.
+/// Large timecode display with monospace font, glass effect, and copy button.
 /// Shows primary value large with secondary value below (always shows both).
 struct TimecodeDisplayView: View {
     let formattedTimecode: String
@@ -16,20 +17,48 @@ struct TimecodeDisplayView: View {
     let isPendingOperation: Bool
     var invalidComponents: Set<TimecodeComponent> = []
 
+    /// The value to copy (primary display value)
+    private var copyValue: String {
+        switch displayMode {
+        case .timecode:
+            return formattedTimecode
+        case .frames:
+            return "\(frameCount)"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .trailing, spacing: 8) {
-            // Main display with glass effect
-            primaryDisplay
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .glassEffect(in: .rect(cornerRadius: 12))
-                .tint(tintColor)
+            // Main display with glass effect and copy button
+            HStack(spacing: 8) {
+                primaryDisplay
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+
+                // Copy button
+                Button(action: copyToClipboard) {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy to clipboard")
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .glassEffect(in: .rect(cornerRadius: 12))
+            .tint(tintColor)
 
             // Secondary display (always shown)
             secondaryDisplay
                 .padding(.trailing, 16)
         }
+    }
+
+    /// Copies the primary display value to the clipboard
+    private func copyToClipboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(copyValue, forType: .string)
     }
 
     /// Tint color for glass effect based on state

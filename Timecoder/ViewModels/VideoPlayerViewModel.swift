@@ -151,6 +151,11 @@ final class VideoPlayerViewModel: ObservableObject {
         inPointFrames != nil && outPointFrames != nil
     }
 
+    /// The current player time as CMTime.
+    var currentTime: CMTime {
+        player?.currentTime() ?? .zero
+    }
+
     // MARK: - Initialization
 
     init() {}
@@ -339,6 +344,27 @@ final class VideoPlayerViewModel: ObservableObject {
     func seekToOutPoint() {
         guard let outFrames = outPointFrames else { return }
         seek(toFrame: outFrames)
+    }
+
+    /// Seeks to a specific CMTime.
+    func seek(to time: CMTime) {
+        guard let player = player else { return }
+
+        player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                // Update current frames from the time
+                let seconds = CMTimeGetSeconds(time)
+                self.currentFrames = Int(seconds * self.frameRate.framesPerSecond)
+                self.notifyTimecodeChanged()
+            }
+        }
+    }
+
+    /// Restores In/Out points from stored values (used for session restoration).
+    func restoreInOutPoints(inFrames: Int?, outFrames: Int?) {
+        self.inPointFrames = inFrames
+        self.outPointFrames = outFrames
     }
 
     // MARK: - Private Methods

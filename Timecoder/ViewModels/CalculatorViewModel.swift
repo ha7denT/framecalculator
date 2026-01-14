@@ -167,6 +167,35 @@ final class CalculatorViewModel: ObservableObject {
         }
     }
 
+    /// Shifts current entry up one field and fills vacated field with 00.
+    /// Example: "32" (00:00:00:32) → "3200" (00:00:32:00) → "320000" (00:32:00:00)
+    /// No effect if all four fields already have values (buffer length >= 7).
+    func insertColonShift() {
+        // Only works in timecode mode
+        guard entryMode == .timecode else { return }
+
+        // Ensure we're in entry mode
+        if !isEntering {
+            isEntering = true
+            shouldClearOnNextEntry = false
+        }
+
+        // If buffer is 7+ digits, all fields have values - no effect
+        // (7 digits means at least 1 digit in hours field after padding)
+        if digitBuffer.count >= 7 {
+            return
+        }
+
+        // Shift left by appending "00" (max 8 digits total)
+        let newBuffer = digitBuffer + "00"
+        if newBuffer.count <= 8 {
+            digitBuffer = newBuffer
+        } else {
+            // Truncate to 8 digits (shouldn't happen given the >= 7 check above)
+            digitBuffer = String(newBuffer.prefix(8))
+        }
+    }
+
     /// Clears the current entry.
     func clearEntry() {
         digitBuffer = ""

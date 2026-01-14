@@ -76,6 +76,15 @@ final class MarkerListViewModel: ObservableObject {
         deleteMarker(id: id)
     }
 
+    /// Restores markers from a stored session.
+    /// - Parameter storedMarkers: The markers to restore.
+    func restoreMarkers(_ storedMarkers: [Marker]) {
+        markers = storedMarkers
+        selectedMarkerID = nil
+        editingMarker = nil
+        isEditorPresented = false
+    }
+
     /// Removes all markers (e.g., when video is closed).
     func clearAllMarkers() {
         markers.removeAll()

@@ -4,10 +4,11 @@
 
 This document breaks down the development of Timecoder into discrete sprints. Each sprint is designed to be completable in roughly 1-2 weeks and results in demonstrable, testable functionality.
 
-**Total Sprints:** 14
+**Total Sprints:** 15 (all complete)
 **Target MVP (Sprints 1-6):** Core calculator + video player + markers
 **Target 1.0 (Sprints 7-12):** Export + polish + responsive layout + Liquid Glass UI + visual polish
 **Target TestFlight (Sprints 13-14):** Beta distribution prep + pre-release UI refinements
+**Post-Beta (Sprint 15):** Beta feedback fixes — keypad reorganization, copy button, custom FPS, session persistence
 
 ---
 
@@ -1642,6 +1643,285 @@ These changes improve discoverability for users unfamiliar with keyboard shortcu
 
 ---
 
+## Sprint 15: Beta Feedback Fixes
+
+### Goal
+Address UI/UX issues identified during TestFlight beta testing.
+
+---
+
+### Deliverables
+
+#### 1. Keypad Layout Reorganization
+
+- [x] **Move backspace button to top row** — Relocate delete/backspace button from bottom row (next to 0) to top row
+  - Current top row: F↔TC, AC, C (3 buttons)
+  - New top row: F↔TC, AC, C, ⌫ (4 buttons)
+  - Adjust button sizing if needed to fit 4 buttons
+
+- [x] **Add colon button where backspace was** — Insert ":" button in vacated space next to wide 0
+  - **Behavior:** Shifts current entry up one field and fills vacated field with 00
+  - Example: Enter "32" → "00:00:00:32", press ":" → "00:00:32:00", press ":" again → "00:32:00:00"
+  - **Purpose:** Saves button presses when entering values with trailing zeros (e.g., "01:00:00:00")
+  - **No effect** if all four fields already have values entered
+  - Visual style: Same as number buttons (off-white/cream background)
+
+#### 2. Top Row Button Styling
+
+- [x] **Fix top row button contrast** — Currently too dark against background
+  - Target: Lighter than background, but darker than number buttons (off-white)
+  - Create new `TopRowButton` style with intermediate brightness
+  - Applies to: F↔TC, AC, C, ⌫ buttons
+  - Consider: Semi-transparent white or light gray fill
+
+#### 3. Timecode Display Selection
+
+- [x] **Improve copy/paste accessibility** — Currently requires triple-click to select
+  - Option A: Add explicit "Copy" button next to timecode display ✓
+  - Option B: Make single-click select all text
+  - Option C: Use NSTextField via NSViewRepresentable for better selection behavior
+  - User should be able to copy timecode with single click + ⌘C
+
+#### 4. Custom Frame Rate Entry
+
+- [x] **Add "Custom..." option to FPS dropdown** — Opens dialog for arbitrary frame rate
+  - Add "Custom..." menu item at bottom of CompactFrameRatePicker
+  - On selection, show modal dialog with:
+    - Text field for frame rate value (e.g., "23.98", "47.95")
+    - Validation: Must be positive number > 0
+    - Cancel and OK buttons
+  - Selected custom rate displays in picker (e.g., "47.95 fps")
+  - Custom rate persists in session but not across app restarts
+
+#### 5. Video State Persistence (Session Only)
+
+- [x] **Preserve video state when switching to calculator mode** — Return to logger restores previous session
+  - When switching from logger → calculator:
+    - Store: video URL, player position, in/out points, markers
+    - Pause playback but don't release AVPlayer
+  - When switching from calculator → logger:
+    - If stored session exists: restore video, markers, in/out, seek to stored position
+    - If no stored session: show file picker (current behavior)
+  - Session data cleared on:
+    - App quit
+    - Loading a different video
+    - Explicitly closing video with close button
+
+---
+
+### Implementation Notes
+
+#### Keypad Layout (KeypadView.swift)
+
+Current structure:
+```
+Row 1: F↔TC  AC   C        (3 buttons)
+Row 2: 7     8    9    ÷
+Row 3: 4     5    6    ×
+Row 4: 1     2    3    −
+Row 5: [   0   ]  ⌫   +
+Row 6: [      =      ]
+```
+
+Target structure:
+```
+Row 1: F↔TC  AC   C   ⌫    (4 buttons)
+Row 2: 7     8    9    ÷
+Row 3: 4     5    6    ×
+Row 4: 1     2    3    −
+Row 5: [   0   ]  :    +
+Row 6: [      =      ]
+```
+
+#### Colon Button Logic (CalculatorViewModel)
+
+```swift
+/// Shifts current entry up one field and fills vacated field with 00.
+/// Example: "00:00:00:32" → "00:00:32:00" → "00:32:00:00" → "32:00:00:00"
+func insertColonShift() {
+    // Parse current entry into components
+    let components = parseEntryToComponents()  // [HH, MM, SS, FF]
+
+    // If all fields have non-zero values, do nothing
+    if components.allSatisfy({ $0 != "00" }) { return }
+
+    // Shift left: drop leftmost, append "00" to right
+    let shifted = Array(components.dropFirst()) + ["00"]
+
+    // Rebuild entry string
+    updateEntryFromComponents(shifted)
+}
+```
+
+Note: The actual implementation depends on how `CalculatorViewModel` stores entry state (as raw digits or formatted string).
+
+#### Top Row Styling
+
+Create new button style with lighter fill:
+```swift
+private struct TopRowButton: View {
+    let label: String  // or Image for backspace
+    let size: CGFloat
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            // Content
+        }
+        .background(
+            Circle()
+                .fill(Color.primary.opacity(0.15))  // Light fill
+        )
+    }
+}
+```
+
+#### Timecode Selection
+
+Consider wrapping display in a selectable container:
+```swift
+// Add copy button approach
+HStack {
+    timecodeText
+    Button(action: copyToClipboard) {
+        Image(systemName: "doc.on.doc")
+    }
+    .buttonStyle(.borderless)
+}
+```
+
+#### Custom FPS Dialog
+
+```swift
+struct CustomFPSDialog: View {
+    @Binding var isPresented: Bool
+    @Binding var customRate: Double?
+    @State private var inputText: String = ""
+
+    var body: some View {
+        VStack {
+            Text("Enter Custom Frame Rate")
+            TextField("e.g., 47.95", text: $inputText)
+            HStack {
+                Button("Cancel") { isPresented = false }
+                Button("OK") {
+                    if let rate = Double(inputText), rate > 0 {
+                        customRate = rate
+                        isPresented = false
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+#### Video State Storage
+
+Add to AppState:
+```swift
+struct StoredVideoSession {
+    let url: URL
+    let playerTime: CMTime
+    let inPointFrames: Int?
+    let outPointFrames: Int?
+    let markers: [Marker]
+}
+
+private var storedSession: StoredVideoSession?
+
+func switchToCalculatorMode() {
+    // Store current state before switching
+    storedSession = StoredVideoSession(...)
+    mode = .calculator
+}
+
+func switchToLoggerMode() {
+    if let session = storedSession {
+        // Restore session
+    } else {
+        // Show file picker
+    }
+}
+```
+
+---
+
+### Acceptance Criteria
+
+- [x] Backspace button visible in top row alongside F↔TC, AC, C
+- [x] Colon button in bottom row shifts entry up and inserts :00 (e.g., "32" + ":" → "00:00:32:00")
+- [x] Top row buttons have proper contrast (lighter than BG, darker than numbers)
+- [x] User can copy timecode with single click or single action
+- [x] "Custom..." option appears in FPS dropdown
+- [x] Custom FPS dialog validates input correctly
+- [x] Custom FPS value displays in picker after entry
+- [x] Switching to calc mode and back preserves video and markers
+- [x] In/Out points preserved when switching modes
+- [x] Player position restored when returning to logger
+- [x] Loading new video clears stored session
+
+---
+
+### Implementation Notes (for future reference)
+
+**Keypad Reorganization (KeypadView.swift):**
+- Top row now has 4 buttons: F↔TC, AC, C, ⌫
+- Bottom row: wide 0 button + colon button
+- New `ColonButton` component with same styling as number buttons (off-white/cream)
+- Top row buttons use custom `topRowButtonColor = Color.primary.opacity(0.12)` for proper contrast
+
+**Colon Button Logic (CalculatorViewModel.swift):**
+- Added `insertColonShift()` method
+- Appends "00" to digit buffer, effectively shifting entry left by one field
+- No effect if buffer already has 7+ digits (all fields populated)
+- Only works in timecode mode, not frame mode
+
+**Copy Button (TimecodeDisplayView.swift):**
+- Added copy button (doc.on.doc icon) inside the glass effect container
+- Uses `NSPasteboard.general` for clipboard access
+- Copies the primary display value (timecode or frame count depending on mode)
+
+**Custom FPS (FrameRatePicker.swift):**
+- Added "Custom..." menu item with divider
+- `CustomFPSDialog` sheet with text field validation
+- Validates: must be number > 0 and <= 1000
+- Pre-fills with existing custom value when editing
+
+**Video State Persistence (AppState.swift, ContentView.swift, VideoInspectorView.swift):**
+- `StoredVideoSession` struct holds: URL, metadata, player, time, in/out points, markers
+- `switchToCalculatorMode()` stores session before mode change
+- `restoreSession()` returns stored session for restoration
+- `hasStoredSession` published property for UI state
+- Calculator mode button icon changes: "play.rectangle" (no session) vs "film.stack" (has session)
+- View models lifted from VideoInspectorView to ContentView for persistence
+- VideoInspectorView now accepts playerVM and markerVM as `@ObservedObject` parameters
+- Added `restoreInOutPoints(inFrames:outFrames:)` to VideoPlayerViewModel
+- Added `restoreMarkers(_:)` to MarkerListViewModel
+
+**Key Files Modified:**
+- `Timecoder/ViewModels/CalculatorViewModel.swift` — insertColonShift()
+- `Timecoder/Views/Calculator/KeypadView.swift` — Layout reorganization, ColonButton, top row styling
+- `Timecoder/Views/Calculator/TimecodeDisplayView.swift` — Copy button
+- `Timecoder/Views/Calculator/FrameRatePicker.swift` — Custom FPS dialog
+- `Timecoder/App/AppState.swift` — StoredVideoSession, session management methods
+- `Timecoder/Views/Main/ContentView.swift` — View model lifting, session restore logic
+- `Timecoder/Views/Main/VideoInspectorView.swift` — Accepts view models as parameters
+- `Timecoder/ViewModels/VideoPlayerViewModel.swift` — currentTime property, restoreInOutPoints()
+- `Timecoder/ViewModels/MarkerListViewModel.swift` — restoreMarkers()
+
+---
+
+### Notes
+
+These changes address direct beta tester feedback. Focus on usability improvements that reduce friction for common workflows.
+
+The colon button provides an alternative to keyboard entry for users who prefer clicking.
+
+Video state persistence eliminates the frustration of losing work when quickly switching to calculator mode for a calculation.
+
+---
+
 ## Post-1.0 Backlog
 
 Features explicitly deferred from 1.0:
@@ -1681,7 +1961,8 @@ Features explicitly deferred from 1.0:
 | 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
 | 13 - TestFlight Distribution | ✅ Complete | 2026-01-09 | 2026-01-13 | App on TestFlight, awaiting beta tester feedback |
 | 14 - Pre-Release UI Refinements | ✅ Complete | 2026-01-13 | 2026-01-13 | Mode-switching buttons, export button, marker button in transport controls, menu items |
+| 15 - Beta Feedback Fixes | ✅ Complete | 2026-01-15 | 2026-01-15 | Keypad layout, top row styling, copy button, custom FPS, video state persistence |
 
 ---
 
-*Last Updated: 2026-01-13*
+*Last Updated: 2026-01-15*

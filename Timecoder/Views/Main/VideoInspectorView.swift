@@ -12,8 +12,11 @@ extension Notification.Name {
 struct VideoInspectorView: View {
     @ObservedObject var appState: AppState
     @ObservedObject var calculatorVM: CalculatorViewModel
-    @StateObject private var playerVM = VideoPlayerViewModel()
-    @StateObject private var markerVM = MarkerListViewModel()
+    @ObservedObject var playerVM: VideoPlayerViewModel
+    @ObservedObject var markerVM: MarkerListViewModel
+
+    /// Callback to switch to calculator mode (preserving session).
+    var onSwitchToCalculator: () -> Void
 
     /// Tracks whether the view has been configured with the player.
     @State private var isConfigured = false
@@ -179,12 +182,12 @@ struct VideoInspectorView: View {
     private var rightPanel: some View {
         VStack(spacing: 0) {
             // Calculator (always at top, fixed height to prevent overlap)
-            // In logging mode, the mode button returns to calculator
+            // In logging mode, the mode button switches back to calculator (preserving session)
             CalculatorView(
                 viewModel: calculatorVM,
                 modeButtonIcon: "circle.grid.3x3.circle.fill",
-                modeButtonHelp: "Return to calculator",
-                onModeButtonTapped: closeVideo
+                modeButtonHelp: "Switch to calculator",
+                onModeButtonTapped: onSwitchToCalculator
             )
             .frame(height: 520)
 
@@ -674,10 +677,13 @@ struct InOutPanel: View {
 }
 
 #Preview {
-    let appState = AppState()
-    let calculatorVM = CalculatorViewModel()
-
-    return VideoInspectorView(appState: appState, calculatorVM: calculatorVM)
-        .frame(width: 800, height: 600)
-        .preferredColorScheme(.dark)
+    VideoInspectorView(
+        appState: AppState(),
+        calculatorVM: CalculatorViewModel(),
+        playerVM: VideoPlayerViewModel(),
+        markerVM: MarkerListViewModel(),
+        onSwitchToCalculator: {}
+    )
+    .frame(width: 800, height: 600)
+    .preferredColorScheme(.dark)
 }

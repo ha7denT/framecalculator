@@ -20,6 +20,15 @@ struct FrameRatePicker: View {
 /// Compact frame rate picker with glass effect styling.
 struct CompactFrameRatePicker: View {
     @Binding var selection: FrameRate
+    @State private var showCustomDialog = false
+
+    /// Check if current selection is a custom rate
+    private var isCustomRate: Bool {
+        if case .custom = selection {
+            return true
+        }
+        return false
+    }
 
     var body: some View {
         Menu {
@@ -30,6 +39,17 @@ struct CompactFrameRatePicker: View {
                         if rate == selection {
                             Image(systemName: "checkmark")
                         }
+                    }
+                }
+            }
+
+            Divider()
+
+            Button(action: { showCustomDialog = true }) {
+                HStack {
+                    Text("Custom...")
+                    if isCustomRate {
+                        Image(systemName: "checkmark")
                     }
                 }
             }
@@ -49,6 +69,77 @@ struct CompactFrameRatePicker: View {
             .glassEffect(in: .capsule)
         }
         .buttonStyle(.plain)
+        .sheet(isPresented: $showCustomDialog) {
+            CustomFPSDialog(selection: $selection, isPresented: $showCustomDialog)
+        }
+    }
+}
+
+/// Dialog for entering a custom frame rate value.
+struct CustomFPSDialog: View {
+    @Binding var selection: FrameRate
+    @Binding var isPresented: Bool
+    @State private var inputText: String = ""
+    @State private var errorMessage: String?
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Custom Frame Rate")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 8) {
+                TextField("e.g., 47.95", text: $inputText)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
+
+                if let error = errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Button("Cancel") {
+                    isPresented = false
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Button("OK") {
+                    applyCustomRate()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(inputText.isEmpty)
+            }
+        }
+        .padding(24)
+        .frame(minWidth: 250)
+        .onAppear {
+            // Pre-fill with current custom value if one exists
+            if case .custom(let value) = selection {
+                inputText = String(format: "%.3g", value)
+            }
+        }
+    }
+
+    private func applyCustomRate() {
+        guard let rate = Double(inputText) else {
+            errorMessage = "Please enter a valid number"
+            return
+        }
+
+        guard rate > 0 else {
+            errorMessage = "Frame rate must be greater than 0"
+            return
+        }
+
+        guard rate <= 1000 else {
+            errorMessage = "Frame rate must be 1000 or less"
+            return
+        }
+
+        selection = .custom(rate)
+        isPresented = false
     }
 }
 
