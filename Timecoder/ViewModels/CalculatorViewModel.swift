@@ -334,18 +334,24 @@ final class CalculatorViewModel: ObservableObject {
             currentTimecode = stored - currentTimecode
 
         case .multiply:
-            guard let multiplier = Int(multiplierText), multiplier > 0 else {
+            guard let stored = storedTimecode else { return }
+            // Use current entry as multiplier (frame count = scalar value)
+            let multiplier = currentTimecode.frames
+            guard multiplier > 0 else {
                 errorMessage = "Invalid multiplier"
                 return
             }
-            currentTimecode = currentTimecode * multiplier
+            currentTimecode = stored * multiplier
 
         case .divide:
-            guard let divisor = Int(multiplierText), divisor > 0 else {
-                errorMessage = "Invalid divisor"
+            guard let stored = storedTimecode else { return }
+            // Use current entry as divisor (frame count = scalar value)
+            let divisor = currentTimecode.frames
+            guard divisor > 0 else {
+                errorMessage = "Cannot divide by zero"
                 return
             }
-            currentTimecode = Timecode(frames: currentTimecode.frames / divisor, frameRate: frameRate)
+            currentTimecode = Timecode(frames: stored.frames / divisor, frameRate: frameRate)
 
         case .framesToTimecode:
             // Conversion already done when frame entry was committed
