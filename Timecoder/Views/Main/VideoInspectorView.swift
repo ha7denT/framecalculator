@@ -516,6 +516,13 @@ class VideoKeyboardCaptureView: NSView {
             }
             return true
 
+        // Period acts as colon (shift entry up one field)
+        case ".":
+            Task { @MainActor in
+                self.calculatorVM?.insertColonShift()
+            }
+            return true
+
         // Marker control
         case "m":
             Task { @MainActor in

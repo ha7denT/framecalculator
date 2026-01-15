@@ -1707,6 +1707,20 @@ Address UI/UX issues identified during TestFlight beta testing.
     - Loading a different video
     - Explicitly closing video with close button
 
+#### 6. Paste Support (⌘V)
+
+- [x] **Add paste functionality** — Paste timecodes or frame counts from clipboard
+  - Accepts formats: `HH:MM:SS:FF`, `HH:MM:SS;FF` (drop frame), plain numbers, `1234f` (frame count)
+  - Works in both calculator and video inspector modes
+  - Keyboard handler reclaims focus after display interaction to ensure paste works
+
+#### 7. Period Key as Colon
+
+- [x] **Map "." key to colon button behavior** — Period key triggers colon shift
+  - Pressing "." on keyboard/numpad shifts entry left and inserts :00
+  - Same behavior as the ":" button on keypad
+  - Works in both calculator and video inspector modes
+
 ---
 
 ### Implementation Notes
@@ -1860,6 +1874,10 @@ func switchToLoggerMode() {
 - [x] In/Out points preserved when switching modes
 - [x] Player position restored when returning to logger
 - [x] Loading new video clears stored session
+- [x] ⌘V paste works in calculator mode
+- [x] ⌘V paste works after clicking on display
+- [x] "." key triggers colon shift in calculator mode
+- [x] "." key triggers colon shift in video inspector mode
 
 ---
 
@@ -1899,14 +1917,26 @@ func switchToLoggerMode() {
 - Added `restoreInOutPoints(inFrames:outFrames:)` to VideoPlayerViewModel
 - Added `restoreMarkers(_:)` to MarkerListViewModel
 
+**Paste Support (CalculatorViewModel.swift, CalculatorView.swift, VideoInspectorView.swift):**
+- Added `pasteFromClipboard()` method to CalculatorViewModel
+- Parses multiple formats: timecode strings, frame counts with "f" suffix, plain numbers
+- Keyboard handler checks for ⌘V (command + v) and calls paste method
+- `resignFirstResponder()` override reclaims focus after 0.15s to ensure paste works after clicking display
+- VideoKeyboardHandler also handles ⌘V for video inspector mode
+
+**Period Key Support (CalculatorView.swift, VideoInspectorView.swift):**
+- Added "." case to keyboard handlers in both calculator and video modes
+- Calls `insertColonShift()` same as the colon button
+
 **Key Files Modified:**
-- `Timecoder/ViewModels/CalculatorViewModel.swift` — insertColonShift()
+- `Timecoder/ViewModels/CalculatorViewModel.swift` — insertColonShift(), pasteFromClipboard()
 - `Timecoder/Views/Calculator/KeypadView.swift` — Layout reorganization, ColonButton, top row styling
 - `Timecoder/Views/Calculator/TimecodeDisplayView.swift` — Copy button
 - `Timecoder/Views/Calculator/FrameRatePicker.swift` — Custom FPS dialog
+- `Timecoder/Views/Calculator/CalculatorView.swift` — Paste handler, period key, focus reclaim
 - `Timecoder/App/AppState.swift` — StoredVideoSession, session management methods
 - `Timecoder/Views/Main/ContentView.swift` — View model lifting, session restore logic
-- `Timecoder/Views/Main/VideoInspectorView.swift` — Accepts view models as parameters
+- `Timecoder/Views/Main/VideoInspectorView.swift` — Accepts view models as parameters, paste handler, period key
 - `Timecoder/ViewModels/VideoPlayerViewModel.swift` — currentTime property, restoreInOutPoints()
 - `Timecoder/ViewModels/MarkerListViewModel.swift` — restoreMarkers()
 
@@ -1961,7 +1991,7 @@ Features explicitly deferred from 1.0:
 | 12 - Visual Polish | ✅ Complete | 2026-01-09 | 2026-01-09 | Button colors, press feedback, unified display, equals width fix |
 | 13 - TestFlight Distribution | ✅ Complete | 2026-01-09 | 2026-01-13 | App on TestFlight, awaiting beta tester feedback |
 | 14 - Pre-Release UI Refinements | ✅ Complete | 2026-01-13 | 2026-01-13 | Mode-switching buttons, export button, marker button in transport controls, menu items |
-| 15 - Beta Feedback Fixes | ✅ Complete | 2026-01-15 | 2026-01-15 | Keypad layout, top row styling, copy button, custom FPS, video state persistence |
+| 15 - Beta Feedback Fixes | ✅ Complete | 2026-01-15 | 2026-01-15 | Keypad layout, top row styling, copy button, custom FPS, video state persistence, paste support, period key |
 
 ---
 

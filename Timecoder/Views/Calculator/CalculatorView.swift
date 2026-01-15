@@ -143,6 +143,18 @@ private class KeyboardCaptureView: NSView {
         window?.makeFirstResponder(self)
     }
 
+    override func resignFirstResponder() -> Bool {
+        // Try to reclaim first responder status after a brief delay
+        // This handles the case where user clicks on the display text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            guard let self = self else { return }
+            if self.window?.firstResponder != self {
+                self.window?.makeFirstResponder(self)
+            }
+        }
+        return true
+    }
+
     override func keyDown(with event: NSEvent) {
         guard let viewModel = viewModel else {
             super.keyDown(with: event)
@@ -221,6 +233,10 @@ private class KeyboardCaptureView: NSView {
                     viewModel.pasteFromClipboard()
                     return true
                 }
+
+            case ".":
+                viewModel.insertColonShift()
+                return true
 
             default:
                 break
