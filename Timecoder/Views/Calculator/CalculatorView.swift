@@ -61,11 +61,9 @@ struct CalculatorView: View {
                 }
             }
 
-            // Pending operation indicator
-            if let operation = viewModel.pendingOperation,
-               viewModel.hasPendingOperation {
-                PendingOperationView(operation: operation)
-            }
+            // Pending operation indicator (always reserve space to prevent layout shift)
+            PendingOperationView(operation: viewModel.pendingOperation)
+                .opacity(viewModel.hasPendingOperation ? 1 : 0)
 
             // Main timecode display
             TimecodeDisplayView(
@@ -173,7 +171,7 @@ private class KeyboardCaptureView: NSView {
            let char = characters.first,
            let digit = Int(String(char)),
            digit >= 0 && digit <= 9 {
-            viewModel.enterDigit(digit)
+            viewModel.enterDigit(digit, fromKeyboard: true)
             return true
         }
 
@@ -282,13 +280,13 @@ private struct ErrorBanner: View {
 
 /// Shows the pending operation and stored value.
 private struct PendingOperationView: View {
-    let operation: CalculatorOperation
+    let operation: CalculatorOperation?
 
     var body: some View {
         HStack(spacing: 4) {
             Text("Operation:")
                 .foregroundColor(.secondary)
-            Text(operation.symbol)
+            Text(operation?.symbol ?? "+")
                 .font(.spaceMono(size: 14, weight: .bold))
                 .foregroundColor(.accentColor)
         }

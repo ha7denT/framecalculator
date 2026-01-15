@@ -511,7 +511,7 @@ class VideoKeyboardCaptureView: NSView {
         case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
             if let digit = Int(characters) {
                 Task { @MainActor in
-                    self.calculatorVM?.enterDigit(digit)
+                    self.calculatorVM?.enterDigit(digit, fromKeyboard: true)
                 }
             }
             return true

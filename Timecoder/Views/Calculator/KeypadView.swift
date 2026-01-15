@@ -37,25 +37,23 @@ struct KeypadView: View {
                     // Numbers grid
                     VStack(spacing: buttonSpacing) {
                         HStack(spacing: buttonSpacing) {
-                            NumberButton(digit: 7, size: buttonSize) { viewModel.enterDigit(7) }
-                            NumberButton(digit: 8, size: buttonSize) { viewModel.enterDigit(8) }
-                            NumberButton(digit: 9, size: buttonSize) { viewModel.enterDigit(9) }
+                            NumberButton(digit: 7, size: buttonSize, action: { viewModel.enterDigit(7) }, keyboardPressed: viewModel.keyboardPressedDigit == 7)
+                            NumberButton(digit: 8, size: buttonSize, action: { viewModel.enterDigit(8) }, keyboardPressed: viewModel.keyboardPressedDigit == 8)
+                            NumberButton(digit: 9, size: buttonSize, action: { viewModel.enterDigit(9) }, keyboardPressed: viewModel.keyboardPressedDigit == 9)
                         }
                         HStack(spacing: buttonSpacing) {
-                            NumberButton(digit: 4, size: buttonSize) { viewModel.enterDigit(4) }
-                            NumberButton(digit: 5, size: buttonSize) { viewModel.enterDigit(5) }
-                            NumberButton(digit: 6, size: buttonSize) { viewModel.enterDigit(6) }
+                            NumberButton(digit: 4, size: buttonSize, action: { viewModel.enterDigit(4) }, keyboardPressed: viewModel.keyboardPressedDigit == 4)
+                            NumberButton(digit: 5, size: buttonSize, action: { viewModel.enterDigit(5) }, keyboardPressed: viewModel.keyboardPressedDigit == 5)
+                            NumberButton(digit: 6, size: buttonSize, action: { viewModel.enterDigit(6) }, keyboardPressed: viewModel.keyboardPressedDigit == 6)
                         }
                         HStack(spacing: buttonSpacing) {
-                            NumberButton(digit: 1, size: buttonSize) { viewModel.enterDigit(1) }
-                            NumberButton(digit: 2, size: buttonSize) { viewModel.enterDigit(2) }
-                            NumberButton(digit: 3, size: buttonSize) { viewModel.enterDigit(3) }
+                            NumberButton(digit: 1, size: buttonSize, action: { viewModel.enterDigit(1) }, keyboardPressed: viewModel.keyboardPressedDigit == 1)
+                            NumberButton(digit: 2, size: buttonSize, action: { viewModel.enterDigit(2) }, keyboardPressed: viewModel.keyboardPressedDigit == 2)
+                            NumberButton(digit: 3, size: buttonSize, action: { viewModel.enterDigit(3) }, keyboardPressed: viewModel.keyboardPressedDigit == 3)
                         }
                         HStack(spacing: buttonSpacing) {
                             // Wide 0 button spanning two columns
-                            WideZeroButton(size: buttonSize, spacing: buttonSpacing) {
-                                viewModel.enterDigit(0)
-                            }
+                            WideZeroButton(size: buttonSize, spacing: buttonSpacing, action: { viewModel.enterDigit(0) }, keyboardPressed: viewModel.keyboardPressedDigit == 0)
                             ColonButton(size: buttonSize) {
                                 viewModel.insertColonShift()
                             }
@@ -121,7 +119,12 @@ private struct NumberButton: View {
     let digit: Int
     let size: CGFloat
     let action: () -> Void
+    var keyboardPressed: Bool = false
     @State private var isPressed = false
+
+    private var showPressed: Bool {
+        isPressed || keyboardPressed
+    }
 
     var body: some View {
         Text("\(digit)")
@@ -130,7 +133,7 @@ private struct NumberButton: View {
             .frame(width: size, height: size)
             .background(
                 Circle()
-                    .fill(isPressed ? numberButtonPressedColor : numberButtonColor)
+                    .fill(showPressed ? numberButtonPressedColor : numberButtonColor)
             )
             .contentShape(Circle())
             .onTapGesture {
@@ -149,7 +152,12 @@ private struct WideZeroButton: View {
     let size: CGFloat
     let spacing: CGFloat
     let action: () -> Void
+    var keyboardPressed: Bool = false
     @State private var isPressed = false
+
+    private var showPressed: Bool {
+        isPressed || keyboardPressed
+    }
 
     var body: some View {
         Text("0")
@@ -158,7 +166,7 @@ private struct WideZeroButton: View {
             .frame(width: size * 2 + spacing, height: size)
             .background(
                 Capsule()
-                    .fill(isPressed ? numberButtonPressedColor : numberButtonColor)
+                    .fill(showPressed ? numberButtonPressedColor : numberButtonColor)
             )
             .contentShape(Capsule())
             .onTapGesture {

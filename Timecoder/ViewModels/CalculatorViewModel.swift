@@ -68,6 +68,10 @@ final class CalculatorViewModel: ObservableObject {
     /// The multiplier value for multiply operations.
     @Published var multiplierText: String = "2"
 
+    /// The digit currently being pressed via keyboard (for visual feedback).
+    /// Resets to nil after a brief delay.
+    @Published private(set) var keyboardPressedDigit: Int? = nil
+
     // MARK: - Private Properties
 
     /// Stored first operand for binary operations.
@@ -143,10 +147,21 @@ final class CalculatorViewModel: ObservableObject {
     // MARK: - Digit Entry
 
     /// Appends a digit to the current entry.
-    func enterDigit(_ digit: Int) {
+    /// - Parameters:
+    ///   - digit: The digit to enter (0-9)
+    ///   - fromKeyboard: If true, triggers visual feedback on the corresponding button
+    func enterDigit(_ digit: Int, fromKeyboard: Bool = false) {
         guard digit >= 0 && digit <= 9 else { return }
 
         clearErrorIfNeeded()
+
+        // Trigger visual feedback for keyboard input
+        if fromKeyboard {
+            keyboardPressedDigit = digit
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.keyboardPressedDigit = nil
+            }
+        }
 
         if shouldClearOnNextEntry {
             digitBuffer = ""
