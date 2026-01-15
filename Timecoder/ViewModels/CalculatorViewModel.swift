@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppKit
 
 /// Operations available in the timecode calculator.
 enum CalculatorOperation: String, CaseIterable {
@@ -428,6 +429,71 @@ final class CalculatorViewModel: ObservableObject {
             return "\(currentTimecode.frames)f"
         }
         return currentTimecode.formatted()
+    }
+
+    /// Pastes a value from the clipboard.
+    /// Accepts timecode formats (HH:MM:SS:FF, HH:MM:SS;FF) or plain numbers (frames).
+    func pasteFromClipboard() {
+        guard let string = NSPasteboard.general.string(forType: .string)?.trimmingCharacters(in: .whitespaces) else {
+            return
+        }
+
+        clearErrorIfNeeded()
+
+        // Try to parse as timecode first (contains : or ;)
+        if string.contains(":") || string.contains(";") {
+            // Parse timecode string
+            do {
+                let timecode = try Timecode(string, frameRate: frameRate)
+                setTimecode(timecode)
+            } catch {
+                // Try parsing as just digits (user may have copied "01234567")
+                let digitsOnly = string.filter { $0.isNumber }
+                if !digitsOnly.isEmpty {
+                    pasteDigits(digitsOnly)
+                } else {
+                    errorMessage = "Invalid timecode format"
+                }
+            }
+        } else if string.hasSuffix("f") || string.hasSuffix("F") {
+            // Frame count with 'f' suffix (e.g., "1234f")
+            let frameString = string.dropLast()
+            if let frames = Int(frameString) {
+                setFrames(frames)
+                entryMode = .frames
+            } else {
+                errorMessage = "Invalid frame count"
+            }
+        } else if let frames = Int(string) {
+            // Plain number - treat as frame count if large, or digits if small
+            if frames > 99999999 {
+                // Too large for timecode digits, treat as frame count
+                setFrames(frames)
+                entryMode = .frames
+            } else {
+                // Could be timecode digits (e.g., "01234567" for 01:23:45:67)
+                // or a frame count - treat as digits for timecode entry
+                pasteDigits(string)
+            }
+        } else {
+            // Try extracting just the digits
+            let digitsOnly = string.filter { $0.isNumber }
+            if !digitsOnly.isEmpty {
+                pasteDigits(digitsOnly)
+            } else {
+                errorMessage = "Cannot paste: no valid number found"
+            }
+        }
+    }
+
+    /// Pastes a string of digits directly into the digit buffer.
+    private func pasteDigits(_ digits: String) {
+        // Limit to 8 digits (HHMMSSFF)
+        let truncated = String(digits.suffix(8))
+        digitBuffer = truncated
+        isEntering = true
+        shouldClearOnNextEntry = true
+        entryMode = .timecode
     }
 
     // MARK: - Private Helpers

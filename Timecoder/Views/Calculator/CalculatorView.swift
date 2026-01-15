@@ -216,6 +216,12 @@ private class KeyboardCaptureView: NSView {
                     return true
                 }
 
+            case "v", "V":
+                if event.modifierFlags.contains(.command) {
+                    viewModel.pasteFromClipboard()
+                    return true
+                }
+
             default:
                 break
             }

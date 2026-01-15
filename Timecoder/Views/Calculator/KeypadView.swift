@@ -125,7 +125,7 @@ private struct NumberButton: View {
 
     var body: some View {
         Text("\(digit)")
-            .font(.system(size: 20, weight: .medium, design: .rounded))
+            .font(.spaceMono(size: 20, weight: .medium))
             .foregroundColor(.black)
             .frame(width: size, height: size)
             .background(
@@ -153,7 +153,7 @@ private struct WideZeroButton: View {
 
     var body: some View {
         Text("0")
-            .font(.system(size: 20, weight: .medium, design: .rounded))
+            .font(.spaceMono(size: 20, weight: .medium))
             .foregroundColor(.black)
             .frame(width: size * 2 + spacing, height: size)
             .background(
@@ -181,7 +181,7 @@ private struct ColonButton: View {
 
     var body: some View {
         Text(":")
-            .font(.system(size: 24, weight: .medium, design: .rounded))
+            .font(.spaceMono(size: 24, weight: .medium))
             .foregroundColor(.black)
             .frame(width: size, height: size)
             .background(
