@@ -16,6 +16,7 @@ struct TimecodeDisplayView: View {
     let hasError: Bool
     let isPendingOperation: Bool
     var invalidComponents: Set<TimecodeComponent> = []
+    var pendingOperation: CalculatorOperation? = nil
 
     /// The value to copy (primary display value)
     private var copyValue: String {
@@ -31,6 +32,12 @@ struct TimecodeDisplayView: View {
         VStack(alignment: .trailing, spacing: 8) {
             // Main display with glass effect and copy button
             HStack(spacing: 8) {
+                // Operation symbol on far left (fixed width to prevent layout shift)
+                Text(isPendingOperation && pendingOperation != nil ? pendingOperation!.symbol : "")
+                    .font(.spaceMono(size: 24, weight: .bold))
+                    .foregroundColor(.accentColor)
+                    .frame(width: 24, alignment: .leading)
+
                 primaryDisplay
                     .frame(maxWidth: .infinity, alignment: .trailing)
 

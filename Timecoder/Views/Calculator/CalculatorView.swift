@@ -61,18 +61,15 @@ struct CalculatorView: View {
                 }
             }
 
-            // Pending operation indicator (always reserve space to prevent layout shift)
-            PendingOperationView(operation: viewModel.pendingOperation)
-                .opacity(viewModel.hasPendingOperation ? 1 : 0)
-
-            // Main timecode display
+            // Main timecode display (operation indicator shown inside)
             TimecodeDisplayView(
                 formattedTimecode: viewModel.formattedTimecodeString,
                 frameCount: viewModel.currentFrameCount,
                 displayMode: viewModel.entryMode == .frames ? .frames : .timecode,
                 hasError: viewModel.errorMessage != nil,
                 isPendingOperation: viewModel.hasPendingOperation,
-                invalidComponents: viewModel.invalidComponents
+                invalidComponents: viewModel.invalidComponents,
+                pendingOperation: viewModel.pendingOperation
             )
             .padding(.horizontal, 12)
 
@@ -274,23 +271,6 @@ private struct ErrorBanner: View {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.orange.opacity(0.15))
         )
-        .padding(.horizontal, 16)
-    }
-}
-
-/// Shows the pending operation and stored value.
-private struct PendingOperationView: View {
-    let operation: CalculatorOperation?
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Text("Operation:")
-                .foregroundColor(.secondary)
-            Text(operation?.symbol ?? "+")
-                .font(.spaceMono(size: 14, weight: .bold))
-                .foregroundColor(.accentColor)
-        }
-        .font(.system(size: 13))
         .padding(.horizontal, 16)
     }
 }
