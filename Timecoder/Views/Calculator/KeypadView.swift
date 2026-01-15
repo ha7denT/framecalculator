@@ -96,15 +96,19 @@ struct KeypadView: View {
             }
             .frame(width: keypadWidth)
 
-            // Multiplier/divisor input (shown when multiply or divide is selected)
+        }
+        .padding(buttonSpacing)
+        .overlay(alignment: .bottom) {
+            // Multiplier/divisor input (overlaid to prevent layout shift)
             if viewModel.pendingOperation == .multiply || viewModel.pendingOperation == .divide {
                 ScalarInput(
                     value: $viewModel.multiplierText,
                     label: viewModel.pendingOperation == .divide ? "Divide by:" : "Multiply by:"
                 )
+                .background(Color(NSColor.windowBackgroundColor))
+                .offset(y: 40)
             }
         }
-        .padding(buttonSpacing)
     }
 }
 
