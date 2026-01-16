@@ -164,6 +164,10 @@ final class VideoPlayerViewModel: ObservableObject {
 
     /// Configures the view model with a player and metadata.
     func configure(with player: AVPlayer, metadata: VideoMetadata) {
+        // Remove observer from old player BEFORE setting new player
+        removeTimeObserver()
+        cancellables.removeAll()
+
         self.player = player
 
         // Set frame rate from metadata

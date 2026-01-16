@@ -67,8 +67,13 @@ struct VideoInspectorView: View {
         .onAppear {
             configurePlayer()
         }
-        .onChange(of: appState.player) { _, _ in
-            configurePlayer()
+        .onChange(of: appState.player) { _, newPlayer in
+            // Reset configuration flag when player changes to allow reconfiguration
+            if newPlayer != nil {
+                isConfigured = false
+                markerVM.clearAllMarkers()
+                configurePlayer()
+            }
         }
         .onChange(of: markerVM.isEditorPresented) { _, isPresented in
             if !isPresented {
@@ -311,6 +316,7 @@ struct VideoKeyboardHandler: NSViewRepresentable {
 }
 
 /// Custom NSView that captures keyboard events for video controls.
+/// Uses a local event monitor for reliable keyboard capture regardless of focus.
 class VideoKeyboardCaptureView: NSView {
     var playerVM: VideoPlayerViewModel?
     var calculatorVM: CalculatorViewModel?
@@ -319,33 +325,63 @@ class VideoKeyboardCaptureView: NSView {
     var onPreviousMarker: (() -> Void)?
     var onNextMarker: (() -> Void)?
     var wasEditorOpen: Bool = false
-    private var focusObserver: NSObjectProtocol?
+    private var eventMonitor: Any?
 
     override var acceptsFirstResponder: Bool { true }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        // Delay to ensure window is fully set up
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.window?.makeFirstResponder(self)
-        }
 
-        // Listen for focus reclaim notification
-        focusObserver = NotificationCenter.default.addObserver(
-            forName: .reclaimKeyboardFocus,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self?.window?.makeFirstResponder(self)
+        // Use local event monitor for reliable keyboard capture
+        setupEventMonitor()
+    }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        // Remove monitor when view is removed from window
+        if newWindow == nil {
+            removeEventMonitor()
+        }
+    }
+
+    private func setupEventMonitor() {
+        removeEventMonitor()
+
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+
+            // Don't intercept if marker editor is open
+            if self.markerVM?.isEditorPresented == true {
+                return event
             }
+
+            // Only handle events for our window
+            guard event.window == self.window else { return event }
+
+            // Don't intercept if user is typing in a text field
+            if let firstResponder = self.window?.firstResponder,
+               firstResponder is NSTextView || firstResponder is NSText {
+                return event
+            }
+
+            guard let playerVM = self.playerVM else { return event }
+
+            let handled = self.handleKeyEvent(event, playerVM: playerVM)
+
+            // Return nil to consume the event, or return event to pass it along
+            return handled ? nil : event
+        }
+    }
+
+    private func removeEventMonitor() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
         }
     }
 
     deinit {
-        if let observer = focusObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
+        removeEventMonitor()
     }
 
     override func becomeFirstResponder() -> Bool {
@@ -353,30 +389,6 @@ class VideoKeyboardCaptureView: NSView {
     }
 
     override func resignFirstResponder() -> Bool {
-        // Don't reclaim focus if marker editor is open (user is typing in text field)
-        if markerVM?.isEditorPresented == true {
-            return true
-        }
-
-        // Try to reclaim first responder status after a brief delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self = self else { return }
-
-            // Don't reclaim if editor is now open
-            if self.markerVM?.isEditorPresented == true {
-                return
-            }
-
-            // Don't reclaim if user is interacting with text (for copy/paste)
-            if let firstResponder = self.window?.firstResponder,
-               firstResponder is NSTextView || firstResponder is NSText {
-                return
-            }
-
-            if self.window?.firstResponder != self {
-                self.window?.makeFirstResponder(self)
-            }
-        }
         return true
     }
 
@@ -388,15 +400,13 @@ class VideoKeyboardCaptureView: NSView {
         }
 
         guard let playerVM = playerVM else {
-            super.keyDown(with: event)
+            // Silently ignore - don't pass to super to avoid error sound
             return
         }
 
-        let handled = handleKeyEvent(event, playerVM: playerVM)
-
-        if !handled {
-            super.keyDown(with: event)
-        }
+        // Handle the event - ignore return value to prevent error sound
+        // We "consume" all keyboard events when in video mode
+        _ = handleKeyEvent(event, playerVM: playerVM)
     }
 
     private func handleKeyEvent(_ event: NSEvent, playerVM: VideoPlayerViewModel) -> Bool {
@@ -438,9 +448,14 @@ class VideoKeyboardCaptureView: NSView {
             }
             return true
 
-        case 51: // Delete key - remove selected marker
+        case 51: // Delete/Backspace key
             Task { @MainActor in
-                self.markerVM?.deleteSelectedMarker()
+                // If entering a timecode, delete digit; otherwise delete selected marker
+                if self.calculatorVM?.isEntering == true {
+                    self.calculatorVM?.deleteDigit()
+                } else {
+                    self.markerVM?.deleteSelectedMarker()
+                }
             }
             return true
 
@@ -535,6 +550,30 @@ class VideoKeyboardCaptureView: NSView {
             if event.modifierFlags.contains(.command) {
                 Task { @MainActor in
                     self.onExportRequested?()
+                }
+                return true
+            }
+            return false
+
+        // Copy timecode (⌘C)
+        case "c":
+            if event.modifierFlags.contains(.command) {
+                Task { @MainActor in
+                    if let copyString = self.calculatorVM?.copyableString() {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(copyString, forType: .string)
+                    }
+                }
+                return true
+            }
+            return false
+
+        // Paste timecode (⌘V)
+        case "v":
+            if event.modifierFlags.contains(.command) {
+                Task { @MainActor in
+                    self.calculatorVM?.pasteFromClipboard()
                 }
                 return true
             }

@@ -37,25 +37,26 @@ struct TransportControls: View {
             // Shuttle controls group
             GlassEffectContainer {
                 HStack(spacing: 8) {
-                    // Reverse (J key)
+                    // Reverse (J key) - only highlight for 2x+ reverse
                     GlassTransportButton(
                         icon: "backward.fill",
-                        isActive: viewModel.shuttleState.rawValue < 0,
+                        isActive: viewModel.shuttleState.rawValue < -1,
                         action: viewModel.handleJ
                     )
                     .help("Reverse (J)")
 
-                    // Play/Pause
+                    // Play/Pause - highlight when playing at 1x or stopped
                     GlassTransportButton(
                         icon: viewModel.isPlaying ? "pause.fill" : "play.fill",
+                        isActive: viewModel.isPlaying && abs(viewModel.shuttleState.rawValue) <= 1,
                         action: viewModel.togglePlayPause
                     )
                     .help("Play/Pause (Space)")
 
-                    // Forward (L key)
+                    // Forward (L key) - only highlight for 2x+ forward
                     GlassTransportButton(
                         icon: "forward.fill",
-                        isActive: viewModel.shuttleState.rawValue > 0,
+                        isActive: viewModel.shuttleState.rawValue > 1,
                         action: viewModel.handleL
                     )
                     .help("Forward (L)")
@@ -223,6 +224,7 @@ private struct GlassTransportButton: View {
         .clipShape(Circle())
         .opacity(isDisabled ? 0.5 : 1.0)
         .disabled(isDisabled)
+        .focusable(false)
     }
 }
 
