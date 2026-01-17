@@ -1,10 +1,9 @@
 import SwiftUI
 import AVKit
 
-// MARK: - Notification for keyboard focus
+// MARK: - Notifications
 
 extension Notification.Name {
-    static let reclaimKeyboardFocus = Notification.Name("reclaimKeyboardFocus")
     static let showExportDialog = Notification.Name("showExportDialog")
 }
 
@@ -75,12 +74,6 @@ struct VideoInspectorView: View {
                 configurePlayer()
             }
         }
-        .onChange(of: markerVM.isEditorPresented) { _, isPresented in
-            if !isPresented {
-                // Editor closed - post notification to reclaim keyboard focus
-                NotificationCenter.default.post(name: .reclaimKeyboardFocus, object: nil)
-            }
-        }
         .background(
             VideoKeyboardHandler(
                 playerVM: playerVM,
@@ -132,17 +125,15 @@ struct VideoInspectorView: View {
                     Color.black
                         .overlay(emptyPlayerState)
                 }
-
-                // Marker editor popover (centered over video)
-                if markerVM.isEditorPresented {
-                    MarkerEditorPopover(
-                        markerVM: markerVM,
-                        frameRate: playerVM.frameRate,
-                        startTimecodeFrames: playerVM.startTimecodeFrames
-                    )
-                }
             }
             .frame(width: videoFrameSize.width, height: videoFrameSize.height)
+            .sheet(isPresented: $markerVM.isEditorPresented) {
+                MarkerEditorPopover(
+                    markerVM: markerVM,
+                    frameRate: playerVM.frameRate,
+                    startTimecodeFrames: playerVM.startTimecodeFrames
+                )
+            }
 
             // Timeline
             TimelineWithTimecode(
@@ -223,12 +214,6 @@ struct VideoInspectorView: View {
 
     // MARK: - Actions
 
-    private func closeVideo() {
-        playerVM.reset()
-        markerVM.clearAllMarkers()
-        appState.closeVideo()
-    }
-
     private func addMarkerAtPlayhead() {
         let currentFrames = playerVM.currentFrames
 
@@ -295,28 +280,17 @@ struct VideoKeyboardHandler: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: VideoKeyboardCaptureView, context: Context) {
-        let wasEditorOpen = nsView.wasEditorOpen
-        let isEditorOpen = markerVM.isEditorPresented
-
         nsView.playerVM = playerVM
         nsView.calculatorVM = calculatorVM
         nsView.markerVM = markerVM
         nsView.onExportRequested = onExportRequested
         nsView.onPreviousMarker = onPreviousMarker
         nsView.onNextMarker = onNextMarker
-        nsView.wasEditorOpen = isEditorOpen
-
-        // Reclaim focus when editor closes
-        if wasEditorOpen && !isEditorOpen {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                nsView.window?.makeFirstResponder(nsView)
-            }
-        }
     }
 }
 
-/// Custom NSView that captures keyboard events for video controls.
-/// Uses a local event monitor for reliable keyboard capture regardless of focus.
+/// Custom NSView that captures keyboard events for video controls using a local event monitor.
+/// This approach is more reliable than relying on first responder status.
 class VideoKeyboardCaptureView: NSView {
     var playerVM: VideoPlayerViewModel?
     var calculatorVM: CalculatorViewModel?
@@ -324,89 +298,71 @@ class VideoKeyboardCaptureView: NSView {
     var onExportRequested: (() -> Void)?
     var onPreviousMarker: (() -> Void)?
     var onNextMarker: (() -> Void)?
-    var wasEditorOpen: Bool = false
     private var eventMonitor: Any?
-
-    override var acceptsFirstResponder: Bool { true }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
 
-        // Use local event monitor for reliable keyboard capture
-        setupEventMonitor()
-    }
-
-    override func viewWillMove(toWindow newWindow: NSWindow?) {
-        super.viewWillMove(toWindow: newWindow)
-        // Remove monitor when view is removed from window
-        if newWindow == nil {
-            removeEventMonitor()
-        }
-    }
-
-    private func setupEventMonitor() {
-        removeEventMonitor()
-
-        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self = self else { return event }
-
-            // Don't intercept if marker editor is open
-            if self.markerVM?.isEditorPresented == true {
-                return event
-            }
-
-            // Only handle events for our window
-            guard event.window == self.window else { return event }
-
-            // Don't intercept if user is typing in a text field
-            if let firstResponder = self.window?.firstResponder,
-               firstResponder is NSTextView || firstResponder is NSText {
-                return event
-            }
-
-            guard let playerVM = self.playerVM else { return event }
-
-            let handled = self.handleKeyEvent(event, playerVM: playerVM)
-
-            // Return nil to consume the event, or return event to pass it along
-            return handled ? nil : event
-        }
-    }
-
-    private func removeEventMonitor() {
+        // Remove any existing monitor
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
             eventMonitor = nil
         }
+
+        // Set up local event monitor for keyboard events
+        // This intercepts events at the application level, regardless of first responder
+        guard window != nil else { return }
+
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+            return self.handleKeyDownEvent(event)
+        }
+    }
+
+    override func removeFromSuperview() {
+        // Clean up event monitor when view is removed
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+        super.removeFromSuperview()
     }
 
     deinit {
-        removeEventMonitor()
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
     }
 
-    override func becomeFirstResponder() -> Bool {
-        return true
-    }
-
-    override func resignFirstResponder() -> Bool {
-        return true
-    }
-
-    override func keyDown(with event: NSEvent) {
-        // Don't intercept keyboard events when marker editor is open
+    /// Handles keyboard events from the local event monitor.
+    /// Returns nil to consume the event, or the event to pass it through.
+    private func handleKeyDownEvent(_ event: NSEvent) -> NSEvent? {
+        // Don't intercept if marker editor sheet is open
         if markerVM?.isEditorPresented == true {
-            super.keyDown(with: event)
-            return
+            return event
+        }
+
+        // Don't intercept if user is typing in a text field
+        if let firstResponder = window?.firstResponder,
+           firstResponder is NSTextView || firstResponder is NSText {
+            return event
+        }
+
+        // Don't intercept if our window isn't the key window
+        guard window?.isKeyWindow == true else {
+            return event
         }
 
         guard let playerVM = playerVM else {
-            // Silently ignore - don't pass to super to avoid error sound
-            return
+            return event
         }
 
-        // Handle the event - ignore return value to prevent error sound
-        // We "consume" all keyboard events when in video mode
-        _ = handleKeyEvent(event, playerVM: playerVM)
+        // Try to handle the event
+        if handleKeyEvent(event, playerVM: playerVM) {
+            return nil // Consume the event
+        }
+
+        return event // Pass through unhandled events
     }
 
     private func handleKeyEvent(_ event: NSEvent, playerVM: VideoPlayerViewModel) -> Bool {

@@ -178,7 +178,7 @@ actor MarkerExporter {
         var lines: [String] = []
 
         // Header row
-        lines.append("Timecode In,Timecode Out,Color,Name,Duration,Source")
+        lines.append("Timecode,Color,Note,Source")
 
         for marker in markers {
             let tc = formatTimecode(frames: marker.timecodeFrames, frameRate: frameRate)
@@ -186,8 +186,7 @@ actor MarkerExporter {
             let note = escapeCSV(marker.note)
             let source = escapeCSV(sourceFilename)
 
-            // Timecode Out and Duration are empty for point markers
-            lines.append("\(tc),,\(color),\(note),,\(source)")
+            lines.append("\(tc),\(color),\(note),\(source)")
         }
 
         return lines.joined(separator: "\n")

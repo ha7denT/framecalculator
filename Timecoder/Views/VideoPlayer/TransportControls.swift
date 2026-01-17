@@ -159,9 +159,9 @@ struct TransportControls: View {
 
         let color: Color = {
             if level < 0 {
-                return isActive ? .orange : .gray.opacity(0.3)
+                return isActive ? .timecoderOrange : .gray.opacity(0.3)
             } else {
-                return isActive ? .green : .gray.opacity(0.3)
+                return isActive ? .timecoderTeal : .gray.opacity(0.3)
             }
         }()
 

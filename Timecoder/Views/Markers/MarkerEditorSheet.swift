@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Compact popover view for editing a marker's color and note.
-/// Designed to appear over the video player area like in an NLE.
+/// Sheet view for editing a marker's color and note.
 struct MarkerEditorPopover: View {
     @ObservedObject var markerVM: MarkerListViewModel
     let frameRate: FrameRate
@@ -12,60 +11,51 @@ struct MarkerEditorPopover: View {
     @State private var editedColor: MarkerColor = .blue
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Header with timecode and close button
-            HStack {
-                if let marker = markerVM.editingMarker {
-                    Text(timecodeText(for: marker))
-                        .font(.spaceMono(size: 13, weight: .bold))
-                        .foregroundColor(.primary)
-                }
-
-                Spacer()
-
-                Button(action: { markerVM.closeEditor() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
+        VStack(spacing: 16) {
+            // Header with timecode
+            if let marker = markerVM.editingMarker {
+                Text("Marker at \(timecodeText(for: marker))")
+                    .font(.spaceMono(size: 14, weight: .bold))
             }
 
             // Color picker row (all 8 colors in one row)
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ForEach(MarkerColor.allCases, id: \.self) { color in
                     colorButton(color)
                 }
             }
 
             // Note text field
-            TextField("Add note...", text: $editedNote, onCommit: saveMarker)
+            TextField("Add note...", text: $editedNote)
                 .textFieldStyle(.roundedBorder)
-                .font(.system(size: 12))
+                .onSubmit {
+                    saveMarker()
+                }
 
             // Action buttons
-            HStack(spacing: 8) {
-                Button(action: deleteMarker) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
+            HStack(spacing: 12) {
+                Button(role: .destructive, action: deleteMarker) {
+                    Label("Delete", systemImage: "trash")
                 }
-                .buttonStyle(.plain)
-                .help("Delete marker")
+                .buttonStyle(.bordered)
 
                 Spacer()
+
+                Button("Cancel") {
+                    markerVM.closeEditor()
+                }
+                .buttonStyle(.bordered)
+                .keyboardShortcut(.escape)
 
                 Button("Done") {
                     saveMarker()
                 }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.small)
                 .keyboardShortcut(.return)
             }
         }
-        .padding(12)
-        .frame(width: 240)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+        .padding(20)
+        .frame(width: 300)
         .onAppear {
             loadMarkerValues()
         }
@@ -134,14 +124,10 @@ struct MarkerEditorPopover: View {
         markerVM.openEditor(for: marker)
     }
 
-    return ZStack {
-        Color.black
-        MarkerEditorPopover(
-            markerVM: markerVM,
-            frameRate: .fps24,
-            startTimecodeFrames: 0
-        )
-    }
-    .frame(width: 400, height: 300)
+    return MarkerEditorPopover(
+        markerVM: markerVM,
+        frameRate: .fps24,
+        startTimecodeFrames: 0
+    )
     .preferredColorScheme(.dark)
 }
