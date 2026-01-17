@@ -83,36 +83,42 @@ struct TimecodeDisplayView: View {
     /// Primary display content based on mode
     @ViewBuilder
     private var primaryDisplay: some View {
-        switch displayMode {
-        case .timecode:
-            timecodeText
-        case .frames:
-            frameCountText
+        Group {
+            switch displayMode {
+            case .timecode:
+                timecodeText
+            case .frames:
+                frameCountText
+            }
         }
+        .frame(height: 44) // Fixed height to prevent layout shift when toggling modes
     }
 
     /// Secondary display content based on mode
     @ViewBuilder
     private var secondaryDisplay: some View {
-        switch displayMode {
-        case .timecode:
-            // Show frame count below timecode
-            HStack(spacing: 4) {
-                Text("\(frameCount)")
+        Group {
+            switch displayMode {
+            case .timecode:
+                // Show frame count below timecode
+                HStack(spacing: 4) {
+                    Text("\(frameCount)")
+                        .font(.spaceMono(size: 12))
+                        .foregroundColor(.secondary)
+                        .textSelection(.enabled)
+                    Text("frames")
+                        .font(.spaceMono(size: 12))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+            case .frames:
+                // Show timecode below frame count
+                Text(formattedTimecode)
                     .font(.spaceMono(size: 12))
                     .foregroundColor(.secondary)
                     .textSelection(.enabled)
-                Text("frames")
-                    .font(.spaceMono(size: 12))
-                    .foregroundColor(.secondary.opacity(0.6))
             }
-        case .frames:
-            // Show timecode below frame count
-            Text(formattedTimecode)
-                .font(.spaceMono(size: 12))
-                .foregroundColor(.secondary)
-                .textSelection(.enabled)
         }
+        .frame(height: 16) // Fixed height to prevent layout shift when toggling modes
     }
 
     /// Large timecode display

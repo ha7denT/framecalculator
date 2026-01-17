@@ -654,8 +654,16 @@ struct InOutPanel: View {
                             .foregroundColor(.orange)
                             .textSelection(.enabled)
 
-                        Text("")
-                            .frame(width: 16)
+                        Button(action: {
+                            let pasteboard = NSPasteboard.general
+                            pasteboard.clearContents()
+                            pasteboard.setString(duration.formatted(), forType: .string)
+                        }) {
+                            Image(systemName: "doc.on.doc")
+                                .foregroundColor(.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Copy duration")
                     }
                 }
             }
