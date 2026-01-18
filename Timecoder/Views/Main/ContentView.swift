@@ -1,13 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Notification for opening video from menu
-
-extension Notification.Name {
-    static let openVideoFile = Notification.Name("openVideoFile")
-    static let addMarkerAtPlayhead = Notification.Name("addMarkerAtPlayhead")
-}
-
 /// Main content view that switches between calculator and video inspection modes.
 struct ContentView: View {
     @StateObject private var appState = AppState()
@@ -236,7 +229,7 @@ struct ContentView: View {
                         }
                     } catch {
                         Task { @MainActor in
-                            appState.clearError()
+                            appState.setError("Failed to load video: \(error.localizedDescription)")
                         }
                     }
                 }

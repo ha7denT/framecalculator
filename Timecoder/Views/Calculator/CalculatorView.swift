@@ -46,6 +46,8 @@ struct CalculatorView: View {
                 .tint(.timecoderTeal)
                 .clipShape(Circle())
                 .help(modeButtonHelp)
+                .accessibilityLabel(modeButtonIcon == "play.rectangle" ? "Open video" : "Return to calculator")
+                .accessibilityHint(modeButtonIcon == "play.rectangle" ? "Opens a video file for inspection" : "Closes video and returns to calculator mode")
 
                 Spacer()
 
@@ -253,6 +255,7 @@ private struct ErrorBanner: View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(.orange)
+                .accessibilityHidden(true)
 
             Text(message)
                 .font(.system(size: 13))
@@ -264,6 +267,7 @@ private struct ErrorBanner: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss error")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -272,6 +276,9 @@ private struct ErrorBanner: View {
                 .fill(Color.orange.opacity(0.15))
         )
         .padding(.horizontal, 16)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Error: \(message)")
+        .accessibilityAddTraits(.isStaticText)
     }
 }
 

@@ -190,13 +190,15 @@ public actor VideoLoader {
 
         default:
             // Convert FourCC to string for unknown codecs
-            let chars = [
-                Character(UnicodeScalar((fourCC >> 24) & 0xFF)!),
-                Character(UnicodeScalar((fourCC >> 16) & 0xFF)!),
-                Character(UnicodeScalar((fourCC >> 8) & 0xFF)!),
-                Character(UnicodeScalar(fourCC & 0xFF)!)
-            ]
-            return String(chars).trimmingCharacters(in: .whitespaces)
+            var chars: [Character] = []
+            for shift in [24, 16, 8, 0] {
+                let byte = (fourCC >> shift) & 0xFF
+                if let scalar = UnicodeScalar(byte) {
+                    chars.append(Character(scalar))
+                }
+            }
+            let result = String(chars).trimmingCharacters(in: .whitespaces)
+            return result.isEmpty ? "Unknown" : result
         }
     }
 

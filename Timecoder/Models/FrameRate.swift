@@ -102,6 +102,32 @@ public enum FrameRate: Hashable, Codable {
         }
     }
 
+    /// VoiceOver-friendly name for accessibility.
+    public var accessibilityName: String {
+        switch self {
+        case .fps23_976:
+            return "23.976 frames per second"
+        case .fps24:
+            return "24 frames per second"
+        case .fps25:
+            return "25 frames per second"
+        case .fps29_97_df:
+            return "29.97 drop frame"
+        case .fps29_97_ndf:
+            return "29.97 non-drop frame"
+        case .fps30:
+            return "30 frames per second"
+        case .fps50:
+            return "50 frames per second"
+        case .fps59_94:
+            return "59.94 frames per second"
+        case .fps60:
+            return "60 frames per second"
+        case .custom(let fps):
+            return "\(String(format: "%.3g", fps)) frames per second, custom"
+        }
+    }
+
     /// All standard frame rates (excluding custom).
     public static var allStandardRates: [FrameRate] {
         [.fps23_976, .fps24, .fps25, .fps29_97_df, .fps29_97_ndf, .fps30, .fps50, .fps59_94, .fps60]

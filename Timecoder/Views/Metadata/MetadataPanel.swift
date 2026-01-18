@@ -11,8 +11,11 @@ struct MetadataPanel: View {
                 .font(.headline)
                 .lineLimit(1)
                 .truncationMode(.middle)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityLabel("File: \(metadata.filename)")
 
             Divider()
+                .accessibilityHidden(true)
 
             // Metadata grid
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
@@ -34,6 +37,7 @@ struct MetadataPanel: View {
             }
 
             Divider()
+                .accessibilityHidden(true)
 
             // Timecode source indicator
             TimecodeSourceIndicator(metadata: metadata)
@@ -41,6 +45,8 @@ struct MetadataPanel: View {
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         .cornerRadius(8)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Video metadata")
     }
 }
 
@@ -48,11 +54,20 @@ struct MetadataPanel: View {
 private struct TimecodeSourceIndicator: View {
     let metadata: VideoMetadata
 
+    private var accessibilityDescription: String {
+        if metadata.hasEmbeddedTimecode {
+            return "Embedded timecode, starting at \(metadata.formattedStartTimecode)"
+        } else {
+            return "Elapsed time timecode, calculated from playhead position"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: metadata.hasEmbeddedTimecode ? "clock.badge.checkmark" : "timer")
                 .foregroundColor(metadata.hasEmbeddedTimecode ? .green : .orange)
                 .font(.caption)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(metadata.timecodeSourceDescription)
@@ -72,6 +87,9 @@ private struct TimecodeSourceIndicator: View {
 
             Spacer()
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Timecode source")
+        .accessibilityValue(accessibilityDescription)
     }
 }
 
@@ -91,6 +109,8 @@ private struct MetadataRow: View {
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(.primary)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 
@@ -112,6 +132,8 @@ struct MetadataBadge: View {
         .padding(.vertical, 2)
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(4)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 

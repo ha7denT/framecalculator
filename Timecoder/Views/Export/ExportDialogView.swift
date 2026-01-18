@@ -15,6 +15,7 @@ struct ExportDialogView: View {
             // Header
             Text("Export Markers")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
 
             // Format picker
             Picker("Format", selection: $selectedFormat) {
@@ -24,6 +25,9 @@ struct ExportDialogView: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .accessibilityLabel("Export format")
+            .accessibilityValue(selectedFormat.rawValue)
+            .accessibilityHint("Select format for marker export")
 
             // Format info
             VStack(alignment: .leading, spacing: 8) {
@@ -32,27 +36,35 @@ struct ExportDialogView: View {
                         .foregroundColor(.secondary)
                     Text(selectedFormat.targetApp)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Target application: \(selectedFormat.targetApp)")
 
                 HStack {
                     Text("Markers:")
                         .foregroundColor(.secondary)
                     Text("\(markers.count)")
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(markers.count) markers to export")
 
                 HStack {
                     Text("Frame Rate:")
                         .foregroundColor(.secondary)
                     Text(frameRate.displayName)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Frame rate: \(frameRate.accessibilityName)")
 
                 Text(selectedFormat.formatDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel("Format description: \(selectedFormat.formatDescription)")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Divider()
+                .accessibilityHidden(true)
 
             // Buttons
             HStack {
@@ -60,6 +72,8 @@ struct ExportDialogView: View {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
+                .accessibilityLabel("Cancel")
+                .accessibilityHint("Closes dialog without exporting")
 
                 Spacer()
 
@@ -68,6 +82,8 @@ struct ExportDialogView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(markers.isEmpty)
+                .accessibilityLabel("Export")
+                .accessibilityHint(markers.isEmpty ? "No markers to export" : "Opens save dialog to export \(markers.count) markers")
             }
         }
         .padding(20)
@@ -101,18 +117,14 @@ struct ExportDialogView: View {
 
             // Export
             Task {
-                do {
-                    let exporter = MarkerExporter()
-                    try await exporter.export(
-                        markers: markersToExport,
-                        format: format,
-                        to: url,
-                        frameRate: rate,
-                        sourceFilename: source
-                    )
-                } catch {
-                    print("Export error: \(error.localizedDescription)")
-                }
+                let exporter = MarkerExporter()
+                try? await exporter.export(
+                    markers: markersToExport,
+                    format: format,
+                    to: url,
+                    frameRate: rate,
+                    sourceFilename: source
+                )
             }
         }
     }

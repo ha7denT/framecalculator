@@ -137,6 +137,8 @@ private struct NumberButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel("\(digit)")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -170,6 +172,8 @@ private struct WideZeroButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel("0")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -198,6 +202,9 @@ private struct ColonButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel("Colon")
+            .accessibilityHint("Shifts entry left and adds zero padding")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -229,6 +236,9 @@ private struct DeleteButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel("Delete")
+            .accessibilityHint("Removes last entered digit")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -238,6 +248,24 @@ private struct SecondaryButton: View {
     let size: CGFloat
     let action: () -> Void
     @State private var isPressed = false
+
+    /// Full accessibility label for button
+    private var accessibilityLabelText: String {
+        switch label {
+        case "AC": return "All Clear"
+        case "C": return "Clear"
+        default: return label
+        }
+    }
+
+    /// Accessibility hint explaining the action
+    private var accessibilityHintText: String {
+        switch label {
+        case "AC": return "Clears all entries and resets calculator"
+        case "C": return "Clears current entry"
+        default: return ""
+        }
+    }
 
     var body: some View {
         Text(label)
@@ -257,6 +285,9 @@ private struct SecondaryButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel(accessibilityLabelText)
+            .accessibilityHint(accessibilityHintText)
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -273,6 +304,17 @@ private struct OperatorButton: View {
             return Color.timecoderOrange.opacity(0.6)
         }
         return isSelected ? Color.timecoderOrange : Color.timecoderOrange.opacity(0.85)
+    }
+
+    /// Full accessibility label for operator
+    private var accessibilityLabelText: String {
+        switch symbol {
+        case "+": return "Add"
+        case "−": return "Subtract"
+        case "×": return "Multiply"
+        case "÷": return "Divide"
+        default: return symbol
+        }
     }
 
     var body: some View {
@@ -293,6 +335,9 @@ private struct OperatorButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
+            .accessibilityLabel(accessibilityLabelText)
+            .accessibilityValue(isSelected ? "Selected" : "")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -324,28 +369,9 @@ private struct EqualsButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
-    }
-}
-
-/// Input field for multiplier/divisor value.
-private struct ScalarInput: View {
-    @Binding var value: String
-    var label: String = "Multiply by:"
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-
-            TextField("", text: $value)
-                .textFieldStyle(.roundedBorder)
-                .font(.spaceMono(size: 16))
-                .frame(width: 60)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+            .accessibilityLabel("Equals")
+            .accessibilityHint("Calculates the result")
+            .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -388,6 +414,10 @@ private struct FrameTimecodeToggleButton: View {
                 .onEnded { _ in isPressed = false }
         )
         .help(isShowingFrames ? "Show as Timecode" : "Show as Frames")
+        .accessibilityLabel("Toggle display mode")
+        .accessibilityValue(isShowingFrames ? "Showing frames" : "Showing timecode")
+        .accessibilityHint(isShowingFrames ? "Switch to timecode display" : "Switch to frame count display")
+        .accessibilityAddTraits(.isButton)
     }
 }
 

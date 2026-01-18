@@ -1,11 +1,10 @@
 import SwiftUI
 import AVKit
 
-// MARK: - Notifications
+// MARK: - Constants
 
-extension Notification.Name {
-    static let showExportDialog = Notification.Name("showExportDialog")
-}
+/// Frame tolerance for detecting if a marker exists at the current playhead position.
+private let markerFrameTolerance = 1
 
 /// The video inspection mode layout combining video player, calculator, and metadata.
 struct VideoInspectorView: View {
@@ -166,10 +165,13 @@ struct VideoInspectorView: View {
             Image(systemName: "film")
                 .font(.system(size: 48))
                 .foregroundColor(.gray)
+                .accessibilityHidden(true)
             Text("No Video Loaded")
                 .font(.headline)
                 .foregroundColor(.gray)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("No video loaded")
     }
 
     // MARK: - Right Panel
@@ -188,7 +190,7 @@ struct VideoInspectorView: View {
             .frame(height: 520)
 
             // Supplementary info below calculator (when video loaded)
-            if appState.currentMetadata != nil {
+            if let metadata = appState.currentMetadata {
                 Divider()
                     .padding(.horizontal, 12)
 
@@ -201,7 +203,7 @@ struct VideoInspectorView: View {
                     .padding(.horizontal, 12)
 
                 // Metadata panel (static file info at bottom)
-                MetadataPanel(metadata: appState.currentMetadata!)
+                MetadataPanel(metadata: metadata)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
             }
@@ -218,7 +220,7 @@ struct VideoInspectorView: View {
         let currentFrames = playerVM.currentFrames
 
         // Check if a marker already exists at this position (within 1 frame tolerance)
-        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: 1) {
+        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: markerFrameTolerance) {
             // Open editor for existing marker
             markerVM.openEditor(for: existingMarker)
         } else {
@@ -548,7 +550,7 @@ class VideoKeyboardCaptureView: NSView {
         let currentFrames = playerVM.currentFrames
 
         // Check if a marker already exists at this position (within 1 frame tolerance)
-        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: 1) {
+        if let existingMarker = markerVM.marker(at: currentFrames, tolerance: markerFrameTolerance) {
             // Open editor for existing marker
             markerVM.openEditor(for: existingMarker)
         } else {
@@ -602,6 +604,8 @@ struct InOutPanel: View {
                         }
                         .buttonStyle(.plain)
                         .help("Go to In point (⇧I)")
+                        .accessibilityLabel("Go to In point")
+                        .accessibilityHint("Seeks playhead to In point")
                     } else {
                         Text("Not set")
                             .font(.spaceMono(size: 13))
@@ -611,6 +615,8 @@ struct InOutPanel: View {
                             .frame(width: 16)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("In point: \(viewModel.inPointTimecode?.formatted() ?? "Not set")")
 
                 // Out point row
                 GridRow {
@@ -631,6 +637,8 @@ struct InOutPanel: View {
                         }
                         .buttonStyle(.plain)
                         .help("Go to Out point (⇧O)")
+                        .accessibilityLabel("Go to Out point")
+                        .accessibilityHint("Seeks playhead to Out point")
                     } else {
                         Text("Not set")
                             .font(.spaceMono(size: 13))
@@ -640,6 +648,8 @@ struct InOutPanel: View {
                             .frame(width: 16)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Out point: \(viewModel.outPointTimecode?.formatted() ?? "Not set")")
 
                 // Duration row (only shown when both points set)
                 if let duration = viewModel.inOutDuration {
@@ -664,7 +674,11 @@ struct InOutPanel: View {
                         }
                         .buttonStyle(.plain)
                         .help("Copy duration")
+                        .accessibilityLabel("Copy duration")
+                        .accessibilityHint("Copies duration to clipboard")
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Duration: \(duration.formatted())")
                 }
             }
 
@@ -678,11 +692,15 @@ struct InOutPanel: View {
                     }
                     .buttonStyle(.glass)
                     .help("Clear In/Out points (⌥X)")
+                    .accessibilityLabel("Clear In/Out points")
+                    .accessibilityHint("Removes both In and Out points")
                 }
             }
         }
         .padding()
         .glassEffect(in: .rect(cornerRadius: 12))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("In/Out points")
     }
 }
 

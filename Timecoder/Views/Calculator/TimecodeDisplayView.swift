@@ -28,18 +28,41 @@ struct TimecodeDisplayView: View {
         }
     }
 
+    /// Accessibility description of the current display state
+    private var accessibilityDescription: String {
+        var description: String
+        switch displayMode {
+        case .timecode:
+            description = "Timecode: \(formattedTimecode)"
+        case .frames:
+            description = "Frame count: \(frameCount)"
+        }
+
+        if hasError {
+            description += ", Error"
+        } else if !invalidComponents.isEmpty {
+            description += ", Invalid entry"
+        } else if isPendingOperation, let op = pendingOperation {
+            description += ", \(op.accessibilityName) pending"
+        }
+
+        return description
+    }
+
     var body: some View {
         VStack(alignment: .trailing, spacing: 8) {
             // Main display with glass effect and copy button
             HStack(spacing: 8) {
                 // Operation symbol on far left (fixed width to prevent layout shift)
-                Text(isPendingOperation && pendingOperation != nil ? pendingOperation!.symbol : "")
+                Text(isPendingOperation ? (pendingOperation?.symbol ?? "") : "")
                     .font(.spaceMono(size: 24, weight: .bold))
                     .foregroundColor(.accentColor)
                     .frame(width: 24, alignment: .leading)
+                    .accessibilityHidden(true)
 
                 primaryDisplay
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    .accessibilityHidden(true)
 
                 // Copy button
                 Button(action: copyToClipboard) {
@@ -49,15 +72,21 @@ struct TimecodeDisplayView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Copy to clipboard")
+                .accessibilityLabel("Copy")
+                .accessibilityHint("Copies \(displayMode == .timecode ? "timecode" : "frame count") to clipboard")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .glassEffect(in: .rect(cornerRadius: 12))
             .tint(tintColor)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(accessibilityDescription)
+            .accessibilityValue(copyValue)
 
             // Secondary display (always shown)
             secondaryDisplay
                 .padding(.trailing, 16)
+                .accessibilityHidden(true) // Already announced in main display context
         }
     }
 

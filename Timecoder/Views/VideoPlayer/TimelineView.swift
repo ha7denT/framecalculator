@@ -21,6 +21,14 @@ struct TimelineView: View {
     private let outPointColor = Color.orange
     private let rangeColor = Color.orange.opacity(0.2)
 
+    /// Accessibility description for the timeline position
+    private var timelineAccessibilityValue: String {
+        let current = viewModel.currentTimecode.formatted()
+        let duration = viewModel.durationTimecode.formatted()
+        let percentage = Int(viewModel.progress * 100)
+        return "\(current) of \(duration), \(percentage) percent"
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -38,23 +46,29 @@ struct TimelineView: View {
                         .fill(rangeColor)
                         .frame(width: endX - startX, height: 8)
                         .offset(x: startX)
+                        .accessibilityHidden(true)
                 }
 
                 // Progress fill
                 RoundedRectangle(cornerRadius: 2)
                     .fill(Color.accentColor)
                     .frame(width: progressWidth(in: geometry), height: 4)
+                    .accessibilityHidden(true)
 
                 // In point marker
                 if let inProgress = viewModel.inPointProgress {
                     InOutMarker(type: .inPoint, color: inPointColor)
                         .offset(x: CGFloat(inProgress) * geometry.size.width - 4)
+                        .accessibilityLabel("In point")
+                        .accessibilityValue(viewModel.inPointTimecode?.formatted() ?? "")
                 }
 
                 // Out point marker
                 if let outProgress = viewModel.outPointProgress {
                     InOutMarker(type: .outPoint, color: outPointColor)
                         .offset(x: CGFloat(outProgress) * geometry.size.width - 4)
+                        .accessibilityLabel("Out point")
+                        .accessibilityValue(viewModel.outPointTimecode?.formatted() ?? "")
                 }
 
                 // Markers
@@ -68,6 +82,10 @@ struct TimelineView: View {
                         .onTapGesture {
                             onMarkerTapped?(marker)
                         }
+                        .accessibilityLabel("Marker")
+                        .accessibilityValue(marker.accessibilityDescription)
+                        .accessibilityHint("Double-tap to edit marker")
+                        .accessibilityAddTraits(.isButton)
                 }
 
                 // Playhead
@@ -76,6 +94,7 @@ struct TimelineView: View {
                     .frame(width: 12, height: 12)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     .offset(x: playheadOffset(in: geometry))
+                    .accessibilityHidden(true)
             }
             .frame(height: 20)
             .contentShape(Rectangle())
@@ -90,6 +109,24 @@ struct TimelineView: View {
             )
         }
         .frame(height: 20)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Timeline")
+        .accessibilityValue(timelineAccessibilityValue)
+        .accessibilityHint("Drag to scrub through video")
+        .accessibilityAdjustableAction { direction in
+            // Allow VoiceOver users to adjust position with swipes
+            let stepSize = 0.01 // 1% of duration
+            switch direction {
+            case .increment:
+                let newProgress = min(1.0, viewModel.progress + stepSize)
+                viewModel.seek(toProgress: newProgress)
+            case .decrement:
+                let newProgress = max(0.0, viewModel.progress - stepSize)
+                viewModel.seek(toProgress: newProgress)
+            @unknown default:
+                break
+            }
+        }
     }
 
     // MARK: - Layout Helpers
@@ -149,6 +186,8 @@ struct TimelineWithTimecode: View {
                 Text(viewModel.currentTimecode.formatted())
                     .font(.spaceMono(size: 11, weight: .bold))
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Current position")
+                    .accessibilityValue(viewModel.currentTimecode.formatted())
 
                 Spacer()
 
@@ -156,6 +195,8 @@ struct TimelineWithTimecode: View {
                 Text(viewModel.durationTimecode.formatted())
                     .font(.spaceMono(size: 11, weight: .bold))
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Duration")
+                    .accessibilityValue(viewModel.durationTimecode.formatted())
             }
         }
         .padding(.horizontal, 12)

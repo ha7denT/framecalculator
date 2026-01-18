@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */; };
+		FC000050001 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000050000 /* Notifications.swift */; };
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
 		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
 		3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */; };
@@ -73,6 +74,7 @@
 		FC000021000 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
 		FC000030000 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		FC000040000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FC000050000 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,7 @@
 				FC000000800 /* ViewModels */,
 				FC000000900 /* Views */,
 				FC00000F000 /* Services */,
+				FC000051000 /* Utilities */,
 				FC000022000 /* Resources */,
 				FC000030000 /* PrivacyInfo.xcprivacy */,
 			);
@@ -244,6 +247,14 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		FC000051000 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				FC000050000 /* Notifications.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -320,6 +331,7 @@
 				FC000001001 /* TimecoderApp.swift in Sources */,
 				FC000002001 /* ContentView.swift in Sources */,
 				FC000003001 /* Timecode.swift in Sources */,
+				FC000050001 /* Notifications.swift in Sources */,
 				FC000004001 /* FrameRate.swift in Sources */,
 				FC000005001 /* CalculatorViewModel.swift in Sources */,
 				FC000006001 /* CalculatorView.swift in Sources */,

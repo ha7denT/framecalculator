@@ -14,6 +14,9 @@ struct FrameRatePicker: View {
         .pickerStyle(.menu)
         .labelsHidden()
         .frame(minWidth: 100)
+        .accessibilityLabel("Frame rate")
+        .accessibilityValue(selection.accessibilityName)
+        .accessibilityHint("Select frame rate for timecode calculations")
     }
 }
 
@@ -41,6 +44,7 @@ struct CompactFrameRatePicker: View {
                         }
                     }
                 }
+                .accessibilityLabel(rate.accessibilityName)
             }
 
             Divider()
@@ -53,6 +57,8 @@ struct CompactFrameRatePicker: View {
                     }
                 }
             }
+            .accessibilityLabel("Custom frame rate")
+            .accessibilityHint("Enter a custom frame rate value")
         } label: {
             HStack(spacing: 4) {
                 Text(selection.displayName)
@@ -69,6 +75,9 @@ struct CompactFrameRatePicker: View {
             .glassEffect(in: .capsule)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Frame rate")
+        .accessibilityValue(selection.accessibilityName)
+        .accessibilityHint("Double-tap to change frame rate")
         .sheet(isPresented: $showCustomDialog) {
             CustomFPSDialog(selection: $selection, isPresented: $showCustomDialog)
         }
@@ -86,16 +95,20 @@ struct CustomFPSDialog: View {
         VStack(spacing: 20) {
             Text("Custom Frame Rate")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
 
             VStack(alignment: .leading, spacing: 8) {
                 TextField("e.g., 47.95", text: $inputText)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 150)
+                    .accessibilityLabel("Frame rate value")
+                    .accessibilityHint("Enter frames per second as a number")
 
                 if let error = errorMessage {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.red)
+                        .accessibilityLabel("Error: \(error)")
                 }
             }
 
@@ -104,12 +117,16 @@ struct CustomFPSDialog: View {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
+                .accessibilityLabel("Cancel")
+                .accessibilityHint("Closes dialog without saving")
 
                 Button("OK") {
                     applyCustomRate()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(inputText.isEmpty)
+                .accessibilityLabel("OK")
+                .accessibilityHint("Applies the custom frame rate")
             }
         }
         .padding(24)

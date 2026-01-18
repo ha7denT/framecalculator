@@ -240,6 +240,11 @@ public final class AppState: ObservableObject {
         }
     }
 
+    /// Sets an error message to display to the user.
+    public func setError(_ message: String) {
+        videoState = .error(message)
+    }
+
     /// Handles files dropped onto the application.
     /// - Parameter providers: The item providers from the drop.
     /// - Returns: Whether the drop was handled.

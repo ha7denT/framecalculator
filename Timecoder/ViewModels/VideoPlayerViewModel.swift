@@ -385,8 +385,10 @@ final class VideoPlayerViewModel: ObservableObject {
             forInterval: interval,
             queue: .main
         ) { [weak self] time in
-            Task { @MainActor in
-                self?.handleTimeUpdate(time)
+            guard let self else { return }
+            // Dispatched on main queue, safe to assume MainActor
+            MainActor.assumeIsolated {
+                self.handleTimeUpdate(time)
             }
         }
     }
@@ -442,11 +444,13 @@ final class VideoPlayerViewModel: ObservableObject {
 
 // MARK: - FrameRate Extension
 
+/// Tolerance for matching detected frame rates to standard values.
+private let frameRateMatchTolerance = 0.01
+
 extension FrameRate {
     /// Creates a FrameRate from a detected FPS value.
     static func from(fps: Double) -> FrameRate? {
-        // Match common frame rates with tolerance
-        let tolerance = 0.01
+        let tolerance = frameRateMatchTolerance
 
         if abs(fps - 23.976) < tolerance { return .fps23_976 }
         if abs(fps - 24.0) < tolerance { return .fps24 }

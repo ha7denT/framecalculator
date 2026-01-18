@@ -12,6 +12,18 @@ enum CalculatorOperation: String, CaseIterable {
     case timecodeToFrames = "TC→F"
 
     var symbol: String { rawValue }
+
+    /// Accessibility-friendly name for VoiceOver
+    var accessibilityName: String {
+        switch self {
+        case .add: return "Addition"
+        case .subtract: return "Subtraction"
+        case .multiply: return "Multiplication"
+        case .divide: return "Division"
+        case .framesToTimecode: return "Frames to timecode conversion"
+        case .timecodeToFrames: return "Timecode to frames conversion"
+        }
+    }
 }
 
 /// Entry mode for the calculator display.

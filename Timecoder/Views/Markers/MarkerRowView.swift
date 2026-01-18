@@ -9,6 +9,15 @@ struct MarkerRowView: View {
     let onTap: () -> Void
     let onDoubleTap: () -> Void
 
+    /// Accessibility description for the marker row
+    private var accessibilityDescription: String {
+        var description = "\(marker.color.displayName) marker at \(timecodeText)"
+        if !marker.note.isEmpty {
+            description += ", \(marker.note)"
+        }
+        return description
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Color indicator circle
@@ -37,6 +46,12 @@ struct MarkerRowView: View {
         .contentShape(Rectangle())
         .onTapGesture(count: 2, perform: onDoubleTap)
         .onTapGesture(count: 1, perform: onTap)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityValue(isSelected ? "Selected" : "")
+        .accessibilityHint("Tap to seek, double-tap to edit")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// Formats the marker's frame position as a timecode string.

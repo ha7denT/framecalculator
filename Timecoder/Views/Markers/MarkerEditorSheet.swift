@@ -16,6 +16,7 @@ struct MarkerEditorPopover: View {
             if let marker = markerVM.editingMarker {
                 Text("Marker at \(timecodeText(for: marker))")
                     .font(.spaceMono(size: 14, weight: .bold))
+                    .accessibilityAddTraits(.isHeader)
             }
 
             // Color picker row (all 8 colors in one row)
@@ -24,6 +25,8 @@ struct MarkerEditorPopover: View {
                     colorButton(color)
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Marker color")
 
             // Note text field
             TextField("Add note...", text: $editedNote)
@@ -31,6 +34,8 @@ struct MarkerEditorPopover: View {
                 .onSubmit {
                     saveMarker()
                 }
+                .accessibilityLabel("Marker note")
+                .accessibilityHint("Enter a note for this marker")
 
             // Action buttons
             HStack(spacing: 12) {
@@ -38,6 +43,8 @@ struct MarkerEditorPopover: View {
                     Label("Delete", systemImage: "trash")
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel("Delete marker")
+                .accessibilityHint("Permanently removes this marker")
 
                 Spacer()
 
@@ -46,12 +53,16 @@ struct MarkerEditorPopover: View {
                 }
                 .buttonStyle(.bordered)
                 .keyboardShortcut(.escape)
+                .accessibilityLabel("Cancel")
+                .accessibilityHint("Closes editor without saving changes")
 
                 Button("Done") {
                     saveMarker()
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.return)
+                .accessibilityLabel("Done")
+                .accessibilityHint("Saves changes and closes editor")
             }
         }
         .padding(20)
@@ -67,7 +78,8 @@ struct MarkerEditorPopover: View {
     // MARK: - Color Picker
 
     private func colorButton(_ color: MarkerColor) -> some View {
-        Button(action: {
+        let isSelected = editedColor == color
+        return Button(action: {
             editedColor = color
             // Auto-save color change
             if var marker = markerVM.editingMarker {
@@ -80,11 +92,15 @@ struct MarkerEditorPopover: View {
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
-                        .stroke(Color.white, lineWidth: editedColor == color ? 2 : 0)
+                        .stroke(Color.white, lineWidth: isSelected ? 2 : 0)
                 )
         }
         .buttonStyle(.plain)
         .help(color.displayName)
+        .accessibilityLabel(color.displayName)
+        .accessibilityValue(isSelected ? "Selected" : "")
+        .accessibilityHint("Sets marker color to \(color.displayName)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     // MARK: - Helpers

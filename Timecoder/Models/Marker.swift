@@ -93,4 +93,13 @@ struct Marker: Identifiable, Equatable, Codable {
         self.note = note
         self.createdAt = createdAt
     }
+
+    /// VoiceOver-friendly description of the marker.
+    var accessibilityDescription: String {
+        var description = "\(color.displayName) marker at frame \(timecodeFrames)"
+        if !note.isEmpty {
+            description += ", \(note)"
+        }
+        return description
+    }
 }

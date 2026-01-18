@@ -48,10 +48,12 @@ struct MarkerListView: View {
         HStack {
             Text("Markers")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
 
             Text("(\(markerVM.markers.count))")
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .accessibilityLabel("\(markerVM.markers.count) markers")
 
             Spacer()
 
@@ -61,6 +63,8 @@ struct MarkerListView: View {
             }
             .buttonStyle(.plain)
             .help("Add marker at playhead (M)")
+            .accessibilityLabel("Add marker")
+            .accessibilityHint("Creates a new marker at the current playhead position")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -73,6 +77,7 @@ struct MarkerListView: View {
             Image(systemName: "bookmark")
                 .font(.title2)
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             Text("No markers")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -82,6 +87,8 @@ struct MarkerListView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("No markers. Press M to add a marker.")
     }
 
     // MARK: - Keyboard Hints
@@ -94,6 +101,8 @@ struct MarkerListView: View {
         .font(.system(size: 10))
         .foregroundColor(.secondary.opacity(0.7))
         .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Keyboard shortcuts: M to add marker, Delete to remove")
     }
 
     // MARK: - Actions

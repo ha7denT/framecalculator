@@ -750,7 +750,7 @@ Complete these UI refinements before taking App Store screenshots.
 
 #### Deliverables
 
-- [ ] Accessibility audit (VoiceOver, keyboard navigation)
+- [x] Accessibility audit (VoiceOver, keyboard navigation)
 - [x] Error handling and user-facing error messages
 - [x] App Sandbox configuration and testing
 - [x] Privacy manifest
@@ -762,7 +762,7 @@ Complete these UI refinements before taking App Store screenshots.
 ### Acceptance Criteria
 
 - All Phase 1 UI changes implemented and tested
-- VoiceOver can navigate all controls
+- [x] VoiceOver can navigate all controls
 - No crashes in normal usage
 - Passes App Store review guidelines
 - Memory usage reasonable (< 50MB calculator, < 200MB video)
@@ -771,6 +771,51 @@ Complete these UI refinements before taking App Store screenshots.
 ### Notes
 
 Complete Phase 1 before taking screenshots. Consider a soft launch via TestFlight to gather feedback from actual video professionals before full App Store release.
+
+### Implementation Notes — Accessibility Audit (2026-01-18)
+
+Comprehensive VoiceOver accessibility support added across 15 view files in 4 phases:
+
+**Phase 1: Calculator (KeypadView, TimecodeDisplayView, FrameRatePicker)**
+- All keypad buttons: `.accessibilityLabel()`, `.accessibilityHint()`, `.accessibilityAddTraits(.isButton)`
+- Number buttons (0-9): Simple digit labels
+- Operator buttons: "Add", "Subtract", "Multiply", "Divide" with selected state
+- Secondary buttons: "All Clear", "Clear", "Delete", "Colon" with hints
+- F↔TC toggle: Dynamic label/value/hint based on current mode
+- Timecode display: Combined accessibility element with state context (error, pending operation)
+- Frame rate picker: Labels with VoiceOver-friendly frame rate names
+
+**Phase 2: Video Player (TransportControls, TimelineView)**
+- Transport buttons: Step, Play/Pause, Reverse, Forward with hints
+- Marker navigation: Previous/Next with availability hints
+- Export button: Label with marker count context
+- Shuttle indicator: Visual bars hidden, speed text accessible
+- Timeline scrubber: Adjustable action for VoiceOver swipe navigation (1% increments)
+- In/Out point markers: Labels with timecode values
+- Timeline markers: Full description (color, frame, note)
+
+**Phase 3: Markers & Export (MarkerEditorSheet, MarkerListView, MarkerRowView, ExportDialogView)**
+- Color picker: Labels with selected state and hints
+- Marker rows: Combined element with full description
+- Empty states: Combined elements with instructional text
+- Export dialog: Format picker with value, metadata rows combined
+
+**Phase 4: Supporting Views (MetadataPanel, VideoInspectorView)**
+- Metadata rows: Combined "Label: Value" format
+- Timecode source indicator: Descriptive value for embedded vs elapsed
+- In/Out panel: Row labels with navigation button hints
+- Empty player state: Combined description
+
+**Model/ViewModel Updates:**
+- `FrameRate.accessibilityName` — VoiceOver-friendly names (e.g., "29.97 drop frame")
+- `Marker.accessibilityDescription` — Full marker description
+- `CalculatorOperation.accessibilityName` — Operation names for pending state
+
+**Key SwiftUI Modifiers Used:**
+- `.accessibilityLabel()`, `.accessibilityValue()`, `.accessibilityHint()`
+- `.accessibilityElement(children: .combine/.contain/.ignore)`
+- `.accessibilityAddTraits()`, `.accessibilityHidden()`
+- `.accessibilityAdjustableAction()` for timeline scrubber
 
 ### Implementation Notes — Phase 1 (for future reference)
 
@@ -1995,4 +2040,4 @@ Features explicitly deferred from 1.0:
 
 ---
 
-*Last Updated: 2026-01-15*
+*Last Updated: 2026-01-18*
