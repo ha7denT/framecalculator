@@ -772,6 +772,95 @@ Complete these UI refinements before taking App Store screenshots.
 
 Complete Phase 1 before taking screenshots. Consider a soft launch via TestFlight to gather feedback from actual video professionals before full App Store release.
 
+---
+
+### App Store Submission Requirements (as of January 2026)
+
+Reference: [Apple Developer - Screenshot Specifications](https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/) | [App Store Product Page](https://developer.apple.com/app-store/product-page/)
+
+#### macOS Screenshot Specifications
+
+| Requirement | Specification |
+|-------------|---------------|
+| **Quantity** | 1-10 screenshots (minimum 1 required) |
+| **Aspect Ratio** | 16:10 (mandatory for all macOS screenshots) |
+| **File Formats** | `.png`, `.jpeg`, `.jpg` |
+| **Color Space** | RGB, 72 dpi, no transparency |
+
+**Accepted Resolutions (choose any):**
+
+| Resolution | Notes |
+|------------|-------|
+| 1280 × 800 | Standard |
+| 1440 × 900 | Medium |
+| 2560 × 1600 | High (Retina) |
+| 2880 × 1800 | Ultra High (Retina) |
+
+**Screenshot Checklist for Timecoder:**
+- [ ] Calculator mode (standalone) — 1280×800 or 2560×1600
+- [ ] Video inspector mode (landscape 16:9 video) — 1280×800 or 2560×1600
+- [ ] Video inspector mode (portrait 9:16 video) — 1280×800 or 2560×1600
+- [ ] Marker editing dialog — 1280×800 or 2560×1600
+- [ ] Export dialog with format options — 1280×800 or 2560×1600
+
+#### App Preview Video (Optional)
+
+| Requirement | Specification |
+|-------------|---------------|
+| **Quantity** | Up to 3 videos |
+| **Duration** | 15-30 seconds each |
+| **Orientation** | Landscape only (macOS) |
+| **Format** | H.264 or ProRes 422 HQ |
+| **Max File Size** | 500 MB |
+
+#### App Metadata Character Limits
+
+| Field | Limit | Required | Notes |
+|-------|-------|----------|-------|
+| **App Name** | 30 characters | Yes | Simple, memorable, easy to spell |
+| **Subtitle** | 30 characters | No | Appears below app name |
+| **Promotional Text** | 170 characters | No | Can update anytime without new version |
+| **Description** | 4000 characters | Yes | First sentence most critical |
+| **What's New** | 4000 characters | Yes | Release notes for each version |
+| **Keywords** | 100 characters | Yes | Comma-separated, no spaces between terms |
+| **Support URL** | — | Yes | Link to support page |
+| **Marketing URL** | — | No | Link to marketing page |
+| **Privacy Policy URL** | — | Yes | Required for macOS apps |
+
+#### Keywords Best Practices
+
+**Do include:**
+- Relevant search terms users might use
+- Synonyms and related terms
+- Spaces within keyword phrases (e.g., `Real Estate`)
+
+**Do NOT include:**
+- Words already in app name or subtitle (automatic indexing)
+- Plurals of included words
+- Category names or "app"
+- Competitor app names
+- Trademarked terms without authorization
+- Special characters (#, @) unless part of brand
+
+**Example format:** `timecode,calculator,video,editing,post-production,markers,EDL,Resolve,Avid`
+
+#### Required App Store Connect Fields
+
+- [ ] **App Name:** Timecoder
+- [ ] **Subtitle:** (30 chars, e.g., "Pro Timecode Calculator")
+- [ ] **Primary Category:** Video (or Utilities)
+- [ ] **Secondary Category:** (optional)
+- [ ] **Age Rating:** 4+ (no objectionable content)
+- [ ] **Privacy Policy URL:** https://ha7dent.github.io/timecoder-privacy/
+- [ ] **Support URL:** (GitHub issues or contact page)
+- [ ] **Description:** (see Sprint 13 draft)
+- [ ] **Keywords:** (100 chars max)
+- [ ] **What's New:** Initial release notes
+- [ ] **Copyright:** © 2026 Hayden Toppeross
+- [ ] **SKU:** timecoder-macos-1
+
+---
+
 ### Implementation Notes — Accessibility Audit (2026-01-18)
 
 Comprehensive VoiceOver accessibility support added across 15 view files in 4 phases:
