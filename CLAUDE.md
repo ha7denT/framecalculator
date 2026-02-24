@@ -31,7 +31,7 @@ Timecoder/
 │   ├── VideoPlayer/        # Player, transport controls, timeline
 │   ├── Markers/            # Marker list, editor sheet
 │   ├── Export/             # Export dialog with NSSavePanel/UIActivityViewController
-│   └── Main/               # ContentView, mode-switching layouts
+│   └── Main/               # ContentView, iOSContentView, VideoInspectorView (macOS), iOSVideoInspectorView
 ├── Services/               # VideoLoader, TimecodeEngine, MarkerExporter
 └── Utilities/              # PlatformServices.swift, extensions, helpers
 ```
@@ -99,10 +99,16 @@ enum FrameRate {
   - `PlatformURL` — URL opening (NSWorkspace ↔ UIApplication)
   - `Color.platformControlBackground`, `.platformWindowBackground`, `.platformSeparator`
 - **Guard pattern:** `#if os(macOS)` / `#if os(iOS)` with small, localized blocks
-- **macOS-only types wrapped in `#if os(macOS)`:** `KeyboardCaptureView`, `VideoKeyboardCaptureView`, `AppDelegate`, `VideoDropDelegate`
+- **macOS-only types wrapped in `#if os(macOS)`:** `KeyboardCaptureView`, `VideoKeyboardCaptureView`, `AppDelegate`, `VideoDropDelegate`, `VideoInspectorView`
 - **Shared struct name pattern:** `CustomVideoPlayerView` has both NSViewRepresentable (macOS) and UIViewControllerRepresentable (iOS) behind `#if os()` — same name, no conditionals at call sites
 - **iOS file import:** `.fileImporter()` modifier replaces `NSOpenPanel`
 - **iOS marker export:** `UIActivityViewController` replaces `NSSavePanel`
+- **iOS-specific view files:**
+  - `iOSContentView.swift` — iOS app structure with `horizontalSizeClass`-based adaptive layout
+  - `iOSVideoInspectorView.swift` — iOS video inspection (stacked on iPhone, side-by-side on iPad)
+- **ContentView dispatch pattern:** `ContentView.body` uses `#if os(iOS)` / `#if os(macOS)` to dispatch to `iOSBody` or `macOSBody`
+- **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`
+- **iOS sizing:** Uses `GeometryReader` and `aspectRatio` (NOT fixed pixel sizes from `VideoOrientation`)
 
 ## Marker Export Formats
 
@@ -171,3 +177,8 @@ Required for App Store:
 - **`@State` in `#if` blocks** — `@State` properties must be declared at the struct level, not inside conditional method blocks. Use `#if os(iOS) @State private var foo = false #endif` at struct scope
 - **Xcode project settings need both levels** — Set `SDKROOT`, `SUPPORTED_PLATFORMS`, deployment targets in both project-level AND target-level build configurations (Debug + Release = 4 places total)
 - **Test both platforms after every change** — An edit that fixes iOS can break macOS (e.g., `Color(.separator)` worked on iOS but not macOS)
+- **Marker property is `timecodeFrames`** — NOT `frameNumber`. Wrong name causes cascading type inference errors in `ForEach` that are misleading (e.g., "requires class type", "cannot convert Binding")
+- **`#Preview` must match platform guards** — If a struct is behind `#if os(macOS)`, its `#Preview` block needs the same guard
+- **`VideoOrientation.videoFrameSize` is macOS-only** — iOS uses `GeometryReader` for responsive sizing. Don't reference these fixed-pixel properties from iOS code
+- **Separate view files over complex `#if` branching** — For fundamentally different layouts (macOS fixed-frame HStack vs iOS adaptive stacked/side-by-side), create separate files (e.g., `iOSVideoInspectorView.swift`) rather than interleaving `#if` blocks in the same view body
+- **iOS security-scoped URLs** — `.fileImporter()` returns security-scoped URLs. Must call `url.startAccessingSecurityScopedResource()` before use and `url.stopAccessingSecurityScopedResource()` after

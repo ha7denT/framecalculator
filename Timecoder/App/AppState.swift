@@ -37,7 +37,8 @@ public enum VideoOrientation: Equatable {
     /// Height for timeline and transport controls below the video
     static let controlsHeight: CGFloat = 110
 
-    /// Fixed frame size for the video player area in this orientation.
+    #if os(macOS)
+    /// Fixed frame size for the video player area in this orientation (macOS).
     var videoFrameSize: CGSize {
         switch self {
         case .landscape:
@@ -52,7 +53,6 @@ public enum VideoOrientation: Equatable {
         videoFrameSize.height + Self.controlsHeight
     }
 
-    #if os(macOS)
     /// Target window size for this orientation.
     /// Height is based on video area - right panel scrolls within this height.
     var windowSize: NSSize {

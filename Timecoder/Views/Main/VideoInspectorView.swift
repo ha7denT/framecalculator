@@ -2,14 +2,13 @@ import SwiftUI
 import AVKit
 #if os(macOS)
 import AppKit
-#endif
 
 // MARK: - Constants
 
 /// Frame tolerance for detecting if a marker exists at the current playhead position.
 private let markerFrameTolerance = 1
 
-/// The video inspection mode layout combining video player, calculator, and metadata.
+/// The macOS video inspection mode layout combining video player, calculator, and metadata.
 struct VideoInspectorView: View {
     @ObservedObject var appState: AppState
     @ObservedObject var calculatorVM: CalculatorViewModel
@@ -578,7 +577,9 @@ class VideoKeyboardCaptureView: NSView {
         playerVM.seek(to: calculatorVM.currentTimecode)
     }
 }
-#endif
+#endif // os(macOS) — end of VideoKeyboardCaptureView
+
+#endif // os(macOS) — end of macOS VideoInspectorView + keyboard handler
 
 // MARK: - In/Out Panel
 
@@ -707,6 +708,7 @@ struct InOutPanel: View {
     }
 }
 
+#if os(macOS)
 #Preview {
     VideoInspectorView(
         appState: AppState(),
@@ -718,3 +720,4 @@ struct InOutPanel: View {
     .frame(width: 800, height: 600)
     .preferredColorScheme(.dark)
 }
+#endif

@@ -12,4 +12,7 @@ extension Notification.Name {
 
     /// Posted when the user requests to show the export dialog.
     static let showExportDialog = Notification.Name("showExportDialog")
+
+    /// Posted when the user requests to show settings (iOS).
+    static let showSettings = Notification.Name("showSettings")
 }

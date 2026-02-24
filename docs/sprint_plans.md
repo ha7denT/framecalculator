@@ -2128,7 +2128,8 @@ Features explicitly deferred from 1.0:
 | 15 - Beta Feedback Fixes | ✅ Complete | 2026-01-15 | 2026-01-15 | Keypad layout, top row styling, copy button, custom FPS, video state persistence, paste support, period key |
 | **iOS Expansion (see `docs/ios_sprint_plan.md`)** | | | | |
 | 16 - iOS Project Config & Abstraction | ✅ Complete | 2026-02-24 | 2026-02-24 | Platform abstraction layer, `#if os()` guards, both platforms compile |
+| 17 - iOS App Entry & Navigation | ✅ Complete | 2026-02-24 | 2026-02-24 | iOSContentView, iOSVideoInspectorView, adaptive layouts, iOS settings |
 
 ---
 
-*Last Updated: 2026-02-24*
+*Last Updated: 2026-02-24 — Sprint 17 complete*

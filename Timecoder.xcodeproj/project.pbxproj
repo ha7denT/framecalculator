@@ -11,6 +11,8 @@
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
 		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
 		3E5C936A2F4D2C0500DBA185 /* PlatformServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */; };
+		3E5C936C2F4D4AB400DBA185 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */; };
+		3E5C936E2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */; };
 		3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */; };
 		9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */; };
 		E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */; };
@@ -45,6 +47,8 @@
 /* Begin PBXFileReference section */
 		366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerRowView.swift; sourceTree = "<group>"; };
 		3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformServices.swift; sourceTree = "<group>"; };
+		3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
+		3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSVideoInspectorView.swift; sourceTree = "<group>"; };
 		3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Timecoder01.icon; sourceTree = "<group>"; };
 		58D3365CC63152809B0FE50E /* Marker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Marker.swift; sourceTree = "<group>"; };
 		793A032AA16E395D28CF02A1 /* MarkerExporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerExporter.swift; sourceTree = "<group>"; };
@@ -188,6 +192,8 @@
 			children = (
 				FC000002000 /* ContentView.swift */,
 				FC00000E000 /* VideoInspectorView.swift */,
+				3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */,
+				3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -337,7 +343,9 @@
 				FC000050001 /* Notifications.swift in Sources */,
 				FC000004001 /* FrameRate.swift in Sources */,
 				FC000005001 /* CalculatorViewModel.swift in Sources */,
+				3E5C936E2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift in Sources */,
 				FC000006001 /* CalculatorView.swift in Sources */,
+				3E5C936C2F4D4AB400DBA185 /* iOSContentView.swift in Sources */,
 				FC000007001 /* TimecodeDisplayView.swift in Sources */,
 				FC000008001 /* FrameRatePicker.swift in Sources */,
 				FC000009001 /* KeypadView.swift in Sources */,

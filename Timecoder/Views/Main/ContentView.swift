@@ -16,6 +16,67 @@ struct ContentView: View {
     #endif
 
     var body: some View {
+        #if os(iOS)
+        iOSBody
+        #else
+        macOSBody
+        #endif
+    }
+
+    #if os(iOS)
+    private var iOSBody: some View {
+        iOSContentView(
+            appState: appState,
+            calculatorVM: calculatorVM,
+            playerVM: playerVM,
+            markerVM: markerVM,
+            onOpenVideoOrRestore: openVideoOrRestoreSession,
+            onSwitchToCalculator: switchToCalculatorMode,
+            onOpenVideoFile: openVideoFile
+        )
+        .overlay(loadingOverlay)
+        .fileImporter(
+            isPresented: $showingFileImporter,
+            allowedContentTypes: supportedDropTypes,
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first {
+                    let didAccess = url.startAccessingSecurityScopedResource()
+                    Task { @MainActor in
+                        await appState.loadVideo(from: url)
+                        if didAccess {
+                            url.stopAccessingSecurityScopedResource()
+                        }
+                    }
+                }
+            case .failure(let error):
+                appState.setError("Failed to open video: \(error.localizedDescription)")
+            }
+        }
+        .alert("Error Loading Video", isPresented: .constant(appState.errorMessage != nil)) {
+            Button("OK") {
+                appState.clearError()
+            }
+        } message: {
+            if let error = appState.errorMessage {
+                Text(error)
+            }
+        }
+        .onChange(of: appState.currentMetadata) { _, metadata in
+            if let metadata = metadata {
+                calculatorVM.frameRate = metadata.matchingFrameRate
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
+            openVideoFile()
+        }
+    }
+    #endif
+
+    #if os(macOS)
+    private var macOSBody: some View {
         Group {
             switch appState.mode {
             case .calculator:
@@ -37,24 +98,6 @@ struct ContentView: View {
         }
         .overlay(dropOverlay)
         .overlay(loadingOverlay)
-        #if os(iOS)
-        .fileImporter(
-            isPresented: $showingFileImporter,
-            allowedContentTypes: supportedDropTypes,
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let url = urls.first {
-                    Task { @MainActor in
-                        await appState.loadVideo(from: url)
-                    }
-                }
-            case .failure(let error):
-                appState.setError("Failed to open video: \(error.localizedDescription)")
-            }
-        }
-        #endif
         .alert("Error Loading Video", isPresented: .constant(appState.errorMessage != nil)) {
             Button("OK") {
                 appState.clearError()
@@ -68,15 +111,12 @@ struct ContentView: View {
             // Sync frame rate when video is loaded
             if let metadata = metadata {
                 calculatorVM.frameRate = metadata.matchingFrameRate
-                #if os(macOS)
                 // Resize window for video orientation
                 let aspectRatio = metadata.resolution.width / metadata.resolution.height
                 let orientation = VideoOrientation.from(aspectRatio: aspectRatio)
                 resizeWindowForVideo(orientation: orientation)
-                #endif
             }
         }
-        #if os(macOS)
         .onChange(of: appState.mode) { _, newMode in
             // Resize when returning to calculator mode (compact size)
             if newMode == .calculator {
@@ -87,11 +127,11 @@ struct ContentView: View {
             // Set correct size on launch
             resizeWindowForCalculator()
         }
-        #endif
         .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
             openVideoFile()
         }
     }
+    #endif
 
     // MARK: - Session Management
 
@@ -204,6 +244,7 @@ struct ContentView: View {
     }
     #endif
 
+    #if os(macOS)
     // MARK: - Standalone Calculator
 
     private var standaloneCalculatorView: some View {
@@ -214,6 +255,7 @@ struct ContentView: View {
             onModeButtonTapped: openVideoOrRestoreSession
         )
     }
+    #endif
 
     // MARK: - Open Video File
 
@@ -247,6 +289,7 @@ struct ContentView: View {
         [.movie, .video, .quickTimeMovie, .mpeg4Movie, .mpeg2Video, .avi]
     }
 
+    #if os(macOS)
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard let provider = providers.first else { return false }
 
@@ -301,6 +344,7 @@ struct ContentView: View {
             .allowsHitTesting(false)
         }
     }
+    #endif
 
     @ViewBuilder
     private var loadingOverlay: some View {
