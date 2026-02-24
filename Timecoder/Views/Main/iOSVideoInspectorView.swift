@@ -1,6 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import AVKit
+import PhotosUI
 
 /// Frame tolerance for detecting if a marker exists at the current playhead position.
 private let markerFrameTolerance = 1
@@ -18,8 +19,14 @@ struct iOSVideoInspectorView: View {
     /// Callback to switch to calculator mode (preserving session).
     var onSwitchToCalculator: () -> Void
 
+    /// Callback to open the file importer for video files.
+    var onOpenVideoFile: () -> Void
+
     /// Tracks whether the view has been configured with the player.
     @State private var isConfigured = false
+
+    /// Selected photo library item for video import.
+    @State private var selectedPhotoItem: PhotosPickerItem?
 
     /// Controls export dialog presentation.
     @State private var isExportDialogPresented = false
@@ -75,6 +82,10 @@ struct iOSVideoInspectorView: View {
                         Image(systemName: "square.and.arrow.up")
                     }
                     .disabled(markerVM.markers.isEmpty)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    videoImportMenu
                 }
             }
         }
@@ -240,6 +251,16 @@ struct iOSVideoInspectorView: View {
                 return .handled
             }
             return .ignored
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .copyTimecode)) { _ in
+            PlatformClipboard.copy(calculatorVM.copyableString())
+        }
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                await loadVideoFromPhotos(item: newItem)
+                selectedPhotoItem = nil
+            }
         }
     }
 
@@ -526,6 +547,47 @@ struct iOSVideoInspectorView: View {
             Spacer(minLength: 0)
         }
         .padding(.top, 8)
+    }
+
+    // MARK: - Video Import Menu
+
+    private var videoImportMenu: some View {
+        Menu {
+            Button {
+                onOpenVideoFile()
+            } label: {
+                Label("Choose File", systemImage: "folder")
+            }
+            PhotosPicker(
+                selection: $selectedPhotoItem,
+                matching: .videos
+            ) {
+                Label("Photo Library", systemImage: "photo.on.rectangle")
+            }
+        } label: {
+            Image(systemName: "video.badge.plus")
+        }
+    }
+
+    // MARK: - Photos Import
+
+    /// Loads a video from a PhotosPickerItem by copying it to a temp file.
+    private func loadVideoFromPhotos(item: PhotosPickerItem) async {
+        guard let movieData = try? await item.loadTransferable(type: Data.self) else {
+            appState.setError("Failed to load video from photo library.")
+            return
+        }
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("mov")
+
+        do {
+            try movieData.write(to: tempURL)
+            await appState.loadVideo(from: tempURL)
+        } catch {
+            appState.setError("Failed to save video: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Actions

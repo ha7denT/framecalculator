@@ -51,6 +51,9 @@ struct iOSContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showSettings)) { _ in
             showingSettings = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .copyTimecode)) { _ in
+            PlatformClipboard.copy(calculatorVM.copyableString())
+        }
         .onChange(of: selectedPhotoItem) { _, newItem in
             guard let newItem else { return }
             Task {
@@ -222,7 +225,8 @@ struct iOSContentView: View {
             playerVM: playerVM,
             markerVM: markerVM,
             isCompact: true,
-            onSwitchToCalculator: onSwitchToCalculator
+            onSwitchToCalculator: onSwitchToCalculator,
+            onOpenVideoFile: onOpenVideoFile
         )
     }
 
@@ -235,7 +239,8 @@ struct iOSContentView: View {
             playerVM: playerVM,
             markerVM: markerVM,
             isCompact: false,
-            onSwitchToCalculator: onSwitchToCalculator
+            onSwitchToCalculator: onSwitchToCalculator,
+            onOpenVideoFile: onOpenVideoFile
         )
     }
 }

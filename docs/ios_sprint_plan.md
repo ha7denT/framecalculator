@@ -567,57 +567,61 @@ The existing macOS glass effects (`.glassEffect()`, `.buttonStyle(.glass)`, `Gla
 
 ---
 
-## Sprint 22: Drag & Drop, Shortcuts, and iPad Enhancements
+## Sprint 22: Shortcuts, Menu Bar, and iPad Enhancements
 
 ### Goal
-Add iPad-specific power features: drag-and-drop video loading, keyboard shortcuts discoverability, and split-screen multitasking support.
+Add keyboard shortcut discoverability via the iPadOS ⌘-hold overlay, menu bar support on iPadOS 26, validate split-screen/Stage Manager, and add a video import menu in video mode on iPhone.
+
+**Dropped:** iPad drag-and-drop (file selection is sufficient), orientation lock changes (keep portrait-lock as-is).
 
 ### Deliverables
 
-- [ ] **iPad drag-and-drop video loading**
-  - Receive dropped video files from Files app or other apps
-  - Use `.dropDestination(for:)` (iOS 16+) or `.onDrop(of:)`
-  ```swift
-  .dropDestination(for: URL.self) { urls, _ in
-      guard let url = urls.first else { return false }
-      Task { await appState.loadVideo(from: url) }
-      return true
-  }
-  ```
+- [x] **Keyboard shortcut discoverability (iPadOS ⌘-hold overlay)**
+  - Existing `.commands {}` block was already cross-platform (not behind `#if os(macOS)`)
+  - Commands with `.keyboardShortcut()` appear in ⌘-hold overlay: ⌘O (Open), ⌘E (Export)
+  - Added ⌘C (Copy Timecode) to commands block — posts `.copyTimecode` notification
+  - Both `iOSVideoInspectorView` and `iOSContentView` listen for `.copyTimecode`
+  - M (Add Marker) has no modifier — won't appear in ⌘-hold (expected behavior)
 
-- [ ] **Keyboard shortcut discoverability on iPad**
-  - iPadOS shows keyboard shortcuts overlay when holding ⌘ key
-  - Register shortcuts via `.keyboardShortcut()` on buttons
-  - Map existing shortcuts: ⌘O (open), ⌘E (export), ⌘C (copy), ⌘V (paste)
+- [x] **iPadOS 26 menu bar support**
+  - No code changes needed — `.commands {}` is already cross-platform
+  - iPadOS 26 shows menu bar on swipe-down automatically
 
-- [ ] **iPadOS 26 menu bar support**
-  - iPadOS 26: apps display a menu bar on swipe-down
-  - The `commands` API used on macOS creates the same menu on iPad
-  - Move `CommandGroup` definitions outside the `#if os(macOS)` guard
-  - Ref: [What's new in SwiftUI — WWDC25](https://developer.apple.com/videos/play/wwdc2025/256/)
+- [x] **Split-screen / Slide Over / Stage Manager validation**
+  - Layout already responsive via `horizontalSizeClass` (.compact → stacked, .regular → side-by-side)
+  - In 1/3 split-screen, `horizontalSizeClass` becomes `.compact` → graceful fallback
+  - `PlatformLayout.keypadButtonSize()` handles narrow widths (minimum 44pt)
+  - No code changes needed
 
-- [ ] **Split-screen / Slide Over support on iPad**
-  - App should work in compact width (1/3 screen) and regular width (1/2 or full)
-  - Use `@Environment(\.horizontalSizeClass)` to adapt layout
-  - Compact width on iPad → iPhone-like stacked layout
-  - Regular width on iPad → side-by-side layout
+- [x] **Video import menu in video mode (iPhone)**
+  - Added `onOpenVideoFile` callback to `iOSVideoInspectorView` (matching existing `onSwitchToCalculator` pattern)
+  - Added `@State selectedPhotoItem` and `PhotosPicker` to `iOSVideoInspectorView`
+  - Added toolbar menu item with "Choose File" and "Photo Library" options (matching `iOSContentView` pattern)
+  - "Choose File" triggers `.fileImporter` in ContentView via `onOpenVideoFile` callback
+  - "Photo Library" uses PhotosPicker inline with `loadVideoFromPhotos()` helper
+  - Wired `onOpenVideoFile` parameter through `iOSContentView` to both iPhone and iPad layouts
 
-- [ ] **Stage Manager support on iPad**
-  - Flexible window sizing — test at various window sizes
-  - Minimum size constraints via `UISceneDelegate.scene(_:willConnectTo:options:)`
+- [x] **Fixed pre-existing iOS build error**
+  - `@UIApplicationDelegateAdaptor(iOSAppDelegate.self) var iOSAppDelegate` caused circular reference (property name collided with class name)
+  - Renamed property to `appDelegateAdaptor`
 
-- [ ] **iPhone: add video import action menu**
-  - Group import options: "Choose File" (file importer) and "Photo Library" (PhotosPicker)
-  - Present as action sheet or menu button in toolbar
+### Files Changed
+
+| File | Changes |
+|------|---------|
+| `Timecoder/App/TimecoderApp.swift` | Added ⌘C Copy Timecode command, fixed circular reference in `@UIApplicationDelegateAdaptor` |
+| `Timecoder/Views/Main/iOSVideoInspectorView.swift` | Added video import menu, PhotosPicker, `onOpenVideoFile` callback, `.copyTimecode` listener |
+| `Timecoder/Views/Main/iOSContentView.swift` | Passed `onOpenVideoFile` to `iOSVideoInspectorView`, added `.copyTimecode` listener |
+| `Timecoder/Utilities/Notifications.swift` | Added `.copyTimecode` notification name |
 
 ### Acceptance Criteria
 
-- [ ] iPad: can drag video from Files app into Timecoder
-- [ ] iPad: holding ⌘ shows keyboard shortcuts overlay
-- [ ] iPad: menu bar appears on iPadOS 26 swipe-down
-- [ ] iPad: works in split-screen at all widths
-- [ ] iPhone: can import video from file picker or photo library
-- [ ] macOS unchanged
+- [x] iPad: holding ⌘ shows keyboard shortcuts overlay (Open, Export, Copy Timecode)
+- [x] iPad: menu bar appears on iPadOS 26 swipe-down
+- [x] iPad: works in split-screen at all widths
+- [x] iPhone: video mode toolbar has import menu (Choose File + Photo Library)
+- [x] macOS unchanged (no regressions, builds successfully)
+- [x] iOS builds successfully
 
 ---
 
@@ -819,7 +823,7 @@ Archive, upload, and distribute the iOS build via TestFlight. Then submit for Ap
 | 19 - Keyboard & Touch | ✅ Complete | iPad keyboard + haptic feedback | PlatformServices.swift, iOSContentView.swift, iOSVideoInspectorView.swift, KeypadView.swift |
 | 20 - Layout & Responsive Design | ✅ Complete | Responsive sizing, orientation layouts, Dynamic Type | PlatformServices, KeypadView, TimecodeDisplayView, CalculatorView, TransportControls, iOSContentView, iOSVideoInspectorView, TimecoderApp, AppState, ContentView |
 | 21 - Liquid Glass (iOS) | ✅ Complete | Interactive glass, GlassEffectContainer | FrameRatePicker, TransportControls, TimecodeDisplayView |
-| 22 - iPad Power Features | Pending | Drag-drop, shortcuts, menus | ContentView, CommandGroups |
+| 22 - Shortcuts, Menu Bar & iPad | ✅ Complete | ⌘-hold overlay, ⌘C command, video import menu, iOS build fix | TimecoderApp, iOSVideoInspectorView, iOSContentView, Notifications |
 | 23 - Polish & Testing | Pending | Bug fixes, accessibility, perf | All files |
 | 24 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
 | 25 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
@@ -854,4 +858,4 @@ If broader device support is needed, iOS 17 is the minimum viable target with `i
 
 ---
 
-*Last Updated: 2026-02-24 — Sprint 21 complete*
+*Last Updated: 2026-02-25 — Sprint 22 complete*

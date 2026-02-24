@@ -15,4 +15,7 @@ extension Notification.Name {
 
     /// Posted when the user requests to show settings (iOS).
     static let showSettings = Notification.Name("showSettings")
+
+    /// Posted when the user requests to copy the current timecode (⌘C from menu).
+    static let copyTimecode = Notification.Name("copyTimecode")
 }

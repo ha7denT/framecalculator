@@ -10,7 +10,7 @@ struct TimecoderApp: App {
     #if os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #elseif os(iOS)
-    @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var iOSAppDelegate
+    @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var appDelegateAdaptor
     #endif
     @ObservedObject private var preferences = UserPreferences.shared
 
@@ -41,8 +41,13 @@ struct TimecoderApp: App {
                 .keyboardShortcut("e", modifiers: .command)
             }
 
-            // Edit menu - Add Marker
+            // Edit menu - Copy Timecode
             CommandGroup(after: .pasteboard) {
+                Button("Copy Timecode") {
+                    NotificationCenter.default.post(name: .copyTimecode, object: nil)
+                }
+                .keyboardShortcut("c", modifiers: .command)
+
                 Divider()
 
                 Button("Add Marker") {
