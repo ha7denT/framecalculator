@@ -122,6 +122,12 @@ public final class AppState: ObservableObject {
     /// Stored session for restoration when switching back to logger mode.
     private var storedSession: StoredVideoSession?
 
+    #if os(iOS)
+    /// The currently accessed security-scoped URL (iOS file importer).
+    /// Released when loading a new video or closing the current one.
+    private var securityScopedURL: URL?
+    #endif
+
     // MARK: - Computed Properties
 
     /// The currently loaded video metadata, if any.
@@ -155,6 +161,19 @@ public final class AppState: ObservableObject {
 
     // MARK: - Public Methods
 
+    #if os(iOS)
+    /// Begins accessing a security-scoped URL and tracks it for later release.
+    /// Call this before `loadVideo(from:)` when loading from a file importer.
+    /// - Parameter url: The security-scoped URL to access.
+    public func startAccessingVideo(url: URL) {
+        // Release previous security-scoped URL if any
+        releaseSecurityScopedURL()
+        if url.startAccessingSecurityScopedResource() {
+            securityScopedURL = url
+        }
+    }
+    #endif
+
     /// Loads a video from the given URL.
     /// - Parameter url: The URL of the video file.
     public func loadVideo(from url: URL) async {
@@ -169,8 +188,14 @@ public final class AppState: ObservableObject {
             videoState = .loaded(metadata)
             mode = .videoInspector
         } catch let error as VideoLoadError {
+            #if os(iOS)
+            releaseSecurityScopedURL()
+            #endif
             videoState = .error(error.localizedDescription)
         } catch {
+            #if os(iOS)
+            releaseSecurityScopedURL()
+            #endif
             videoState = .error("An unexpected error occurred: \(error.localizedDescription)")
         }
     }
@@ -183,6 +208,9 @@ public final class AppState: ObservableObject {
         videoState = .idle
         storedSession = nil
         hasStoredSession = false
+        #if os(iOS)
+        releaseSecurityScopedURL()
+        #endif
         mode = .calculator
     }
 
@@ -239,6 +267,14 @@ public final class AppState: ObservableObject {
         storedSession = nil
         hasStoredSession = false
     }
+
+    #if os(iOS)
+    /// Releases the currently tracked security-scoped URL, if any.
+    private func releaseSecurityScopedURL() {
+        securityScopedURL?.stopAccessingSecurityScopedResource()
+        securityScopedURL = nil
+    }
+    #endif
 
     /// Clears any error state.
     public func clearError() {

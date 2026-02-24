@@ -43,12 +43,9 @@ struct ContentView: View {
             switch result {
             case .success(let urls):
                 if let url = urls.first {
-                    let didAccess = url.startAccessingSecurityScopedResource()
+                    appState.startAccessingVideo(url: url)
                     Task { @MainActor in
                         await appState.loadVideo(from: url)
-                        if didAccess {
-                            url.stopAccessingSecurityScopedResource()
-                        }
                     }
                 }
             case .failure(let error):

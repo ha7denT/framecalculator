@@ -11,5 +11,7 @@
     </array>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Timecoder needs access to your photo library to load videos for inspection.</string>
 </dict>
 </plist>

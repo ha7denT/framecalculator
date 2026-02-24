@@ -2098,7 +2098,7 @@ Features explicitly deferred from 1.0:
 - [ ] Audio waveform display
 - [ ] Batch file processing
 - [ ] Touch Bar support (legacy Macs)
-- [x] iOS/iPadOS companion app — **In progress, see `docs/ios_sprint_plan.md` (Sprint 16 complete)**
+- [x] iOS/iPadOS companion app — **In progress, see `docs/ios_sprint_plan.md` (Sprint 18 complete)**
 - [ ] Timecode burn-in export
 - [ ] Recent files menu
 - [ ] Drag markers to reorder
@@ -2129,7 +2129,8 @@ Features explicitly deferred from 1.0:
 | **iOS Expansion (see `docs/ios_sprint_plan.md`)** | | | | |
 | 16 - iOS Project Config & Abstraction | ✅ Complete | 2026-02-24 | 2026-02-24 | Platform abstraction layer, `#if os()` guards, both platforms compile |
 | 17 - iOS App Entry & Navigation | ✅ Complete | 2026-02-24 | 2026-02-24 | iOSContentView, iOSVideoInspectorView, adaptive layouts, iOS settings |
+| 18 - iOS Video Player & File Import | ✅ Complete | 2026-02-24 | 2026-02-24 | Security-scoped URL lifecycle fix, PhotosPicker, photo library privacy string |
 
 ---
 
-*Last Updated: 2026-02-24 — Sprint 17 complete*
+*Last Updated: 2026-02-24 — Sprint 18 complete*

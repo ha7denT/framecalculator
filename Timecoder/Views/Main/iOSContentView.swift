@@ -1,6 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import UniformTypeIdentifiers
+import PhotosUI
 
 /// iOS-specific content view with adaptive layout for iPhone and iPad.
 struct iOSContentView: View {
@@ -20,6 +21,7 @@ struct iOSContentView: View {
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showingSettings = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
         Group {
@@ -47,6 +49,34 @@ struct iOSContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showSettings)) { _ in
             showingSettings = true
         }
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                await loadVideoFromPhotos(item: newItem)
+                selectedPhotoItem = nil
+            }
+        }
+    }
+
+    // MARK: - Photos Import
+
+    /// Loads a video from a PhotosPickerItem by copying it to a temp file.
+    private func loadVideoFromPhotos(item: PhotosPickerItem) async {
+        guard let movieData = try? await item.loadTransferable(type: Data.self) else {
+            appState.setError("Failed to load video from photo library.")
+            return
+        }
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("mov")
+
+        do {
+            try movieData.write(to: tempURL)
+            await appState.loadVideo(from: tempURL)
+        } catch {
+            appState.setError("Failed to save video: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Calculator Mode
@@ -60,6 +90,9 @@ struct iOSContentView: View {
                 onModeButtonTapped: onOpenVideoOrRestore
             )
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    videoImportMenu
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingSettings = true
@@ -68,6 +101,26 @@ struct iOSContentView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Video Import Menu
+
+    private var videoImportMenu: some View {
+        Menu {
+            Button {
+                onOpenVideoFile()
+            } label: {
+                Label("Choose File", systemImage: "folder")
+            }
+            PhotosPicker(
+                selection: $selectedPhotoItem,
+                matching: .videos
+            ) {
+                Label("Photo Library", systemImage: "photo.on.rectangle")
+            }
+        } label: {
+            Image(systemName: "video.badge.plus")
         }
     }
 
