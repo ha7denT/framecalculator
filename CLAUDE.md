@@ -1,6 +1,6 @@
 # Timecoder
 
-A native macOS timecode calculator and video logging tool for post-production professionals.
+A native macOS and iOS timecode calculator and video logging tool for post-production professionals.
 
 ## Project Overview
 
@@ -8,15 +8,16 @@ Timecoder operates in two modes:
 1. **Standalone Calculator** — Compact timecode calculator (add, subtract, multiply, frame↔TC conversion)
 2. **Video Inspection** — Video player + calculator with metadata display and marker export
 
-Target: Mac App Store distribution. One-time purchase, no subscriptions.
+Target: App Store distribution (macOS + iOS universal purchase). One-time purchase, no subscriptions.
 
 ## Tech Stack
 
 - **Language:** Swift 5.9+
-- **UI:** SwiftUI (AppKit integration where needed)
+- **UI:** SwiftUI (AppKit integration on macOS, UIKit on iOS where needed)
 - **Video:** AVFoundation / AVKit
-- **Minimum OS:** macOS 13.0 (Ventura)
+- **Minimum OS:** macOS 26.0, iOS 26.0
 - **Architecture:** MVVM
+- **Multiplatform:** Single target with `#if os(macOS)` / `#if os(iOS)` conditional compilation
 
 ## Project Structure
 
@@ -29,16 +30,20 @@ Timecoder/
 │   ├── Calculator/         # Timecode display, keypad, frame rate picker
 │   ├── VideoPlayer/        # Player, transport controls, timeline
 │   ├── Markers/            # Marker list, editor sheet
+│   ├── Export/             # Export dialog with NSSavePanel/UIActivityViewController
 │   └── Main/               # ContentView, mode-switching layouts
 ├── Services/               # VideoLoader, TimecodeEngine, MarkerExporter
-└── Utilities/              # Extensions, helpers
+└── Utilities/              # PlatformServices.swift, extensions, helpers
 ```
 
 ## Commands
 
 ```bash
-# Build
-xcodebuild -scheme Timecoder -configuration Debug build
+# Build macOS
+xcodebuild -scheme Timecoder -destination 'platform=macOS' -configuration Debug build
+
+# Build iOS Simulator
+xcodebuild -scheme Timecoder -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -configuration Debug build
 
 # Test
 xcodebuild -scheme Timecoder test
@@ -85,6 +90,19 @@ enum FrameRate {
 - Use `AVPlayer` with `seek(to:toleranceBefore:toleranceAfter:)` using `.zero` tolerance for frame-accurate seeking.
 - Update timecode display via `addPeriodicTimeObserver` at frame-rate interval.
 - JKL shuttle uses `AVPlayer.rate` for variable speed.
+- macOS: `AVPlayerView` via `NSViewRepresentable`
+- iOS: `AVPlayerViewController` via `UIViewControllerRepresentable`
+
+### Multiplatform Architecture
+- **Platform abstraction layer:** `Timecoder/Utilities/PlatformServices.swift`
+  - `PlatformClipboard` — clipboard (NSPasteboard ↔ UIPasteboard)
+  - `PlatformURL` — URL opening (NSWorkspace ↔ UIApplication)
+  - `Color.platformControlBackground`, `.platformWindowBackground`, `.platformSeparator`
+- **Guard pattern:** `#if os(macOS)` / `#if os(iOS)` with small, localized blocks
+- **macOS-only types wrapped in `#if os(macOS)`:** `KeyboardCaptureView`, `VideoKeyboardCaptureView`, `AppDelegate`, `VideoDropDelegate`
+- **Shared struct name pattern:** `CustomVideoPlayerView` has both NSViewRepresentable (macOS) and UIViewControllerRepresentable (iOS) behind `#if os()` — same name, no conditionals at call sites
+- **iOS file import:** `.fileImporter()` modifier replaces `NSOpenPanel`
+- **iOS marker export:** `UIActivityViewController` replaces `NSSavePanel`
 
 ## Marker Export Formats
 
@@ -110,9 +128,9 @@ Required for App Store:
 
 - **Dark mode first** — most video pros work in dark environments
 - Follow Apple HIG for native feel
-- Monospace font (SF Mono) for timecode display
-- SF Pro for UI text
+- Monospace font (Space Mono) for timecode display, SF Pro for UI text
 - Minimal chrome, focus on content
+- Liquid Glass design on macOS 26 and iOS 26
 
 ## Keyboard Shortcuts
 
@@ -135,6 +153,8 @@ Required for App Store:
 ## Reference Documentation
 
 - PRD: See `docs/Timecoder_PRD.md` for full requirements
+- iOS Sprint Plan: See `docs/ios_sprint_plan.md` for iOS expansion sprints
+- Sprint History: See `docs/sprint_plans.md` for all completed sprints
 - Apple docs: AVFoundation, AVKit, SwiftUI
 
 ## Common Pitfalls
@@ -143,3 +163,11 @@ Required for App Store:
 - Drop frame is a *display* format, not a different frame rate (29.97 DF and NDF are the same rate)
 - AVPlayer time is in seconds (CMTime), convert to frames using frame rate
 - Timecode display must handle negative durations (show as `-HH:MM:SS:FF`)
+
+### Multiplatform Pitfalls
+
+- **`Color(.separator)` is NOT cross-platform** — Use `Color.platformSeparator` from PlatformServices.swift
+- **`NSColor` leaks via transitive imports** — Files that don't `import AppKit` directly can still use `NSColor` if another import brings it in. Always search the whole codebase for `NSColor`, `NSFont`, etc. after making platform changes
+- **`@State` in `#if` blocks** — `@State` properties must be declared at the struct level, not inside conditional method blocks. Use `#if os(iOS) @State private var foo = false #endif` at struct scope
+- **Xcode project settings need both levels** — Set `SDKROOT`, `SUPPORTED_PLATFORMS`, deployment targets in both project-level AND target-level build configurations (Debug + Release = 4 places total)
+- **Test both platforms after every change** — An edit that fixes iOS can break macOS (e.g., `Color(.separator)` worked on iOS but not macOS)

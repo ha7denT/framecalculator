@@ -1,5 +1,8 @@
 import SwiftUI
 import AVKit
+#if os(macOS)
+import AppKit
+#endif
 
 // MARK: - Constants
 
@@ -73,6 +76,7 @@ struct VideoInspectorView: View {
                 configurePlayer()
             }
         }
+        #if os(macOS)
         .background(
             VideoKeyboardHandler(
                 playerVM: playerVM,
@@ -84,6 +88,7 @@ struct VideoInspectorView: View {
             )
                 .frame(width: 0, height: 0)
         )
+        #endif
         .sheet(isPresented: $isExportDialogPresented) {
             if let metadata = appState.currentMetadata {
                 ExportDialogView(
@@ -143,7 +148,7 @@ struct VideoInspectorView: View {
                 }
             )
             .padding(.vertical, 8)
-            .background(Color(NSColor.windowBackgroundColor))
+            .background(Color.platformWindowBackground)
 
             // Transport controls
             TransportControls(
@@ -259,6 +264,7 @@ struct VideoInspectorView: View {
     }
 }
 
+#if os(macOS)
 // MARK: - Video Keyboard Handler
 
 /// NSViewRepresentable that captures keyboard events for video controls.
@@ -518,9 +524,7 @@ class VideoKeyboardCaptureView: NSView {
             if event.modifierFlags.contains(.command) {
                 Task { @MainActor in
                     if let copyString = self.calculatorVM?.copyableString() {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(copyString, forType: .string)
+                        PlatformClipboard.copy(copyString)
                     }
                 }
                 return true
@@ -574,6 +578,7 @@ class VideoKeyboardCaptureView: NSView {
         playerVM.seek(to: calculatorVM.currentTimecode)
     }
 }
+#endif
 
 // MARK: - In/Out Panel
 
@@ -665,9 +670,7 @@ struct InOutPanel: View {
                             .textSelection(.enabled)
 
                         Button(action: {
-                            let pasteboard = NSPasteboard.general
-                            pasteboard.clearContents()
-                            pasteboard.setString(duration.formatted(), forType: .string)
+                            PlatformClipboard.copy(duration.formatted())
                         }) {
                             Image(systemName: "doc.on.doc")
                                 .foregroundColor(.accentColor)

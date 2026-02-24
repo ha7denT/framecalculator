@@ -1,5 +1,7 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 
 /// Dialog for selecting marker export format and saving to file.
 struct ExportDialogView: View {
@@ -90,6 +92,13 @@ struct ExportDialogView: View {
         .frame(width: 320)
     }
 
+    /// Default filename for export.
+    private var defaultFilename: String {
+        let baseName = (sourceFilename as NSString).deletingPathExtension
+        return "\(baseName)_markers.\(selectedFormat.fileExtension)"
+    }
+
+    #if os(macOS)
     /// Shows save panel and exports markers.
     /// Note: We dismiss the sheet first, then show the save panel. NSSavePanel.runModal()
     /// doesn't work properly when called from within a SwiftUI sheet context.
@@ -128,12 +137,42 @@ struct ExportDialogView: View {
             }
         }
     }
+    #else
+    /// Exports markers on iOS by writing to a temp file and presenting a share sheet.
+    private func exportMarkers() {
+        let format = selectedFormat
+        let filename = defaultFilename
+        let markersToExport = markers
+        let rate = frameRate
+        let source = sourceFilename
 
-    /// Default filename for export.
-    private var defaultFilename: String {
-        let baseName = (sourceFilename as NSString).deletingPathExtension
-        return "\(baseName)_markers.\(selectedFormat.fileExtension)"
+        isPresented = false
+
+        Task {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            let exporter = MarkerExporter()
+            try? await exporter.export(
+                markers: markersToExport,
+                format: format,
+                to: tempURL,
+                frameRate: rate,
+                sourceFilename: source
+            )
+
+            await MainActor.run {
+                guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let window = scene.windows.first,
+                      let rootVC = window.rootViewController else { return }
+                let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+                if let popover = activityVC.popoverPresentationController {
+                    popover.sourceView = window
+                    popover.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
+                }
+                rootVC.present(activityVC, animated: true)
+            }
+        }
     }
+    #endif
 }
 
 // MARK: - Preview

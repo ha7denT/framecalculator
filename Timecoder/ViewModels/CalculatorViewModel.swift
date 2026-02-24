@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import AppKit
 
 /// Operations available in the timecode calculator.
 enum CalculatorOperation: String, CaseIterable {
@@ -467,7 +466,7 @@ final class CalculatorViewModel: ObservableObject {
     /// Pastes a value from the clipboard.
     /// Accepts timecode formats (HH:MM:SS:FF, HH:MM:SS;FF) or plain numbers (frames).
     func pasteFromClipboard() {
-        guard let string = NSPasteboard.general.string(forType: .string)?.trimmingCharacters(in: .whitespaces) else {
+        guard let string = PlatformClipboard.paste()?.trimmingCharacters(in: .whitespaces) else {
             return
         }
 

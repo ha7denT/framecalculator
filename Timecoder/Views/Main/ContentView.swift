@@ -1,5 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
+#if os(macOS)
+import AppKit
+#endif
 
 /// Main content view that switches between calculator and video inspection modes.
 struct ContentView: View {
@@ -8,6 +11,9 @@ struct ContentView: View {
     @StateObject private var playerVM = VideoPlayerViewModel()
     @StateObject private var markerVM = MarkerListViewModel()
     @State private var isDropTargeted = false
+    #if os(iOS)
+    @State private var showingFileImporter = false
+    #endif
 
     var body: some View {
         Group {
@@ -31,6 +37,24 @@ struct ContentView: View {
         }
         .overlay(dropOverlay)
         .overlay(loadingOverlay)
+        #if os(iOS)
+        .fileImporter(
+            isPresented: $showingFileImporter,
+            allowedContentTypes: supportedDropTypes,
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first {
+                    Task { @MainActor in
+                        await appState.loadVideo(from: url)
+                    }
+                }
+            case .failure(let error):
+                appState.setError("Failed to open video: \(error.localizedDescription)")
+            }
+        }
+        #endif
         .alert("Error Loading Video", isPresented: .constant(appState.errorMessage != nil)) {
             Button("OK") {
                 appState.clearError()
@@ -44,12 +68,15 @@ struct ContentView: View {
             // Sync frame rate when video is loaded
             if let metadata = metadata {
                 calculatorVM.frameRate = metadata.matchingFrameRate
+                #if os(macOS)
                 // Resize window for video orientation
                 let aspectRatio = metadata.resolution.width / metadata.resolution.height
                 let orientation = VideoOrientation.from(aspectRatio: aspectRatio)
                 resizeWindowForVideo(orientation: orientation)
+                #endif
             }
         }
+        #if os(macOS)
         .onChange(of: appState.mode) { _, newMode in
             // Resize when returning to calculator mode (compact size)
             if newMode == .calculator {
@@ -60,6 +87,7 @@ struct ContentView: View {
             // Set correct size on launch
             resizeWindowForCalculator()
         }
+        #endif
         .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
             openVideoFile()
         }
@@ -93,10 +121,12 @@ struct ContentView: View {
         // Restore markers
         markerVM.restoreMarkers(session.markers)
 
+        #if os(macOS)
         // Resize window for video
         let aspectRatio = session.metadata.resolution.width / session.metadata.resolution.height
         let orientation = VideoOrientation.from(aspectRatio: aspectRatio)
         resizeWindowForVideo(orientation: orientation)
+        #endif
     }
 
     /// Opens video file, either restoring a stored session or showing file picker.
@@ -108,6 +138,7 @@ struct ContentView: View {
         }
     }
 
+    #if os(macOS)
     // MARK: - Window Management
 
     /// Resizes window to calculator-only mode (compact)
@@ -171,6 +202,7 @@ struct ContentView: View {
             window.setFrame(newFrame, display: true, animate: true)
         }
     }
+    #endif
 
     // MARK: - Standalone Calculator
 
@@ -185,6 +217,7 @@ struct ContentView: View {
 
     // MARK: - Open Video File
 
+    #if os(macOS)
     /// Opens a file picker to select a video file.
     private func openVideoFile() {
         let panel = NSOpenPanel()
@@ -201,6 +234,12 @@ struct ContentView: View {
             }
         }
     }
+    #else
+    /// Opens file importer on iOS (triggered via showingFileImporter state).
+    private func openVideoFile() {
+        showingFileImporter = true
+    }
+    #endif
 
     // MARK: - Drop Handling
 
@@ -283,6 +322,7 @@ struct ContentView: View {
     }
 }
 
+#if os(macOS)
 // MARK: - Drop Delegate (Alternative implementation for more control)
 
 struct VideoDropDelegate: DropDelegate {
@@ -306,6 +346,7 @@ struct VideoDropDelegate: DropDelegate {
         return appState.handleDrop(providers: info.itemProviders(for: [.movie, .video]))
     }
 }
+#endif
 
 #Preview {
     ContentView()

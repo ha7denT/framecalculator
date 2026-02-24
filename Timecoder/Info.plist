@@ -4,6 +4,11 @@
 <dict>
     <key>ATSApplicationFontsPath</key>
     <string>.</string>
+    <key>UIAppFonts</key>
+    <array>
+        <string>Fonts/SpaceMono-Regular.ttf</string>
+        <string>Fonts/SpaceMono-Bold.ttf</string>
+    </array>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 </dict>

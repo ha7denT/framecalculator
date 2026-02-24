@@ -1,6 +1,11 @@
 import Foundation
 import SwiftUI
 import AVFoundation
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /// Represents the current mode of the application.
 public enum AppMode: Equatable {
@@ -47,6 +52,7 @@ public enum VideoOrientation: Equatable {
         videoFrameSize.height + Self.controlsHeight
     }
 
+    #if os(macOS)
     /// Target window size for this orientation.
     /// Height is based on video area - right panel scrolls within this height.
     var windowSize: NSSize {
@@ -54,6 +60,7 @@ public enum VideoOrientation: Equatable {
         let contentWidth = videoFrameSize.width + 320 + 16  // video + right panel + divider/padding
         return NSSize(width: contentWidth, height: contentHeight)
     }
+    #endif
 }
 
 /// Represents the state of video loading.
@@ -245,6 +252,7 @@ public final class AppState: ObservableObject {
         videoState = .error(message)
     }
 
+    #if os(macOS)
     /// Handles files dropped onto the application.
     /// - Parameter providers: The item providers from the drop.
     /// - Returns: Whether the drop was handled.
@@ -281,6 +289,7 @@ public final class AppState: ObservableObject {
 
         return false
     }
+    #endif
 }
 
 // MARK: - User Preferences
@@ -367,9 +376,15 @@ extension Font {
         let fontName = weight == .bold ? "SpaceMono-Bold" : "SpaceMono-Regular"
 
         // Check if Space Mono is available
-        if let _ = NSFont(name: fontName, size: size) {
+        #if os(iOS)
+        if UIFont(name: fontName, size: size) != nil {
             return .custom(fontName, size: size)
         }
+        #elseif os(macOS)
+        if NSFont(name: fontName, size: size) != nil {
+            return .custom(fontName, size: size)
+        }
+        #endif
 
         // Fallback to system monospace
         return .system(size: size, weight: weight, design: .monospaced)

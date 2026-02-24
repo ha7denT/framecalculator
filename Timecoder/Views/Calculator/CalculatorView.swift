@@ -1,5 +1,7 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 
 /// Main calculator view combining display, frame rate picker, and keypad.
 struct CalculatorView: View {
@@ -80,6 +82,7 @@ struct CalculatorView: View {
         }
         .padding(.bottom, 12)
         .frame(minWidth: 280, idealWidth: 300, maxWidth: 340)
+        #if os(macOS)
         .background(KeyboardHandlerView(viewModel: viewModel))
         .onCopyCommand {
             copyTimecode()
@@ -88,16 +91,16 @@ struct CalculatorView: View {
         .onPasteCommand(of: [.plainText]) { providers in
             pasteTimecode(from: providers)
         }
+        #endif
     }
 
     // MARK: - Clipboard
 
     private func copyTimecode() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(viewModel.copyableString(), forType: .string)
+        PlatformClipboard.copy(viewModel.copyableString())
     }
 
+    #if os(macOS)
     private func pasteTimecode(from providers: [NSItemProvider]) {
         guard let provider = providers.first else { return }
 
@@ -110,11 +113,13 @@ struct CalculatorView: View {
             }
         }
     }
+    #endif
 }
 
-// MARK: - Keyboard Handler (NSViewRepresentable for macOS 13 compatibility)
+#if os(macOS)
+// MARK: - Keyboard Handler (NSViewRepresentable for macOS)
 
-/// NSView-based keyboard handler for macOS 13 compatibility.
+/// NSView-based keyboard handler for macOS.
 private struct KeyboardHandlerView: NSViewRepresentable {
     let viewModel: CalculatorViewModel
 
@@ -243,6 +248,7 @@ private class KeyboardCaptureView: NSView {
         return false
     }
 }
+#endif
 
 // MARK: - Supporting Views
 

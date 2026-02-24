@@ -2098,7 +2098,7 @@ Features explicitly deferred from 1.0:
 - [ ] Audio waveform display
 - [ ] Batch file processing
 - [ ] Touch Bar support (legacy Macs)
-- [ ] iOS/iPadOS companion app
+- [x] iOS/iPadOS companion app — **In progress, see `docs/ios_sprint_plan.md` (Sprint 16 complete)**
 - [ ] Timecode burn-in export
 - [ ] Recent files menu
 - [ ] Drag markers to reorder
@@ -2126,7 +2126,9 @@ Features explicitly deferred from 1.0:
 | 13 - TestFlight Distribution | ✅ Complete | 2026-01-09 | 2026-01-13 | App on TestFlight, awaiting beta tester feedback |
 | 14 - Pre-Release UI Refinements | ✅ Complete | 2026-01-13 | 2026-01-13 | Mode-switching buttons, export button, marker button in transport controls, menu items |
 | 15 - Beta Feedback Fixes | ✅ Complete | 2026-01-15 | 2026-01-15 | Keypad layout, top row styling, copy button, custom FPS, video state persistence, paste support, period key |
+| **iOS Expansion (see `docs/ios_sprint_plan.md`)** | | | | |
+| 16 - iOS Project Config & Abstraction | ✅ Complete | 2026-02-24 | 2026-02-24 | Platform abstraction layer, `#if os()` guards, both platforms compile |
 
 ---
 
-*Last Updated: 2026-01-18*
+*Last Updated: 2026-02-24*

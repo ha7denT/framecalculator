@@ -43,7 +43,7 @@ struct MetadataPanel: View {
             TimecodeSourceIndicator(metadata: metadata)
         }
         .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .background(Color.platformControlBackground.opacity(0.5))
         .cornerRadius(8)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Video metadata")
@@ -130,7 +130,7 @@ struct MetadataBadge: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(Color.platformControlBackground)
         .cornerRadius(4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(label): \(value)")

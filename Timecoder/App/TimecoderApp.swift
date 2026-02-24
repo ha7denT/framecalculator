@@ -1,8 +1,13 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 @main
 struct TimecoderApp: App {
+    #if os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
     @ObservedObject private var preferences = UserPreferences.shared
 
     var body: some Scene {
@@ -10,9 +15,11 @@ struct TimecoderApp: App {
             ContentView()
                 .preferredColorScheme(colorScheme)
         }
+        #if os(macOS)
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 320, height: 520)
         .windowResizability(.contentSize)
+        #endif
         .commands {
             // File menu - Open
             CommandGroup(after: .newItem) {
@@ -44,23 +51,27 @@ struct TimecoderApp: App {
             CommandGroup(replacing: .help) {
                 Button("Timecoder Help") {
                     if let url = URL(string: "https://github.com") {
-                        NSWorkspace.shared.open(url)
+                        PlatformURL.open(url)
                     }
                 }
 
+                #if os(macOS)
                 Divider()
 
                 Button("Keyboard Shortcuts") {
                     showKeyboardShortcutsWindow()
                 }
                 .keyboardShortcut("?", modifiers: [.command, .shift])
+                #endif
             }
         }
 
-        // Preferences window
+        #if os(macOS)
+        // Preferences window (macOS only — iOS uses in-app settings)
         Settings {
             PreferencesView()
         }
+        #endif
     }
 
     private var colorScheme: ColorScheme? {
@@ -71,6 +82,7 @@ struct TimecoderApp: App {
         }
     }
 
+    #if os(macOS)
     private func showKeyboardShortcutsWindow() {
         let shortcuts = """
         Calculator Mode:
@@ -102,6 +114,7 @@ struct TimecoderApp: App {
         alert.addButton(withTitle: "OK")
         alert.runModal()
     }
+    #endif
 }
 
 // MARK: - Preferences View
@@ -118,7 +131,9 @@ struct PreferencesView: View {
                         Text(rate.displayName).tag(rate)
                     }
                 }
+                #if os(macOS)
                 .pickerStyle(.menu)
+                #endif
 
                 Picker("Default Marker Color", selection: $preferences.defaultMarkerColor) {
                     ForEach(MarkerColor.allCases, id: \.self) { color in
@@ -131,7 +146,9 @@ struct PreferencesView: View {
                         .tag(color)
                     }
                 }
+                #if os(macOS)
                 .pickerStyle(.menu)
+                #endif
             }
 
             // Appearance section
@@ -147,17 +164,22 @@ struct PreferencesView: View {
                 .pickerStyle(.segmented)
             }
 
-            // Window section
+            #if os(macOS)
+            // Window section (macOS only)
             Section("Window") {
                 Toggle("Remember window position", isOn: $preferences.rememberWindowPosition)
             }
+            #endif
         }
         .formStyle(.grouped)
+        #if os(macOS)
         .padding()
         .frame(width: 400, height: 280)
+        #endif
     }
 }
 
+#if os(macOS)
 // MARK: - App Delegate
 
 /// App delegate to handle window restoration behavior.
@@ -172,3 +194,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 }
+#endif

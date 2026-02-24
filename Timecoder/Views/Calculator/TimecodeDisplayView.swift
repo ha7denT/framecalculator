@@ -1,5 +1,4 @@
 import SwiftUI
-import AppKit
 
 /// Display mode for the timecode display.
 enum TimecodeDisplayMode {
@@ -92,9 +91,7 @@ struct TimecodeDisplayView: View {
 
     /// Copies the primary display value to the clipboard
     private func copyToClipboard() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(copyValue, forType: .string)
+        PlatformClipboard.copy(copyValue)
     }
 
     /// Tint color for glass effect based on state

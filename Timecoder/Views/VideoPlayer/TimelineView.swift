@@ -34,7 +34,7 @@ struct TimelineView: View {
             ZStack(alignment: .leading) {
                 // Track background
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color(NSColor.separatorColor))
+                    .fill(Color.platformSeparator)
                     .frame(height: 4)
 
                 // In/Out range highlight (if both points set)

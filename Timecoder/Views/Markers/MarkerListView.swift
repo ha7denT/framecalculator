@@ -38,7 +38,7 @@ struct MarkerListView: View {
             // Keyboard hints footer
             keyboardHints
         }
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .background(Color.platformControlBackground.opacity(0.5))
         .cornerRadius(8)
     }
 
