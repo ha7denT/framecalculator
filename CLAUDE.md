@@ -97,9 +97,11 @@ enum FrameRate {
 - **Platform abstraction layer:** `Timecoder/Utilities/PlatformServices.swift`
   - `PlatformClipboard` — clipboard (NSPasteboard ↔ UIPasteboard)
   - `PlatformURL` — URL opening (NSWorkspace ↔ UIApplication)
+  - `PlatformHaptics` — haptic feedback (UIImpactFeedbackGenerator on iOS, no-op on macOS)
   - `Color.platformControlBackground`, `.platformWindowBackground`, `.platformSeparator`
 - **Guard pattern:** `#if os(macOS)` / `#if os(iOS)` with small, localized blocks
 - **macOS-only types wrapped in `#if os(macOS)`:** `KeyboardCaptureView`, `VideoKeyboardCaptureView`, `AppDelegate`, `VideoDropDelegate`, `VideoInspectorView`
+- **iOS keyboard input:** `.onKeyPress()` handlers on container views (`iOSContentView` for calculator, `iOSVideoInspectorView` for video) with `@FocusState` for hardware keyboard focus
 - **Shared struct name pattern:** `CustomVideoPlayerView` has both NSViewRepresentable (macOS) and UIViewControllerRepresentable (iOS) behind `#if os()` — same name, no conditionals at call sites
 - **iOS file import:** `.fileImporter()` modifier replaces `NSOpenPanel`
 - **iOS marker export:** `UIActivityViewController` replaces `NSSavePanel`

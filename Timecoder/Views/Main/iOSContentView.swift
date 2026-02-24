@@ -22,6 +22,7 @@ struct iOSContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showingSettings = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @FocusState private var isKeyboardFocused: Bool
 
     var body: some View {
         Group {
@@ -101,6 +102,69 @@ struct iOSContentView: View {
                     }
                 }
             }
+        }
+        .focusable()
+        .focused($isKeyboardFocused)
+        .onAppear { isKeyboardFocused = true }
+        .onKeyPress(keys: Set("0123456789".map { KeyEquivalent(Character(String($0))) })) { press in
+            if let digit = Int(String(press.key.character)) {
+                calculatorVM.enterDigit(digit, fromKeyboard: true)
+                return .handled
+            }
+            return .ignored
+        }
+        .onKeyPress(.delete) {
+            calculatorVM.deleteDigit()
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            calculatorVM.clearAll()
+            return .handled
+        }
+        .onKeyPress(.return) {
+            calculatorVM.executeOperation()
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "+-*/=.cC")) { press in
+            let char = press.key.character
+            let hasCommand = press.modifiers.contains(.command)
+
+            switch char {
+            case "+":
+                calculatorVM.selectOperation(.add)
+                return .handled
+            case "-":
+                calculatorVM.selectOperation(.subtract)
+                return .handled
+            case "*":
+                calculatorVM.selectOperation(.multiply)
+                return .handled
+            case "/":
+                calculatorVM.selectOperation(.divide)
+                return .handled
+            case "=":
+                calculatorVM.executeOperation()
+                return .handled
+            case ".":
+                calculatorVM.insertColonShift()
+                return .handled
+            case "c", "C":
+                if hasCommand {
+                    PlatformClipboard.copy(calculatorVM.copyableString())
+                } else {
+                    calculatorVM.clearEntry()
+                }
+                return .handled
+            default:
+                return .ignored
+            }
+        }
+        .onKeyPress(characters: .init(charactersIn: "vV")) { press in
+            if press.modifiers.contains(.command) {
+                calculatorVM.pasteFromClipboard()
+                return .handled
+            }
+            return .ignored
         }
     }
 

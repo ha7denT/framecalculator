@@ -76,3 +76,20 @@ enum PlatformURL {
         #endif
     }
 }
+
+// MARK: - Platform Haptics
+
+/// Cross-platform haptic feedback abstraction. No-op on macOS.
+enum PlatformHaptics {
+    static func lightImpact() {
+        #if os(iOS)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #endif
+    }
+
+    static func mediumImpact() {
+        #if os(iOS)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        #endif
+    }
+}

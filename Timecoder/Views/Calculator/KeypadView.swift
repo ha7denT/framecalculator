@@ -130,6 +130,7 @@ private struct NumberButton: View {
             )
             .contentShape(Circle())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -165,6 +166,7 @@ private struct WideZeroButton: View {
             )
             .contentShape(Capsule())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -195,6 +197,7 @@ private struct ColonButton: View {
             )
             .contentShape(Circle())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -229,6 +232,7 @@ private struct DeleteButton: View {
             )
             .contentShape(Circle())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -278,6 +282,7 @@ private struct SecondaryButton: View {
             )
             .contentShape(Circle())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -328,6 +333,7 @@ private struct OperatorButton: View {
             )
             .contentShape(Circle())
             .onTapGesture {
+                PlatformHaptics.lightImpact()
                 action()
             }
             .simultaneousGesture(
@@ -362,6 +368,7 @@ private struct EqualsButton: View {
             )
             .contentShape(Capsule())
             .onTapGesture {
+                PlatformHaptics.mediumImpact()
                 action()
             }
             .simultaneousGesture(
@@ -406,6 +413,7 @@ private struct FrameTimecodeToggleButton: View {
         )
         .contentShape(Circle())
         .onTapGesture {
+            PlatformHaptics.lightImpact()
             viewModel.toggleDisplayMode()
         }
         .simultaneousGesture(

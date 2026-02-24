@@ -2130,7 +2130,8 @@ Features explicitly deferred from 1.0:
 | 16 - iOS Project Config & Abstraction | ✅ Complete | 2026-02-24 | 2026-02-24 | Platform abstraction layer, `#if os()` guards, both platforms compile |
 | 17 - iOS App Entry & Navigation | ✅ Complete | 2026-02-24 | 2026-02-24 | iOSContentView, iOSVideoInspectorView, adaptive layouts, iOS settings |
 | 18 - iOS Video Player & File Import | ✅ Complete | 2026-02-24 | 2026-02-24 | Security-scoped URL lifecycle fix, PhotosPicker, photo library privacy string |
+| 19 - iOS Keyboard & Touch | ✅ Complete | 2026-02-24 | 2026-02-24 | iPad hardware keyboard via `.onKeyPress()`, PlatformHaptics, haptic feedback on keypad |
 
 ---
 
-*Last Updated: 2026-02-24 — Sprint 18 complete*
+*Last Updated: 2026-02-24 — Sprint 19 complete*

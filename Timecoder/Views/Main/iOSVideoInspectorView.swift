@@ -27,6 +27,9 @@ struct iOSVideoInspectorView: View {
     /// Selected panel tab for iPhone layout.
     @State private var selectedPanel: PanelTab = .calculator
 
+    /// Focus state for hardware keyboard input.
+    @FocusState private var isKeyboardFocused: Bool
+
     /// Video aspect ratio for layout calculations.
     private var videoAspectRatio: CGFloat {
         guard let metadata = appState.currentMetadata else {
@@ -106,6 +109,134 @@ struct iOSVideoInspectorView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .addMarkerAtPlayhead)) { _ in
             addMarkerAtPlayhead()
+        }
+        .focusable()
+        .focused($isKeyboardFocused)
+        .onAppear { isKeyboardFocused = true }
+        .onChange(of: markerVM.isEditorPresented) { _, isPresented in
+            if !isPresented {
+                isKeyboardFocused = true
+            }
+        }
+        // MARK: - Keyboard Handling
+        .onKeyPress(.space) {
+            playerVM.togglePlayPause()
+            return .handled
+        }
+        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+            switch press.key {
+            case .leftArrow:
+                playerVM.stepBackward()
+            case .rightArrow:
+                playerVM.stepForward()
+            case .upArrow:
+                goToPreviousMarker()
+            case .downArrow:
+                goToNextMarker()
+            default:
+                return .ignored
+            }
+            return .handled
+        }
+        .onKeyPress(.return) {
+            if calculatorVM.isEntering {
+                calculatorVM.commitEntry()
+            }
+            playerVM.seek(to: calculatorVM.currentTimecode)
+            return .handled
+        }
+        .onKeyPress(.delete) {
+            if calculatorVM.isEntering {
+                calculatorVM.deleteDigit()
+            } else {
+                markerVM.deleteSelectedMarker()
+            }
+            return .handled
+        }
+        .onKeyPress(keys: Set("0123456789".map { KeyEquivalent(Character(String($0))) })) { press in
+            if let digit = Int(String(press.key.character)) {
+                calculatorVM.enterDigit(digit, fromKeyboard: true)
+                return .handled
+            }
+            return .ignored
+        }
+        .onKeyPress(characters: .init(charactersIn: "jklJKL")) { press in
+            switch press.key.character {
+            case "j", "J":
+                playerVM.handleJ()
+            case "k", "K":
+                playerVM.handleK()
+            case "l", "L":
+                playerVM.handleL()
+            default:
+                return .ignored
+            }
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "iIoO")) { press in
+            let hasShift = press.modifiers.contains(.shift)
+            switch press.key.character {
+            case "i":
+                if hasShift {
+                    playerVM.seekToInPoint()
+                } else {
+                    playerVM.setInPoint()
+                }
+                return .handled
+            case "I":
+                playerVM.seekToInPoint()
+                return .handled
+            case "o":
+                if hasShift {
+                    playerVM.seekToOutPoint()
+                } else {
+                    playerVM.setOutPoint()
+                }
+                return .handled
+            case "O":
+                playerVM.seekToOutPoint()
+                return .handled
+            default:
+                return .ignored
+            }
+        }
+        .onKeyPress(characters: .init(charactersIn: "xX")) { press in
+            if press.modifiers.contains(.option) {
+                playerVM.clearInOutPoints()
+                return .handled
+            }
+            return .ignored
+        }
+        .onKeyPress(characters: .init(charactersIn: "mM")) { _ in
+            addMarkerAtPlayhead()
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: ".")) { _ in
+            calculatorVM.insertColonShift()
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "eE")) { press in
+            if press.modifiers.contains(.command) {
+                if !markerVM.markers.isEmpty {
+                    isExportDialogPresented = true
+                }
+                return .handled
+            }
+            return .ignored
+        }
+        .onKeyPress(characters: .init(charactersIn: "cC")) { press in
+            if press.modifiers.contains(.command) {
+                PlatformClipboard.copy(calculatorVM.copyableString())
+                return .handled
+            }
+            return .ignored
+        }
+        .onKeyPress(characters: .init(charactersIn: "vV")) { press in
+            if press.modifiers.contains(.command) {
+                calculatorVM.pasteFromClipboard()
+                return .handled
+            }
+            return .ignored
         }
     }
 
