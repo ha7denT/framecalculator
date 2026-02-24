@@ -77,7 +77,7 @@ struct TimecodeDisplayView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .glassEffect(in: .rect(cornerRadius: 12))
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))
             .tint(tintColor)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityDescription)

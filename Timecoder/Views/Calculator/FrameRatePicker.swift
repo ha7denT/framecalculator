@@ -72,7 +72,7 @@ struct CompactFrameRatePicker: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .glassEffect(in: .capsule)
+            .glassEffect(.regular.interactive(), in: .capsule)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Frame rate")

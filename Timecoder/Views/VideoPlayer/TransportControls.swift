@@ -89,37 +89,39 @@ struct TransportControls: View {
                     .frame(height: 20)
                     .accessibilityHidden(true)
 
-                HStack(spacing: isCompact ? 4 : 8) {
-                    // Previous marker
-                    GlassTransportButton(
-                        icon: "bookmark.fill",
-                        isDisabled: !hasPreviousMarker,
-                        showLeftArrow: true,
-                        action: { onPreviousMarker?() },
-                        accessibilityLabelText: "Previous marker",
-                        accessibilityHintText: hasPreviousMarker ? "Jump to the previous marker" : "No previous marker available"
-                    )
-                    .help("Previous marker (↑)")
+                GlassEffectContainer {
+                    HStack(spacing: isCompact ? 4 : 8) {
+                        // Previous marker
+                        GlassTransportButton(
+                            icon: "bookmark.fill",
+                            isDisabled: !hasPreviousMarker,
+                            showLeftArrow: true,
+                            action: { onPreviousMarker?() },
+                            accessibilityLabelText: "Previous marker",
+                            accessibilityHintText: hasPreviousMarker ? "Jump to the previous marker" : "No previous marker available"
+                        )
+                        .help("Previous marker (↑)")
 
-                    // Add marker at playhead
-                    GlassTransportButton(
-                        icon: "pin.circle",
-                        action: { onAddMarker?() },
-                        accessibilityLabelText: "Add marker",
-                        accessibilityHintText: "Create a marker at the current playhead position"
-                    )
-                    .help("Add marker (M)")
+                        // Add marker at playhead
+                        GlassTransportButton(
+                            icon: "pin.circle",
+                            action: { onAddMarker?() },
+                            accessibilityLabelText: "Add marker",
+                            accessibilityHintText: "Create a marker at the current playhead position"
+                        )
+                        .help("Add marker (M)")
 
-                    // Next marker
-                    GlassTransportButton(
-                        icon: "bookmark.fill",
-                        isDisabled: !hasNextMarker,
-                        showRightArrow: true,
-                        action: { onNextMarker?() },
-                        accessibilityLabelText: "Next marker",
-                        accessibilityHintText: hasNextMarker ? "Jump to the next marker" : "No next marker available"
-                    )
-                    .help("Next marker (↓)")
+                        // Next marker
+                        GlassTransportButton(
+                            icon: "bookmark.fill",
+                            isDisabled: !hasNextMarker,
+                            showRightArrow: true,
+                            action: { onNextMarker?() },
+                            accessibilityLabelText: "Next marker",
+                            accessibilityHintText: hasNextMarker ? "Jump to the next marker" : "No next marker available"
+                        )
+                        .help("Next marker (↓)")
+                    }
                 }
             }
 
