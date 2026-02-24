@@ -1,12 +1,16 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import UIKit
 #endif
 
 @main
 struct TimecoderApp: App {
     #if os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #elseif os(iOS)
+    @UIApplicationDelegateAdaptor(iOSAppDelegate.self) var iOSAppDelegate
     #endif
     @ObservedObject private var preferences = UserPreferences.shared
 
@@ -178,6 +182,22 @@ struct PreferencesView: View {
         #endif
     }
 }
+
+#if os(iOS)
+// MARK: - iOS App Delegate
+
+/// iOS app delegate for dynamic orientation control.
+/// Calculator mode is portrait-locked; video mode allows all orientations.
+class iOSAppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        if AppState.shared.mode == .calculator {
+            return .portrait
+        }
+        return .allButUpsideDown
+    }
+}
+#endif
 
 #if os(macOS)
 // MARK: - App Delegate

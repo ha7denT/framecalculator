@@ -6,7 +6,7 @@ import AppKit
 
 /// Main content view that switches between calculator and video inspection modes.
 struct ContentView: View {
-    @StateObject private var appState = AppState()
+    @StateObject private var appState = AppState.shared
     @StateObject private var calculatorVM = CalculatorViewModel()
     @StateObject private var playerVM = VideoPlayerViewModel()
     @StateObject private var markerVM = MarkerListViewModel()

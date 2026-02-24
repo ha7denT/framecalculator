@@ -16,22 +16,34 @@ struct CalculatorView: View {
     /// Callback when the mode button is tapped.
     var onModeButtonTapped: (() -> Void)?
 
+    /// Optional keypad button size override. When nil, uses KeypadView default (48).
+    var keypadButtonSize: CGFloat? = nil
+
+    /// Optional timecode font size override. When nil, uses TimecodeDisplayView default (36).
+    var timecodeFontSize: CGFloat? = nil
+
     /// Creates a calculator view with configurable mode button.
     /// - Parameters:
     ///   - viewModel: The view model to use. If nil, creates a new one internally.
     ///   - modeButtonIcon: SF Symbol name for the mode button.
     ///   - modeButtonHelp: Tooltip text for the mode button.
     ///   - onModeButtonTapped: Callback when the mode button is tapped.
+    ///   - keypadButtonSize: Optional button size for keypad (nil = default 48).
+    ///   - timecodeFontSize: Optional font size for timecode display (nil = default 36).
     init(
         viewModel: CalculatorViewModel? = nil,
         modeButtonIcon: String = "play.rectangle",
         modeButtonHelp: String = "Open video (⌘O)",
-        onModeButtonTapped: (() -> Void)? = nil
+        onModeButtonTapped: (() -> Void)? = nil,
+        keypadButtonSize: CGFloat? = nil,
+        timecodeFontSize: CGFloat? = nil
     ) {
         self.viewModel = viewModel ?? CalculatorViewModel()
         self.modeButtonIcon = modeButtonIcon
         self.modeButtonHelp = modeButtonHelp
         self.onModeButtonTapped = onModeButtonTapped
+        self.keypadButtonSize = keypadButtonSize
+        self.timecodeFontSize = timecodeFontSize
     }
 
     var body: some View {
@@ -73,15 +85,24 @@ struct CalculatorView: View {
                 hasError: viewModel.errorMessage != nil,
                 isPendingOperation: viewModel.hasPendingOperation,
                 invalidComponents: viewModel.invalidComponents,
-                pendingOperation: viewModel.pendingOperation
+                pendingOperation: viewModel.pendingOperation,
+                primaryFontSize: timecodeFontSize ?? 36
             )
             .padding(.horizontal, 12)
 
             // Keypad
-            KeypadView(viewModel: viewModel)
+            KeypadView(
+                viewModel: viewModel,
+                buttonSize: keypadButtonSize ?? 48,
+                buttonSpacing: 8
+            )
         }
         .padding(.bottom, 12)
+        #if os(macOS)
         .frame(minWidth: 280, idealWidth: 300, maxWidth: 340)
+        #else
+        .frame(maxWidth: 400)
+        #endif
         #if os(macOS)
         .background(KeyboardHandlerView(viewModel: viewModel))
         .onCopyCommand {

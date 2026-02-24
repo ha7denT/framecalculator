@@ -101,6 +101,9 @@ struct StoredVideoSession {
 @MainActor
 public final class AppState: ObservableObject {
 
+    /// Shared instance for access from UIApplicationDelegate (iOS orientation lock).
+    static let shared = AppState()
+
     // MARK: - Published Properties
 
     /// The current application mode.

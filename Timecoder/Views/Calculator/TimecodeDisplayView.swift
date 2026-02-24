@@ -16,6 +16,7 @@ struct TimecodeDisplayView: View {
     let isPendingOperation: Bool
     var invalidComponents: Set<TimecodeComponent> = []
     var pendingOperation: CalculatorOperation? = nil
+    var primaryFontSize: CGFloat = 36
 
     /// The value to copy (primary display value)
     private var copyValue: String {
@@ -54,9 +55,9 @@ struct TimecodeDisplayView: View {
             HStack(spacing: 8) {
                 // Operation symbol on far left (fixed width to prevent layout shift)
                 Text(isPendingOperation ? (pendingOperation?.symbol ?? "") : "")
-                    .font(.spaceMono(size: 24, weight: .bold))
+                    .font(.spaceMono(size: primaryFontSize * 0.67, weight: .bold))
                     .foregroundColor(.accentColor)
-                    .frame(width: 24, alignment: .leading)
+                    .frame(width: primaryFontSize * 0.67, alignment: .leading)
                     .accessibilityHidden(true)
 
                 primaryDisplay
@@ -117,7 +118,7 @@ struct TimecodeDisplayView: View {
                 frameCountText
             }
         }
-        .frame(height: 44) // Fixed height to prevent layout shift when toggling modes
+        .frame(height: primaryFontSize * 1.22) // Fixed height to prevent layout shift when toggling modes
     }
 
     /// Secondary display content based on mode
@@ -129,22 +130,22 @@ struct TimecodeDisplayView: View {
                 // Show frame count below timecode
                 HStack(spacing: 4) {
                     Text("\(frameCount)")
-                        .font(.spaceMono(size: 12))
+                        .font(.spaceMono(size: primaryFontSize * 0.33))
                         .foregroundColor(.secondary)
                         .textSelection(.enabled)
                     Text("frames")
-                        .font(.spaceMono(size: 12))
+                        .font(.spaceMono(size: primaryFontSize * 0.33))
                         .foregroundColor(.secondary.opacity(0.6))
                 }
             case .frames:
                 // Show timecode below frame count
                 Text(formattedTimecode)
-                    .font(.spaceMono(size: 12))
+                    .font(.spaceMono(size: primaryFontSize * 0.33))
                     .foregroundColor(.secondary)
                     .textSelection(.enabled)
             }
         }
-        .frame(height: 16) // Fixed height to prevent layout shift when toggling modes
+        .frame(height: primaryFontSize * 0.44) // Fixed height to prevent layout shift when toggling modes
     }
 
     /// Large timecode display
@@ -152,14 +153,14 @@ struct TimecodeDisplayView: View {
     private var timecodeText: some View {
         if invalidComponents.isEmpty {
             Text(formattedTimecode)
-                .font(.spaceMono(size: 36))
+                .font(.spaceMono(size: primaryFontSize))
                 .foregroundColor(hasError ? .red : .primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .textSelection(.enabled)
         } else {
             coloredTimecodeText
-                .font(.spaceMono(size: 36))
+                .font(.spaceMono(size: primaryFontSize))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
         }
@@ -168,7 +169,7 @@ struct TimecodeDisplayView: View {
     /// Large frame count display
     private var frameCountText: some View {
         Text("\(frameCount)")
-            .font(.spaceMono(size: 36))
+            .font(.spaceMono(size: primaryFontSize))
             .foregroundColor(hasError ? .red : .primary)
             .lineLimit(1)
             .minimumScaleFactor(0.5)

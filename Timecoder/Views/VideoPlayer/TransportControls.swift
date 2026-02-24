@@ -25,8 +25,11 @@ struct TransportControls: View {
     /// Whether there are markers to export.
     var hasMarkers: Bool = false
 
+    /// Whether to use compact layout (reduced spacing, hidden shuttle indicator).
+    var isCompact: Bool = false
+
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: isCompact ? 8 : 16) {
             // Frame step backward
             GlassTransportButton(
                 icon: "backward.frame",
@@ -86,7 +89,7 @@ struct TransportControls: View {
                     .frame(height: 20)
                     .accessibilityHidden(true)
 
-                HStack(spacing: 8) {
+                HStack(spacing: isCompact ? 4 : 8) {
                     // Previous marker
                     GlassTransportButton(
                         icon: "bookmark.fill",
@@ -138,11 +141,13 @@ struct TransportControls: View {
 
             Spacer()
 
-            // Shuttle speed indicator
-            shuttleIndicator
+            // Shuttle speed indicator (hidden in compact mode)
+            if !isCompact {
+                shuttleIndicator
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, isCompact ? 8 : 12)
+        .padding(.vertical, isCompact ? 6 : 10)
     }
 
     // MARK: - Shuttle Indicator

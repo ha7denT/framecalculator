@@ -30,6 +30,9 @@ struct iOSVideoInspectorView: View {
     /// Focus state for hardware keyboard input.
     @FocusState private var isKeyboardFocused: Bool
 
+    /// Vertical size class for detecting iPhone landscape.
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
     /// Video aspect ratio for layout calculations.
     private var videoAspectRatio: CGFloat {
         guard let metadata = appState.currentMetadata else {
@@ -243,6 +246,19 @@ struct iOSVideoInspectorView: View {
     // MARK: - Compact Layout (iPhone)
 
     private var compactLayout: some View {
+        Group {
+            if verticalSizeClass == .compact {
+                // iPhone landscape: side-by-side
+                compactLandscapeLayout
+            } else {
+                // iPhone portrait: stacked
+                compactPortraitLayout
+            }
+        }
+    }
+
+    /// iPhone portrait — stacked video + tabbed panels.
+    private var compactPortraitLayout: some View {
         VStack(spacing: 0) {
             // Video player fills width, height constrained by aspect ratio
             videoPlayerArea
@@ -265,22 +281,78 @@ struct iOSVideoInspectorView: View {
         }
     }
 
+    /// iPhone landscape — side-by-side video + compact calculator/InOut.
+    private var compactLandscapeLayout: some View {
+        GeometryReader { geometry in
+            HStack(spacing: 0) {
+                // Left: Video area (55%)
+                videoPlayerArea
+                    .frame(width: geometry.size.width * 0.55)
+
+                Divider()
+
+                // Right: Compact calculator + InOut
+                ScrollView {
+                    VStack(spacing: 0) {
+                        CalculatorView(
+                            viewModel: calculatorVM,
+                            modeButtonIcon: "circle.grid.3x3.circle.fill",
+                            modeButtonHelp: "Switch to calculator",
+                            onModeButtonTapped: onSwitchToCalculator
+                        )
+
+                        if appState.currentMetadata != nil {
+                            Divider().padding(.horizontal, 12)
+                            InOutPanel(viewModel: playerVM)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
     // MARK: - Regular Layout (iPad)
 
     private var regularLayout: some View {
         GeometryReader { geometry in
-            HStack(alignment: .top, spacing: 0) {
-                // Left: Video player area (~62% width)
-                videoPlayerArea
-                    .frame(width: geometry.size.width * 0.62)
+            let isLandscape = geometry.size.width > geometry.size.height
 
-                Divider()
+            if isLandscape {
+                // iPad landscape: side-by-side (65/35 split)
+                HStack(alignment: .top, spacing: 0) {
+                    videoPlayerArea
+                        .frame(width: geometry.size.width * 0.65)
 
-                // Right: Calculator + metadata
-                ScrollView {
-                    rightPanel
+                    Divider()
+
+                    ScrollView {
+                        rightPanel
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+            } else {
+                // iPad portrait: stacked like compact mode
+                VStack(spacing: 0) {
+                    videoPlayerArea
+                        .frame(maxWidth: .infinity)
+
+                    panelPicker
+
+                    TabView(selection: $selectedPanel) {
+                        calculatorPanel
+                            .tag(PanelTab.calculator)
+
+                        metadataPanel
+                            .tag(PanelTab.metadata)
+
+                        markersPanel
+                            .tag(PanelTab.markers)
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                }
             }
         }
     }
@@ -323,7 +395,8 @@ struct iOSVideoInspectorView: View {
                 onExport: { isExportDialogPresented = true },
                 hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
                 hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil,
-                hasMarkers: !markerVM.markers.isEmpty
+                hasMarkers: !markerVM.markers.isEmpty,
+                isCompact: isCompact
             )
             .padding(.bottom, 4)
         }
@@ -435,7 +508,6 @@ struct iOSVideoInspectorView: View {
                 modeButtonHelp: "Switch to calculator",
                 onModeButtonTapped: onSwitchToCalculator
             )
-            .frame(height: 520)
 
             if let metadata = appState.currentMetadata {
                 Divider().padding(.horizontal, 12)

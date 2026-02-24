@@ -23,6 +23,7 @@ struct iOSContentView: View {
     @State private var showingSettings = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @FocusState private var isKeyboardFocused: Bool
+    @ScaledMetric(relativeTo: .body) private var scaledUnit: CGFloat = 48
 
     var body: some View {
         Group {
@@ -84,12 +85,24 @@ struct iOSContentView: View {
 
     private var calculatorModeView: some View {
         NavigationStack {
-            CalculatorView(
-                viewModel: calculatorVM,
-                modeButtonIcon: appState.hasStoredSession ? "film.stack" : "play.rectangle",
-                modeButtonHelp: appState.hasStoredSession ? "Return to video" : "Open video",
-                onModeButtonTapped: onOpenVideoOrRestore
-            )
+            GeometryReader { geometry in
+                let baseSize = PlatformLayout.keypadButtonSize(forWidth: geometry.size.width)
+                let scale = scaledUnit / 48.0
+                let buttonSize = min(max(baseSize * scale, 44), 80)
+                let fontSize = min(geometry.size.width * 0.1, 44)
+
+                ScrollView {
+                    CalculatorView(
+                        viewModel: calculatorVM,
+                        modeButtonIcon: appState.hasStoredSession ? "film.stack" : "play.rectangle",
+                        modeButtonHelp: appState.hasStoredSession ? "Return to video" : "Open video",
+                        onModeButtonTapped: onOpenVideoOrRestore,
+                        keypadButtonSize: buttonSize,
+                        timecodeFontSize: fontSize
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     videoImportMenu

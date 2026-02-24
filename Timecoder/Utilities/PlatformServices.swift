@@ -93,3 +93,20 @@ enum PlatformHaptics {
         #endif
     }
 }
+
+#if os(iOS)
+// MARK: - Platform Layout
+
+/// Layout helpers for responsive iOS sizing.
+enum PlatformLayout {
+    /// Computes an ideal keypad button size for the available width.
+    /// - Parameters:
+    ///   - availableWidth: The width of the containing view.
+    ///   - spacing: Spacing between buttons (default 8).
+    /// - Returns: A button size clamped between 44pt (min touch target) and 72pt.
+    static func keypadButtonSize(forWidth availableWidth: CGFloat, spacing: CGFloat = 8) -> CGFloat {
+        let size = (availableWidth - spacing * 5) / 4  // 4 cols, 3 gaps + 2 edge paddings
+        return min(max(size, 44), 72)
+    }
+}
+#endif

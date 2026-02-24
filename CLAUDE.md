@@ -111,6 +111,13 @@ enum FrameRate {
 - **ContentView dispatch pattern:** `ContentView.body` uses `#if os(iOS)` / `#if os(macOS)` to dispatch to `iOSBody` or `macOSBody`
 - **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`
 - **iOS sizing:** Uses `GeometryReader` and `aspectRatio` (NOT fixed pixel sizes from `VideoOrientation`)
+- **Configurable shared views:** `KeypadView`, `TimecodeDisplayView`, `CalculatorView` accept optional size params with defaults — macOS uses defaults, iOS containers compute from geometry
+- **`PlatformLayout`** — iOS-only enum in PlatformServices.swift: `keypadButtonSize(forWidth:spacing:)` computes responsive button sizes
+- **`AppState.shared`** — Singleton for `iOSAppDelegate` orientation lock access
+- **`iOSAppDelegate`** — Portrait-locks calculator mode, allows all orientations for video mode
+- **`TransportControls.isCompact`** — Hides shuttle indicator, reduces spacing on compact layouts
+- **iPad orientation detection:** `geometry.size.width > geometry.size.height` (NOT device orientation)
+- **iPhone orientation detection:** `verticalSizeClass == .compact` for landscape
 
 ## Marker Export Formats
 

@@ -4,8 +4,8 @@ import SwiftUI
 struct KeypadView: View {
     @ObservedObject var viewModel: CalculatorViewModel
 
-    private let buttonSpacing: CGFloat = 8
-    private let buttonSize: CGFloat = 48
+    var buttonSize: CGFloat = 48
+    var buttonSpacing: CGFloat = 8
 
     /// Keypad width: 4 buttons + 3 spaces
     private var keypadWidth: CGFloat {
@@ -90,7 +90,7 @@ struct KeypadView: View {
                 }
 
                 // Equals button (fills keypad width)
-                EqualsButton(width: keypadWidth) {
+                EqualsButton(width: keypadWidth, height: max(buttonSize * 0.9, 40)) {
                     viewModel.executeOperation()
                 }
             }
@@ -350,6 +350,7 @@ private struct OperatorButton: View {
 /// Equals button with teal background spanning full width.
 private struct EqualsButton: View {
     let width: CGFloat
+    var height: CGFloat = 44
     let action: () -> Void
     @State private var isPressed = false
 
@@ -361,7 +362,7 @@ private struct EqualsButton: View {
         Text("=")
             .font(.system(size: 22, weight: .semibold, design: .rounded))
             .foregroundColor(.black)
-            .frame(width: width, height: 44)
+            .frame(width: width, height: height)
             .background(
                 Capsule()
                     .fill(backgroundColor)
