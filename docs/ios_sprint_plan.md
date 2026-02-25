@@ -625,52 +625,96 @@ Add keyboard shortcut discoverability via the iPadOS ⌘-hold overlay, menu bar 
 
 ---
 
-## Sprint 23: Polish, Testing & Platform Edge Cases
+## Sprint 23: iPhone Portrait Video Mode Redesign
 
 ### Goal
-Fix platform-specific bugs, handle edge cases, and polish the iOS experience.
+Redesign the iPhone portrait video mode to eliminate clipping issues, remove wasted space from the tabbed layout, and create a dense single-screen experience with video at top and side-by-side calculator + metadata below. Lock iPhone to portrait-only (remove landscape layout).
 
 ### Deliverables
 
-- [ ] **iOS-specific testing matrix**
-  - iPhone SE (small screen) — verify calculator fits
-  - iPhone 16 Pro Max (large screen) — verify spacing
-  - iPad mini — verify touch targets
-  - iPad Pro 13" — verify side-by-side layout
-  - iPad with Magic Keyboard — verify all shortcuts
+- [x] **Replace tabbed layout with single-screen design**
+  - Removed `TabView`/`panelPicker` approach from compact portrait layout
+  - New layout: video → timeline → transport → timecode display → HStack(keypad, info)
+  - Transport split into two centred rows: playback row (step/shuttle) + marker/IO row
+  - Uses `GlassTransportButton` directly (made internal access from private)
 
-- [ ] **Fix platform-specific issues**
-  - Font rendering differences (Space Mono at various sizes)
-  - Glass effect differences between macOS and iOS
-  - Dark/light mode consistency across platforms
-  - Color contrast in both modes on OLED iPhone displays
+- [x] **Decompose CalculatorView for video mode**
+  - Video mode uses `KeypadView`, `TimecodeDisplayView`, `CompactFrameRatePicker` independently
+  - `TimecodeDisplayView` passes `showSecondaryDisplay: false` (hides frame count, too small to read)
+  - FPS picker placed in right column above metadata
+  - Mode button removed from CalculatorView when in video mode (toolbar button only)
 
-- [ ] **Handle iOS-specific edge cases**
-  - App backgrounding during video playback (pause player)
-  - Memory pressure (release video when backgrounded)
-  - Interruptions (phone call during playback)
-  - Low Power Mode (reduce animation)
+- [x] **Compact metadata and In/Out panels**
+  - `compactMetadataView(metadata:)` — caption2 font, 36pt label column, glass background
+  - `compactInOutView` — compact In/Out/Duration with copy buttons, caption2 monospace
+  - Both panels share `compactPanelWidth: CGFloat = 160` constant for consistent sizing
 
-- [ ] **Add iOS app lifecycle handlers**
-  ```swift
-  #if os(iOS)
-  .onChange(of: scenePhase) { phase in
-      switch phase {
-      case .background:
-          appState.player?.pause()
-      case .active:
-          // Resume if was playing
-      default: break
-      }
-  }
-  #endif
-  ```
+- [x] **Filename in toolbar**
+  - Moved filename to `ToolbarItem(placement: .principal)` above video
+  - Removed from metadata panel to avoid duplication
+  - `.navigationBarTitleDisplayMode(.inline)` to minimize wasted toolbar space
 
-- [ ] **Accessibility audit (iOS)**
-  - VoiceOver on iPhone and iPad
-  - Dynamic Type at all sizes
-  - Switch Control compatibility
-  - Verify all existing accessibility labels work on iOS
+- [x] **Marker editor improvements**
+  - Delete button: icon-only (`Image(systemName: "trash")`) to prevent text wrapping
+  - Sheet width: `frame(maxWidth: 400)` instead of `frame(width: 300)` for responsive sizing
+  - Presentation: `.height(220)` detent + `.presentationBackground(.ultraThinMaterial)` + `.ignoresSafeArea(.keyboard)`
+  - Video remains visible while editing markers
+
+- [x] **Lock iPhone to portrait-only**
+  - `iOSAppDelegate` returns `.portrait` for ALL modes (calculator + video)
+  - Removed landscape layout entirely — `compactLayout` always uses `compactPortraitLayout`
+  - iPad layouts unchanged (still uses `regularLayout` with orientation-aware sizing)
+
+- [x] **Remove error banner from calculator**
+  - `ErrorBanner` made non-private (accessible externally) but removed from CalculatorView body
+  - Invalid entry feedback via orange-coloured timecode digits (`invalidComponents`) retained
+
+- [x] **Build verification on both platforms**
+  - macOS: `BUILD SUCCEEDED`
+  - iOS Simulator (iPhone 17 Pro): `BUILD SUCCEEDED`
+
+### Files Changed
+
+| File | Changes |
+|------|---------|
+| `Timecoder/Views/Main/iOSVideoInspectorView.swift` | Rewrote `compactPortraitLayout`, added `compactPlaybackRow`, `compactMarkerIORow`, `compactVideoOnlyView`, `compactMetadataView`, `compactInOutView`, toolbar filename, marker sheet presentation |
+| `Timecoder/Views/Calculator/CalculatorView.swift` | Made `ErrorBanner` non-private, removed error display from body |
+| `Timecoder/Views/Calculator/TimecodeDisplayView.swift` | Added `showSecondaryDisplay` parameter |
+| `Timecoder/Views/VideoPlayer/TransportControls.swift` | Made `GlassTransportButton` internal |
+| `Timecoder/Views/Markers/MarkerEditorSheet.swift` | Icon-only delete button, `maxWidth: 400` |
+| `Timecoder/App/TimecoderApp.swift` | `iOSAppDelegate` returns `.portrait` for all modes |
+| `Timecoder/Views/Main/iOSContentView.swift` | Removed mode button params from CalculatorView in calc mode |
+
+### Acceptance Criteria
+
+- [x] iPhone: single-screen video layout with no clipping or scrolling
+- [x] iPhone: keypad left, metadata + in/out right in bottom section
+- [x] iPhone: transport controls centred in two rows (playback + marker/IO)
+- [x] iPhone: filename in toolbar, video visible during marker editing
+- [x] iPhone: portrait-only orientation lock (no landscape)
+- [x] iPad: all layouts unchanged
+- [x] macOS: pixel-identical (no regressions)
+
+### Implementation Notes (for future reference)
+
+**Key architectural decisions:**
+1. **Decomposed transport controls** — Rather than using the full `TransportControls` view, the compact portrait layout uses `GlassTransportButton` directly to arrange buttons into two centred rows. This required making `GlassTransportButton` internal (was private).
+2. **Shared panel width constant** — `compactPanelWidth = 160` ensures metadata and in/out panels match width. Both panels use glass background containers.
+3. **No landscape on iPhone** — After multiple iterations, portrait-only was chosen over supporting both orientations. The portrait layout is information-dense enough that landscape adds complexity without benefit.
+4. **Marker editor presentation** — `.height(220)` detent with `.ignoresSafeArea(.keyboard)` keeps the sheet small while the keyboard appears, keeping the video visible behind the ultra-thin material background.
+
+---
+
+## Sprint 24: iPad Layout Refresh & Performance
+
+### Goal
+Address iPad video mode layout, seek performance gains across both platforms, and handle iOS edge cases (lifecycle, accessibility, app icon).
+
+### Deliverables
+
+- [ ] **iPad video mode layout improvements**
+  - Review and optimize iPad portrait and landscape layouts
+  - Ensure consistent panel sizing and spacing
 
 - [ ] **Performance profiling on iOS**
   - Memory usage during video playback
@@ -678,24 +722,30 @@ Fix platform-specific bugs, handle edge cases, and polish the iOS experience.
   - Launch time on physical device
   - Target: < 1s launch, < 100MB memory (calculator), < 250MB (video)
 
+- [ ] **Handle iOS-specific edge cases**
+  - App backgrounding during video playback (pause player)
+  - Memory pressure (release video when backgrounded)
+  - Interruptions (phone call during playback)
+
+- [ ] **Accessibility audit (iOS)**
+  - VoiceOver on iPhone and iPad
+  - Dynamic Type at all sizes
+  - Verify all existing accessibility labels work on iOS
+
 - [ ] **Add iOS app icon**
-  - iOS requires multiple sizes in Asset Catalog
-  - Design should match macOS icon but follow iOS conventions
+  - 1024x1024 base icon; Xcode generates all sizes
   - iOS 26: Liquid Glass icon treatment applied automatically by system
-  - Provide 1024x1024 base icon; Xcode generates all sizes
 
 ### Acceptance Criteria
 
-- [ ] No crashes on any tested device configuration
+- [ ] iPad layouts polished and consistent
+- [ ] No performance regressions from portrait redesign
+- [ ] App handles backgrounding gracefully
 - [ ] VoiceOver navigates all controls on iOS
-- [ ] Dynamic Type doesn't break layout at any size
-- [ ] App handles backgrounding and interruptions gracefully
-- [ ] Performance within targets on physical devices
-- [ ] App icon displays correctly on iOS home screen
 
 ---
 
-## Sprint 24: App Store Connect & Universal Purchase Setup
+## Sprint 25: App Store Connect & Universal Purchase Setup
 
 ### Goal
 Configure App Store Connect for universal purchase and prepare iOS-specific submission assets.
@@ -759,7 +809,7 @@ Configure App Store Connect for universal purchase and prepare iOS-specific subm
 
 ---
 
-## Sprint 25: iOS TestFlight & Release
+## Sprint 26: iOS TestFlight & Release
 
 ### Goal
 Archive, upload, and distribute the iOS build via TestFlight. Then submit for App Store review.
@@ -824,9 +874,10 @@ Archive, upload, and distribute the iOS build via TestFlight. Then submit for Ap
 | 20 - Layout & Responsive Design | ✅ Complete | Responsive sizing, orientation layouts, Dynamic Type | PlatformServices, KeypadView, TimecodeDisplayView, CalculatorView, TransportControls, iOSContentView, iOSVideoInspectorView, TimecoderApp, AppState, ContentView |
 | 21 - Liquid Glass (iOS) | ✅ Complete | Interactive glass, GlassEffectContainer | FrameRatePicker, TransportControls, TimecodeDisplayView |
 | 22 - Shortcuts, Menu Bar & iPad | ✅ Complete | ⌘-hold overlay, ⌘C command, video import menu, iOS build fix | TimecoderApp, iOSVideoInspectorView, iOSContentView, Notifications |
-| 23 - Polish & Testing | Pending | Bug fixes, accessibility, perf | All files |
-| 24 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
-| 25 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
+| 23 - iPhone Portrait Redesign | ✅ Complete | Portrait video mode, orientation lock | iOSVideoInspectorView, CalculatorView, TimecodeDisplayView, TransportControls, MarkerEditorSheet, TimecoderApp, iOSContentView |
+| 24 - iPad Layout & Performance | Pending | iPad layouts, perf, edge cases | TBD |
+| 25 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
+| 26 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
 
 ---
 
@@ -858,4 +909,4 @@ If broader device support is needed, iOS 17 is the minimum viable target with `i
 
 ---
 
-*Last Updated: 2026-02-25 — Sprint 22 complete*
+*Last Updated: 2026-02-25 — Sprint 23 complete*

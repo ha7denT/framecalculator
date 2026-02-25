@@ -17,6 +17,7 @@ struct TimecodeDisplayView: View {
     var invalidComponents: Set<TimecodeComponent> = []
     var pendingOperation: CalculatorOperation? = nil
     var primaryFontSize: CGFloat = 36
+    var showSecondaryDisplay: Bool = true
 
     /// The value to copy (primary display value)
     private var copyValue: String {
@@ -83,10 +84,12 @@ struct TimecodeDisplayView: View {
             .accessibilityLabel(accessibilityDescription)
             .accessibilityValue(copyValue)
 
-            // Secondary display (always shown)
-            secondaryDisplay
-                .padding(.trailing, 16)
-                .accessibilityHidden(true) // Already announced in main display context
+            // Secondary display (can be hidden for compact layouts)
+            if showSecondaryDisplay {
+                secondaryDisplay
+                    .padding(.trailing, 16)
+                    .accessibilityHidden(true) // Already announced in main display context
+            }
         }
     }
 

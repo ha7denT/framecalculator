@@ -114,10 +114,14 @@ enum FrameRate {
 - **Configurable shared views:** `KeypadView`, `TimecodeDisplayView`, `CalculatorView` accept optional size params with defaults — macOS uses defaults, iOS containers compute from geometry
 - **`PlatformLayout`** — iOS-only enum in PlatformServices.swift: `keypadButtonSize(forWidth:spacing:)` computes responsive button sizes
 - **`AppState.shared`** — Singleton for `iOSAppDelegate` orientation lock access
-- **`iOSAppDelegate`** — Portrait-locks calculator mode, allows all orientations for video mode
+- **`iOSAppDelegate`** — Portrait-locks iPhone for ALL modes (calculator + video)
 - **`TransportControls.isCompact`** — Hides shuttle indicator, reduces spacing on compact layouts
+- **`GlassTransportButton`** — Internal access (not private), used directly by iPhone portrait layout for decomposed transport rows
+- **iPhone portrait video layout** — Decomposed single-screen: video → timeline → 2 transport rows → full-width timecode → HStack(keypad left, metadata+in/out right). No TabView/panelPicker.
+- **`compactPanelWidth`** — Shared constant (160pt) for metadata and in/out panel widths in iPhone portrait
+- **`TimecodeDisplayView.showSecondaryDisplay`** — Bool parameter (default true), set false in iPhone portrait video to hide frames count
 - **iPad orientation detection:** `geometry.size.width > geometry.size.height` (NOT device orientation)
-- **iPhone orientation detection:** `verticalSizeClass == .compact` for landscape
+- **iPhone is portrait-only** — No landscape layout. `iOSAppDelegate` returns `.portrait` for all modes.
 
 ## Marker Export Formats
 

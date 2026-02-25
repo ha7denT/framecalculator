@@ -22,6 +22,7 @@ struct iOSContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showingSettings = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingPhotoPicker = false
     @FocusState private var isKeyboardFocused: Bool
     @ScaledMetric(relativeTo: .body) private var scaledUnit: CGFloat = 48
 
@@ -92,32 +93,38 @@ struct iOSContentView: View {
                 let baseSize = PlatformLayout.keypadButtonSize(forWidth: geometry.size.width)
                 let scale = scaledUnit / 48.0
                 let buttonSize = min(max(baseSize * scale, 44), 80)
-                let fontSize = min(geometry.size.width * 0.1, 44)
+                // Larger font size to fill vertical space
+                let fontSize = min(geometry.size.width * 0.12, 52)
 
-                ScrollView {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 8)
+
                     CalculatorView(
                         viewModel: calculatorVM,
-                        modeButtonIcon: appState.hasStoredSession ? "film.stack" : "play.rectangle",
-                        modeButtonHelp: appState.hasStoredSession ? "Return to video" : "Open video",
-                        onModeButtonTapped: onOpenVideoOrRestore,
+                        onOpenVideoFile: nil,
                         keypadButtonSize: buttonSize,
                         timecodeFontSize: fontSize
                     )
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 420)
+
+                    Spacer(minLength: 8)
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    videoImportMenu
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                    if appState.hasStoredSession {
+                        Button {
+                            onOpenVideoOrRestore()
+                        } label: {
+                            Image(systemName: "film.stack")
+                        }
+                        .tint(.timecoderTeal)
+                    } else {
+                        calculatorVideoImportMenu
                     }
                 }
             }
+            .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .videos)
         }
         .focusable()
         .focused($isKeyboardFocused)
@@ -184,24 +191,24 @@ struct iOSContentView: View {
         }
     }
 
-    // MARK: - Video Import Menu
+    // MARK: - Calculator Video Import Menu
 
-    private var videoImportMenu: some View {
+    private var calculatorVideoImportMenu: some View {
         Menu {
             Button {
                 onOpenVideoFile()
             } label: {
                 Label("Choose File", systemImage: "folder")
             }
-            PhotosPicker(
-                selection: $selectedPhotoItem,
-                matching: .videos
-            ) {
+            Button {
+                showingPhotoPicker = true
+            } label: {
                 Label("Photo Library", systemImage: "photo.on.rectangle")
             }
         } label: {
             Image(systemName: "video.badge.plus")
         }
+        .tint(.timecoderTeal)
     }
 
     // MARK: - Video Mode

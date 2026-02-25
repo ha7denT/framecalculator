@@ -191,15 +191,12 @@ struct PreferencesView: View {
 #if os(iOS)
 // MARK: - iOS App Delegate
 
-/// iOS app delegate for dynamic orientation control.
-/// Calculator mode is portrait-locked; video mode allows all orientations.
+/// iOS app delegate for orientation control.
+/// Portrait-locked for both calculator and video modes on iPhone.
 class iOSAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        if AppState.shared.mode == .calculator {
-            return .portrait
-        }
-        return .allButUpsideDown
+        return .portrait
     }
 }
 #endif

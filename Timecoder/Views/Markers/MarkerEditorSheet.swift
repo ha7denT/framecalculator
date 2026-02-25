@@ -40,7 +40,7 @@ struct MarkerEditorPopover: View {
             // Action buttons
             HStack(spacing: 12) {
                 Button(role: .destructive, action: deleteMarker) {
-                    Label("Delete", systemImage: "trash")
+                    Image(systemName: "trash")
                 }
                 .buttonStyle(.bordered)
                 .accessibilityLabel("Delete marker")
@@ -66,7 +66,7 @@ struct MarkerEditorPopover: View {
             }
         }
         .padding(20)
-        .frame(width: 300)
+        .frame(maxWidth: 400)
         .onAppear {
             loadMarkerValues()
         }

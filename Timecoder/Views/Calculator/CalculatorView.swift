@@ -1,6 +1,8 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import PhotosUI
 #endif
 
 /// Main calculator view combining display, frame rate picker, and keypad.
@@ -16,11 +18,27 @@ struct CalculatorView: View {
     /// Callback when the mode button is tapped.
     var onModeButtonTapped: (() -> Void)?
 
+    /// Callback to open the file importer (iOS video import menu).
+    var onOpenVideoFile: (() -> Void)?
+
+    #if os(iOS)
+    /// Callback when a photo library item is selected from the mode button menu.
+    var onPhotoItemSelected: ((PhotosPickerItem) -> Void)?
+    #endif
+
     /// Optional keypad button size override. When nil, uses KeypadView default (48).
     var keypadButtonSize: CGFloat? = nil
 
     /// Optional timecode font size override. When nil, uses TimecodeDisplayView default (36).
     var timecodeFontSize: CGFloat? = nil
+
+    #if os(iOS)
+    /// Selected photo library item for video import from mode button menu.
+    @State private var selectedPhotoItem: PhotosPickerItem?
+
+    /// Controls presentation of the photo library picker.
+    @State private var showingPhotoPicker = false
+    #endif
 
     /// Creates a calculator view with configurable mode button.
     /// - Parameters:
@@ -30,11 +48,14 @@ struct CalculatorView: View {
     ///   - onModeButtonTapped: Callback when the mode button is tapped.
     ///   - keypadButtonSize: Optional button size for keypad (nil = default 48).
     ///   - timecodeFontSize: Optional font size for timecode display (nil = default 36).
+    #if os(iOS)
     init(
         viewModel: CalculatorViewModel? = nil,
         modeButtonIcon: String = "play.rectangle",
         modeButtonHelp: String = "Open video (⌘O)",
         onModeButtonTapped: (() -> Void)? = nil,
+        onOpenVideoFile: (() -> Void)? = nil,
+        onPhotoItemSelected: ((PhotosPickerItem) -> Void)? = nil,
         keypadButtonSize: CGFloat? = nil,
         timecodeFontSize: CGFloat? = nil
     ) {
@@ -42,15 +63,71 @@ struct CalculatorView: View {
         self.modeButtonIcon = modeButtonIcon
         self.modeButtonHelp = modeButtonHelp
         self.onModeButtonTapped = onModeButtonTapped
+        self.onOpenVideoFile = onOpenVideoFile
+        self.onPhotoItemSelected = onPhotoItemSelected
         self.keypadButtonSize = keypadButtonSize
         self.timecodeFontSize = timecodeFontSize
     }
+    #else
+    init(
+        viewModel: CalculatorViewModel? = nil,
+        modeButtonIcon: String = "play.rectangle",
+        modeButtonHelp: String = "Open video (⌘O)",
+        onModeButtonTapped: (() -> Void)? = nil,
+        onOpenVideoFile: (() -> Void)? = nil,
+        keypadButtonSize: CGFloat? = nil,
+        timecodeFontSize: CGFloat? = nil
+    ) {
+        self.viewModel = viewModel ?? CalculatorViewModel()
+        self.modeButtonIcon = modeButtonIcon
+        self.modeButtonHelp = modeButtonHelp
+        self.onModeButtonTapped = onModeButtonTapped
+        self.onOpenVideoFile = onOpenVideoFile
+        self.keypadButtonSize = keypadButtonSize
+        self.timecodeFontSize = timecodeFontSize
+    }
+    #endif
 
     var body: some View {
         VStack(spacing: 8) {
             // Top bar: Mode button (left) and frame rate picker (right)
             HStack {
                 // Mode button (open video in calculator mode, return to calculator in logging mode)
+                #if os(iOS)
+                if let onOpenVideoFile = onOpenVideoFile {
+                    // iOS calculator mode: menu with file/photo library options
+                    Menu {
+                        Button {
+                            onOpenVideoFile()
+                        } label: {
+                            Label("Choose File", systemImage: "folder")
+                        }
+                        Button {
+                            showingPhotoPicker = true
+                        } label: {
+                            Label("Photo Library", systemImage: "photo.on.rectangle")
+                        }
+                    } label: {
+                        Image(systemName: modeButtonIcon)
+                            .font(.system(size: 18, weight: .medium))
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(.timecoderTeal)
+                    .clipShape(Circle())
+                    .help(modeButtonHelp)
+                } else if let onModeButtonTapped = onModeButtonTapped {
+                    Button(action: onModeButtonTapped) {
+                        Image(systemName: modeButtonIcon)
+                            .font(.system(size: 18, weight: .medium))
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(.timecoderTeal)
+                    .clipShape(Circle())
+                    .help(modeButtonHelp)
+                }
+                #else
                 Button(action: { onModeButtonTapped?() }) {
                     Image(systemName: modeButtonIcon)
                         .font(.system(size: 18, weight: .medium))
@@ -62,6 +139,7 @@ struct CalculatorView: View {
                 .help(modeButtonHelp)
                 .accessibilityLabel(modeButtonIcon == "play.rectangle" ? "Open video" : "Return to calculator")
                 .accessibilityHint(modeButtonIcon == "play.rectangle" ? "Opens a video file for inspection" : "Closes video and returns to calculator mode")
+                #endif
 
                 Spacer()
 
@@ -70,19 +148,12 @@ struct CalculatorView: View {
             .padding(.horizontal, 12)
             .padding(.top, 12)
 
-            // Error message
-            if let error = viewModel.errorMessage {
-                ErrorBanner(message: error) {
-                    viewModel.errorMessage = nil
-                }
-            }
-
             // Main timecode display (operation indicator shown inside)
             TimecodeDisplayView(
                 formattedTimecode: viewModel.formattedTimecodeString,
                 frameCount: viewModel.currentFrameCount,
                 displayMode: viewModel.entryMode == .frames ? .frames : .timecode,
-                hasError: viewModel.errorMessage != nil,
+                hasError: false,
                 isPendingOperation: viewModel.hasPendingOperation,
                 invalidComponents: viewModel.invalidComponents,
                 pendingOperation: viewModel.pendingOperation,
@@ -101,7 +172,13 @@ struct CalculatorView: View {
         #if os(macOS)
         .frame(minWidth: 280, idealWidth: 300, maxWidth: 340)
         #else
-        .frame(maxWidth: 400)
+        .frame(maxWidth: .infinity)
+        .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .videos)
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            guard let newItem else { return }
+            onPhotoItemSelected?(newItem)
+            selectedPhotoItem = nil
+        }
         #endif
         #if os(macOS)
         .background(KeyboardHandlerView(viewModel: viewModel))
@@ -274,7 +351,7 @@ private class KeyboardCaptureView: NSView {
 // MARK: - Supporting Views
 
 /// Banner showing error messages.
-private struct ErrorBanner: View {
+struct ErrorBanner: View {
     let message: String
     let dismiss: () -> Void
 

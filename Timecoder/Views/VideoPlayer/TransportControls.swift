@@ -29,7 +29,24 @@ struct TransportControls: View {
     var isCompact: Bool = false
 
     var body: some View {
-        HStack(spacing: isCompact ? 8 : 16) {
+        transportContent
+            .padding(.horizontal, isCompact ? 4 : 12)
+            .padding(.vertical, isCompact ? 4 : 10)
+    }
+
+    @ViewBuilder
+    private var transportContent: some View {
+        if isCompact {
+            ScrollView(.horizontal, showsIndicators: false) {
+                transportButtons
+            }
+        } else {
+            transportButtons
+        }
+    }
+
+    private var transportButtons: some View {
+        HStack(spacing: isCompact ? 6 : 16) {
             // Frame step backward
             GlassTransportButton(
                 icon: "backward.frame",
@@ -141,15 +158,13 @@ struct TransportControls: View {
                 .help("Export markers (⌘E)")
             }
 
-            Spacer()
-
-            // Shuttle speed indicator (hidden in compact mode)
             if !isCompact {
+                Spacer()
+
+                // Shuttle speed indicator (hidden in compact mode)
                 shuttleIndicator
             }
         }
-        .padding(.horizontal, isCompact ? 8 : 12)
-        .padding(.vertical, isCompact ? 6 : 10)
     }
 
     // MARK: - Shuttle Indicator
@@ -243,7 +258,7 @@ struct TransportControls: View {
 // MARK: - Glass Transport Button
 
 /// A transport control button with glass styling.
-private struct GlassTransportButton: View {
+struct GlassTransportButton: View {
     let icon: String
     var isActive: Bool = false
     var isDisabled: Bool = false

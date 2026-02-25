@@ -52,6 +52,22 @@ struct iOSVideoInspectorView: View {
         case calculator = "Calculator"
         case metadata = "Info"
         case markers = "Markers"
+
+        var next: PanelTab {
+            switch self {
+            case .calculator: return .metadata
+            case .metadata: return .markers
+            case .markers: return .markers
+            }
+        }
+
+        var previous: PanelTab {
+            switch self {
+            case .calculator: return .calculator
+            case .metadata: return .calculator
+            case .markers: return .metadata
+            }
+        }
     }
 
     var body: some View {
@@ -73,6 +89,16 @@ struct iOSVideoInspectorView: View {
                     .tint(.timecoderTeal)
                 }
 
+                if isCompact, let metadata = appState.currentMetadata {
+                    ToolbarItem(placement: .principal) {
+                        Text(metadata.filename)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         if !markerVM.markers.isEmpty {
@@ -88,6 +114,7 @@ struct iOSVideoInspectorView: View {
                     videoImportMenu
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
             configurePlayer()
@@ -115,6 +142,10 @@ struct iOSVideoInspectorView: View {
                 frameRate: playerVM.frameRate,
                 startTimecodeFrames: playerVM.startTimecodeFrames
             )
+            .presentationDetents([.height(220)])
+            .presentationBackgroundInteraction(.enabled(upThrough: .height(220)))
+            .presentationBackground(.ultraThinMaterial)
+            .ignoresSafeArea(.keyboard)
         }
         .onReceive(NotificationCenter.default.publisher(for: .showExportDialog)) { _ in
             if !markerVM.markers.isEmpty {
@@ -267,44 +298,369 @@ struct iOSVideoInspectorView: View {
     // MARK: - Compact Layout (iPhone)
 
     private var compactLayout: some View {
-        Group {
-            if verticalSizeClass == .compact {
-                // iPhone landscape: side-by-side
-                compactLandscapeLayout
-            } else {
-                // iPhone portrait: stacked
-                compactPortraitLayout
+        compactPortraitLayout
+    }
+
+    /// iPhone portrait — single-screen layout with video, transport, timecode display,
+    /// and side-by-side keypad + metadata/info panel.
+    private var compactPortraitLayout: some View {
+        GeometryReader { geometry in
+            let totalWidth = geometry.size.width
+            let totalHeight = geometry.size.height
+            let maxVideoHeight = totalHeight * 0.30
+
+            // Column widths for keypad (left) and info (right)
+            let leftWidth = totalWidth * 0.55
+            let rightWidth = totalWidth * 0.45
+            let keypadButtonSize = min(PlatformLayout.keypadButtonSize(forWidth: leftWidth, spacing: 6), 44)
+            let timecodeFontSize = min(leftWidth * 0.1, 24)
+
+            VStack(spacing: 0) {
+                // Video player — below notch, respects safe area
+                compactVideoOnlyView
+                    .frame(width: totalWidth)
+                    .frame(maxHeight: maxVideoHeight)
+
+                // Timeline
+                TimelineWithTimecode(
+                    viewModel: playerVM,
+                    markers: markerVM.sortedMarkers,
+                    onMarkerTapped: { marker in
+                        markerVM.openEditor(for: marker)
+                    }
+                )
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+
+                // Row 1: Playback controls (step back, shuttle, step forward)
+                compactPlaybackRow
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
+
+                // Row 2: Marker + In/Out controls
+                compactMarkerIORow
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 8)
+
+                // Side-by-side: Timecode+Keypad (left) + Info (right)
+                HStack(alignment: .top, spacing: 0) {
+                    // Left column: Timecode display + Keypad
+                    VStack(spacing: 4) {
+                        TimecodeDisplayView(
+                            formattedTimecode: calculatorVM.formattedTimecodeString,
+                            frameCount: calculatorVM.currentFrameCount,
+                            displayMode: calculatorVM.entryMode == .frames ? .frames : .timecode,
+                            hasError: false,
+                            isPendingOperation: calculatorVM.hasPendingOperation,
+                            invalidComponents: calculatorVM.invalidComponents,
+                            pendingOperation: calculatorVM.pendingOperation,
+                            primaryFontSize: timecodeFontSize,
+                            showSecondaryDisplay: false
+                        )
+                        .padding(.horizontal, 4)
+
+                        KeypadView(
+                            viewModel: calculatorVM,
+                            buttonSize: keypadButtonSize,
+                            buttonSpacing: 6
+                        )
+                    }
+                    .frame(width: leftWidth)
+
+                    // Right column: FPS picker + compact metadata + In/Out
+                    VStack(alignment: .leading, spacing: 8) {
+                        CompactFrameRatePicker(selection: $calculatorVM.frameRate)
+                            .padding(.top, 4)
+
+                        Divider()
+
+                        if let metadata = appState.currentMetadata {
+                            compactMetadataView(metadata: metadata)
+                        }
+
+                        if appState.currentMetadata != nil {
+                            Divider()
+                            compactInOutView
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 8)
+                    .frame(width: rightWidth)
+                }
             }
+            .frame(width: totalWidth)
         }
     }
 
-    /// iPhone portrait — stacked video + tabbed panels.
-    private var compactPortraitLayout: some View {
-        VStack(spacing: 0) {
-            // Video player fills width, height constrained by aspect ratio
-            videoPlayerArea
-                .frame(maxWidth: .infinity)
+    /// Playback controls row: step backward, shuttle (reverse/play/forward), step forward — centred.
+    private var compactPlaybackRow: some View {
+        HStack(spacing: 6) {
+            Spacer(minLength: 0)
 
-            // Tabbed panels below
-            panelPicker
+            GlassTransportButton(
+                icon: "backward.frame",
+                action: playerVM.stepBackward,
+                accessibilityLabelText: "Step backward",
+                accessibilityHintText: "Move back one frame"
+            )
 
-            TabView(selection: $selectedPanel) {
-                calculatorPanel
-                    .tag(PanelTab.calculator)
-
-                metadataPanel
-                    .tag(PanelTab.metadata)
-
-                markersPanel
-                    .tag(PanelTab.markers)
+            GlassEffectContainer {
+                HStack(spacing: 8) {
+                    GlassTransportButton(
+                        icon: "backward.fill",
+                        isActive: playerVM.shuttleState.rawValue < -1,
+                        action: playerVM.handleJ,
+                        accessibilityLabelText: "Reverse",
+                        accessibilityHintText: "Play backward"
+                    )
+                    GlassTransportButton(
+                        icon: playerVM.isPlaying ? "pause.fill" : "play.fill",
+                        isActive: playerVM.isPlaying && abs(playerVM.shuttleState.rawValue) <= 1,
+                        action: playerVM.togglePlayPause,
+                        accessibilityLabelText: playerVM.isPlaying ? "Pause" : "Play",
+                        accessibilityHintText: playerVM.isPlaying ? "Stop playback" : "Start playback"
+                    )
+                    GlassTransportButton(
+                        icon: "forward.fill",
+                        isActive: playerVM.shuttleState.rawValue > 1,
+                        action: playerVM.handleL,
+                        accessibilityLabelText: "Forward",
+                        accessibilityHintText: "Play forward"
+                    )
+                }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
+
+            GlassTransportButton(
+                icon: "forward.frame",
+                action: playerVM.stepForward,
+                accessibilityLabelText: "Step forward",
+                accessibilityHintText: "Move forward one frame"
+            )
+
+            Spacer(minLength: 0)
         }
+    }
+
+    /// Marker + In/Out controls row: prev marker, add marker, next marker, set in, set out — centred.
+    private var compactMarkerIORow: some View {
+        HStack(spacing: 6) {
+            Spacer(minLength: 0)
+
+            GlassEffectContainer {
+                HStack(spacing: 6) {
+                    GlassTransportButton(
+                        icon: "bookmark.fill",
+                        isDisabled: markerVM.previousMarker(before: playerVM.currentFrames) == nil,
+                        showLeftArrow: true,
+                        action: { goToPreviousMarker() },
+                        accessibilityLabelText: "Previous marker",
+                        accessibilityHintText: "Jump to the previous marker"
+                    )
+                    GlassTransportButton(
+                        icon: "pin.circle",
+                        action: { addMarkerAtPlayhead() },
+                        accessibilityLabelText: "Add marker",
+                        accessibilityHintText: "Create a marker at the current playhead position"
+                    )
+                    GlassTransportButton(
+                        icon: "bookmark.fill",
+                        isDisabled: markerVM.nextMarker(after: playerVM.currentFrames) == nil,
+                        showRightArrow: true,
+                        action: { goToNextMarker() },
+                        accessibilityLabelText: "Next marker",
+                        accessibilityHintText: "Jump to the next marker"
+                    )
+                }
+            }
+
+            Divider()
+                .frame(height: 20)
+
+            GlassEffectContainer {
+                HStack(spacing: 6) {
+                    GlassTransportButton(
+                        icon: "arrow.right.to.line",
+                        isActive: playerVM.inPointFrames != nil,
+                        action: { playerVM.setInPoint() },
+                        accessibilityLabelText: "Set In point",
+                        accessibilityHintText: "Mark In point at current position"
+                    )
+                    GlassTransportButton(
+                        icon: "arrow.left.to.line",
+                        isActive: playerVM.outPointFrames != nil,
+                        action: { playerVM.setOutPoint() },
+                        accessibilityLabelText: "Set Out point",
+                        accessibilityHintText: "Mark Out point at current position"
+                    )
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    /// Video display only — no timeline or transport (used in compact portrait).
+    @ViewBuilder
+    private var compactVideoOnlyView: some View {
+        Color.black
+            .aspectRatio(videoAspectRatio, contentMode: .fit)
+            .overlay {
+                if let player = appState.player {
+                    CustomVideoPlayerView(player: player)
+                } else {
+                    emptyPlayerState
+                }
+            }
+    }
+
+    /// Fixed width for compact right-column panels (metadata + in/out).
+    private let compactPanelWidth: CGFloat = 160
+
+    /// Compact metadata grid for the right column.
+    @ViewBuilder
+    private func compactMetadataView(metadata: VideoMetadata) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 3) {
+                GridRow {
+                    Text("Res")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, alignment: .trailing)
+                    Text(metadata.formattedResolution)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                }
+                GridRow {
+                    Text("Codec")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, alignment: .trailing)
+                    Text(metadata.codec)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                }
+                GridRow {
+                    Text("Dur")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, alignment: .trailing)
+                    Text(metadata.formattedDuration)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                }
+                GridRow {
+                    Text("Audio")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, alignment: .trailing)
+                    Text(metadata.formattedAudioChannels)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(8)
+        .frame(width: compactPanelWidth, alignment: .leading)
+        .glassEffect(.regular, in: .rect(cornerRadius: 8))
+    }
+
+    /// Compact In/Out display for the right column.
+    /// Fixed width with copy buttons beside each timecode.
+    @ViewBuilder
+    private var compactInOutView: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Grid(alignment: .leading, horizontalSpacing: 4, verticalSpacing: 3) {
+                GridRow {
+                    Text("In")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 24, alignment: .trailing)
+                    if let inTC = playerVM.inPointTimecode {
+                        Text(inTC.formatted())
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Button(action: { PlatformClipboard.copy(inTC.formatted()) }) {
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 9))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text("—")
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                GridRow {
+                    Text("Out")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 24, alignment: .trailing)
+                    if let outTC = playerVM.outPointTimecode {
+                        Text(outTC.formatted())
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Button(action: { PlatformClipboard.copy(outTC.formatted()) }) {
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 9))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text("—")
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                if let duration = playerVM.inOutDuration {
+                    GridRow {
+                        Text("Dur")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .frame(width: 24, alignment: .trailing)
+                        Text(duration.formatted())
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.orange)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Button(action: { PlatformClipboard.copy(duration.formatted()) }) {
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 9))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if playerVM.inPointFrames != nil || playerVM.outPointFrames != nil {
+                Button(action: { playerVM.clearInOutPoints() }) {
+                    Label("Clear", systemImage: "xmark.circle")
+                        .font(.caption2)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+            }
+        }
+        .padding(8)
+        .frame(width: compactPanelWidth, alignment: .leading)
+        .glassEffect(.regular, in: .rect(cornerRadius: 8))
     }
 
     /// iPhone landscape — side-by-side video + compact calculator/InOut.
     private var compactLandscapeLayout: some View {
         GeometryReader { geometry in
+            let rightWidth = geometry.size.width * 0.45
+
             HStack(spacing: 0) {
                 // Left: Video area (55%)
                 videoPlayerArea
@@ -313,22 +669,25 @@ struct iOSVideoInspectorView: View {
                 Divider()
 
                 // Right: Compact calculator + InOut
+                let landscapeButtonSize = PlatformLayout.keypadButtonSize(forWidth: rightWidth, spacing: 8)
+                let landscapeFontSize = min(rightWidth * 0.075, 24)
+
                 ScrollView {
                     VStack(spacing: 0) {
                         CalculatorView(
                             viewModel: calculatorVM,
-                            modeButtonIcon: "circle.grid.3x3.circle.fill",
-                            modeButtonHelp: "Switch to calculator",
-                            onModeButtonTapped: onSwitchToCalculator
+                            keypadButtonSize: min(landscapeButtonSize, 44),
+                            timecodeFontSize: landscapeFontSize
                         )
 
                         if appState.currentMetadata != nil {
                             Divider().padding(.horizontal, 12)
                             InOutPanel(viewModel: playerVM)
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
+                                .padding(.vertical, 4)
                         }
                     }
+                    .frame(maxWidth: rightWidth)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -356,24 +715,44 @@ struct iOSVideoInspectorView: View {
                 }
             } else {
                 // iPad portrait: stacked like compact mode
+                let totalWidth = geometry.size.width
+
                 VStack(spacing: 0) {
                     videoPlayerArea
-                        .frame(maxWidth: .infinity)
+                        .frame(width: totalWidth)
 
                     panelPicker
+                        .frame(width: totalWidth)
 
-                    TabView(selection: $selectedPanel) {
-                        calculatorPanel
-                            .tag(PanelTab.calculator)
-
-                        metadataPanel
-                            .tag(PanelTab.metadata)
-
-                        markersPanel
-                            .tag(PanelTab.markers)
+                    Group {
+                        switch selectedPanel {
+                        case .calculator:
+                            calculatorPanelContent(width: totalWidth)
+                        case .metadata:
+                            metadataPanel
+                        case .markers:
+                            markersPanel
+                        }
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(width: totalWidth)
+                    .frame(maxHeight: .infinity)
+                    .clipped()
+                    .gesture(
+                        DragGesture(minimumDistance: 30)
+                            .onEnded { value in
+                                if value.translation.width < -30 {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedPanel = selectedPanel.next
+                                    }
+                                } else if value.translation.width > 30 {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedPanel = selectedPanel.previous
+                                    }
+                                }
+                            }
+                    )
                 }
+                .frame(width: totalWidth)
             }
         }
     }
@@ -383,19 +762,16 @@ struct iOSVideoInspectorView: View {
     @ViewBuilder
     private var videoPlayerArea: some View {
         VStack(spacing: 0) {
-            // Video display
-            ZStack {
-                Color.black
-
-                if let player = appState.player {
-                    CustomVideoPlayerView(player: player)
-                        .aspectRatio(videoAspectRatio, contentMode: .fit)
-                } else {
-                    emptyPlayerState
+            // Video display — centered with black letterbox
+            Color.black
+                .aspectRatio(videoAspectRatio, contentMode: .fit)
+                .overlay {
+                    if let player = appState.player {
+                        CustomVideoPlayerView(player: player)
+                    } else {
+                        emptyPlayerState
+                    }
                 }
-            }
-            .aspectRatio(videoAspectRatio, contentMode: .fit)
-            .clipped()
 
             // Timeline
             TimelineWithTimecode(
@@ -405,7 +781,8 @@ struct iOSVideoInspectorView: View {
                     markerVM.openEditor(for: marker)
                 }
             )
-            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
 
             // Transport controls
             TransportControls(
@@ -419,7 +796,7 @@ struct iOSVideoInspectorView: View {
                 hasMarkers: !markerVM.markers.isEmpty,
                 isCompact: isCompact
             )
-            .padding(.bottom, 4)
+            .padding(.bottom, 6)
         }
     }
 
@@ -444,29 +821,34 @@ struct iOSVideoInspectorView: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
 
     // MARK: - Panels
 
-    private var calculatorPanel: some View {
+    @ViewBuilder
+    private func calculatorPanelContent(width: CGFloat) -> some View {
+        let compactButtonSize = PlatformLayout.keypadButtonSize(forWidth: width, spacing: 8)
+        let compactFontSize = min(width * 0.075, 28)
+
         ScrollView {
             VStack(spacing: 0) {
                 CalculatorView(
                     viewModel: calculatorVM,
-                    modeButtonIcon: "circle.grid.3x3.circle.fill",
-                    modeButtonHelp: "Switch to calculator",
-                    onModeButtonTapped: onSwitchToCalculator
+                    keypadButtonSize: min(compactButtonSize, 52),
+                    timecodeFontSize: compactFontSize
                 )
 
                 if appState.currentMetadata != nil {
                     Divider().padding(.horizontal, 12)
                     InOutPanel(viewModel: playerVM)
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
                 }
             }
+            .frame(width: width)
         }
+        .clipped()
     }
 
     private var metadataPanel: some View {
@@ -524,10 +906,7 @@ struct iOSVideoInspectorView: View {
     private var rightPanel: some View {
         VStack(spacing: 0) {
             CalculatorView(
-                viewModel: calculatorVM,
-                modeButtonIcon: "circle.grid.3x3.circle.fill",
-                modeButtonHelp: "Switch to calculator",
-                onModeButtonTapped: onSwitchToCalculator
+                viewModel: calculatorVM
             )
 
             if let metadata = appState.currentMetadata {
