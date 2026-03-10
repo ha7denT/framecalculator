@@ -206,6 +206,8 @@ final class VideoPlayerViewModel: ObservableObject {
         shuttleState = .stopped
         inPointFrames = nil
         outPointFrames = nil
+        activeMarker = nil
+        markers = []
         cancellables.removeAll()
     }
 

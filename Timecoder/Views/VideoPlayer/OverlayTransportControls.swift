@@ -36,6 +36,9 @@ struct OverlayTransportControls: View {
         .onAppear {
             scheduleHide()
         }
+        .onDisappear {
+            cancelHide()
+        }
     }
 
     private var controlsOverlay: some View {
