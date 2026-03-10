@@ -86,6 +86,9 @@ final class VideoPlayerViewModel: ObservableObject {
     /// The Out point position in frames (nil if not set).
     @Published private(set) var outPointFrames: Int? = nil
 
+    /// The marker currently at the playhead position (nil if none).
+    @Published var activeMarker: Marker?
+
     // MARK: - Private Properties
 
     private var player: AVPlayer?
@@ -94,6 +97,9 @@ final class VideoPlayerViewModel: ObservableObject {
 
     /// Callback for when current timecode changes (for calculator sync).
     var onTimecodeChanged: ((Timecode) -> Void)?
+
+    /// Current markers for active marker detection. Set by the view layer.
+    var markers: [Marker] = []
 
     // MARK: - Computed Properties
 
@@ -410,6 +416,23 @@ final class VideoPlayerViewModel: ObservableObject {
         if frames != currentFrames {
             currentFrames = frames
             notifyTimecodeChanged()
+        }
+
+        updateActiveMarker()
+    }
+
+    /// Updates the active marker based on the current playhead frame.
+    /// Called automatically from the periodic time observer.
+    private func updateActiveMarker() {
+        let frame = currentFrames
+        if let marker = markers.first(where: { $0.timecodeFrames == frame }) {
+            if activeMarker?.id != marker.id {
+                activeMarker = marker
+            }
+        } else {
+            if activeMarker != nil {
+                activeMarker = nil
+            }
         }
     }
 
