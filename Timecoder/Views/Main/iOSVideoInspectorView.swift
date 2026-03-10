@@ -301,7 +301,13 @@ struct iOSVideoInspectorView: View {
     // MARK: - Compact Layout (iPhone)
 
     private var compactLayout: some View {
-        compactPortraitLayout
+        GeometryReader { geometry in
+            if geometry.size.width > geometry.size.height {
+                compactLandscapeVideoLayout(geometry: geometry)
+            } else {
+                compactPortraitLayout
+            }
+        }
     }
 
     /// iPhone portrait — single-screen layout with video, transport, timecode display,
@@ -665,42 +671,38 @@ struct iOSVideoInspectorView: View {
         .glassEffect(.regular, in: .rect(cornerRadius: 8))
     }
 
-    /// iPhone landscape — side-by-side video + compact calculator/InOut.
-    private var compactLandscapeLayout: some View {
-        GeometryReader { geometry in
-            let rightWidth = geometry.size.width * 0.45
-
-            HStack(spacing: 0) {
-                // Left: Video area (55%)
-                videoPlayerArea
-                    .frame(width: geometry.size.width * 0.55)
-
-                Divider()
-
-                // Right: Compact calculator + InOut
-                let landscapeButtonSize = PlatformLayout.keypadButtonSize(forWidth: rightWidth, spacing: 8)
-                let landscapeFontSize = min(rightWidth * 0.075, 24)
-
-                ScrollView {
-                    VStack(spacing: 0) {
-                        CalculatorView(
-                            viewModel: calculatorVM,
-                            keypadButtonSize: min(landscapeButtonSize, 44),
-                            timecodeFontSize: landscapeFontSize
-                        )
-
-                        if appState.currentMetadata != nil {
-                            Divider().padding(.horizontal, 12)
-                            InOutPanel(viewModel: playerVM)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-                        }
+    /// iPhone landscape — fullscreen video with overlay transport controls.
+    /// Hides all non-video UI (metadata, keypad, in/out, timeline).
+    private func compactLandscapeVideoLayout(geometry: GeometryProxy) -> some View {
+        ZStack {
+            // Fullscreen video
+            Color.black
+                .overlay {
+                    if let player = appState.player {
+                        CustomVideoPlayerView(player: player)
+                            .aspectRatio(videoAspectRatio, contentMode: .fit)
+                    } else {
+                        emptyPlayerState
                     }
-                    .frame(maxWidth: rightWidth)
                 }
-                .frame(maxWidth: .infinity)
-            }
+                .overlay(alignment: .topLeading) {
+                    if let marker = playerVM.activeMarker {
+                        MarkerOverlayView(marker: marker)
+                            .padding(8)
+                    }
+                }
+
+            // Overlay transport controls
+            OverlayTransportControls(
+                viewModel: playerVM,
+                onPreviousMarker: goToPreviousMarker,
+                onAddMarker: addMarkerAtPlayhead,
+                onNextMarker: goToNextMarker,
+                hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
+                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil
+            )
         }
+        .ignoresSafeArea()
     }
 
     // MARK: - Regular Layout (iPad)
