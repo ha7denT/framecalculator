@@ -75,6 +75,9 @@ struct VideoInspectorView: View {
                 configurePlayer()
             }
         }
+        .onChange(of: markerVM.markers) { _, _ in
+            playerVM.markers = markerVM.sortedMarkers
+        }
         #if os(macOS)
         .background(
             VideoKeyboardHandler(
@@ -127,6 +130,18 @@ struct VideoInspectorView: View {
                 } else {
                     Color.black
                         .overlay(emptyPlayerState)
+                }
+
+                // Marker overlay
+                if let marker = playerVM.activeMarker {
+                    VStack {
+                        HStack {
+                            MarkerOverlayView(marker: marker)
+                                .padding(8)
+                            Spacer()
+                        }
+                        Spacer()
+                    }
                 }
             }
             .frame(width: videoFrameSize.width, height: videoFrameSize.height)
@@ -254,6 +269,7 @@ struct VideoInspectorView: View {
         }
 
         playerVM.configure(with: player, metadata: metadata)
+        playerVM.markers = markerVM.sortedMarkers
         isConfigured = true
 
         // Set up bidirectional sync: player → calculator
