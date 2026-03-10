@@ -31,14 +31,8 @@ struct iOSVideoInspectorView: View {
     /// Controls export dialog presentation.
     @State private var isExportDialogPresented = false
 
-    /// Selected panel tab for iPhone layout.
-    @State private var selectedPanel: PanelTab = .calculator
-
     /// Focus state for hardware keyboard input.
     @FocusState private var isKeyboardFocused: Bool
-
-    /// Vertical size class for detecting iPhone landscape.
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     /// Video aspect ratio for layout calculations.
     private var videoAspectRatio: CGFloat {
@@ -46,28 +40,6 @@ struct iOSVideoInspectorView: View {
             return 16.0 / 9.0
         }
         return metadata.resolution.width / metadata.resolution.height
-    }
-
-    enum PanelTab: String, CaseIterable {
-        case calculator = "Calculator"
-        case metadata = "Info"
-        case markers = "Markers"
-
-        var next: PanelTab {
-            switch self {
-            case .calculator: return .metadata
-            case .metadata: return .markers
-            case .markers: return .markers
-            }
-        }
-
-        var previous: PanelTab {
-            switch self {
-            case .calculator: return .calculator
-            case .metadata: return .calculator
-            case .markers: return .metadata
-            }
-        }
     }
 
     var body: some View {
@@ -821,55 +793,6 @@ struct iOSVideoInspectorView: View {
         .padding(.top, 8)
     }
 
-    // MARK: - Video Player Area
-
-    @ViewBuilder
-    private var videoPlayerArea: some View {
-        VStack(spacing: 0) {
-            // Video display — centered with black letterbox
-            Color.black
-                .aspectRatio(videoAspectRatio, contentMode: .fit)
-                .overlay {
-                    if let player = appState.player {
-                        CustomVideoPlayerView(player: player)
-                    } else {
-                        emptyPlayerState
-                    }
-                }
-                .overlay(alignment: .topLeading) {
-                    if let marker = playerVM.activeMarker {
-                        MarkerOverlayView(marker: marker)
-                            .padding(8)
-                    }
-                }
-
-            // Timeline
-            TimelineWithTimecode(
-                viewModel: playerVM,
-                markers: markerVM.sortedMarkers,
-                onMarkerTapped: { marker in
-                    markerVM.openEditor(for: marker)
-                }
-            )
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-
-            // Transport controls
-            TransportControls(
-                viewModel: playerVM,
-                onPreviousMarker: goToPreviousMarker,
-                onAddMarker: addMarkerAtPlayhead,
-                onNextMarker: goToNextMarker,
-                onExport: { isExportDialogPresented = true },
-                hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
-                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil,
-                hasMarkers: !markerVM.markers.isEmpty,
-                isCompact: isCompact
-            )
-            .padding(.bottom, 6)
-        }
-    }
-
     private var emptyPlayerState: some View {
         VStack(spacing: 16) {
             Image(systemName: "film")
@@ -879,123 +802,6 @@ struct iOSVideoInspectorView: View {
                 .font(.headline)
                 .foregroundColor(.gray)
         }
-    }
-
-    // MARK: - Panel Picker (Compact)
-
-    private var panelPicker: some View {
-        Picker("Panel", selection: $selectedPanel) {
-            ForEach(PanelTab.allCases, id: \.self) { tab in
-                Text(tab.rawValue).tag(tab)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-    }
-
-    // MARK: - Panels
-
-    @ViewBuilder
-    private func calculatorPanelContent(width: CGFloat) -> some View {
-        let compactButtonSize = PlatformLayout.keypadButtonSize(forWidth: width, spacing: 8)
-        let compactFontSize = min(width * 0.075, 28)
-
-        ScrollView {
-            VStack(spacing: 0) {
-                CalculatorView(
-                    viewModel: calculatorVM,
-                    keypadButtonSize: min(compactButtonSize, 52),
-                    timecodeFontSize: compactFontSize
-                )
-
-                if appState.currentMetadata != nil {
-                    Divider().padding(.horizontal, 12)
-                    InOutPanel(viewModel: playerVM)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                }
-            }
-            .frame(width: width)
-        }
-        .clipped()
-    }
-
-    private var metadataPanel: some View {
-        ScrollView {
-            if let metadata = appState.currentMetadata {
-                MetadataPanel(metadata: metadata)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            } else {
-                ContentUnavailableView(
-                    "No Metadata",
-                    systemImage: "info.circle",
-                    description: Text("Load a video to see metadata")
-                )
-            }
-        }
-    }
-
-    private var markersPanel: some View {
-        ScrollView {
-            if markerVM.markers.isEmpty {
-                ContentUnavailableView(
-                    "No Markers",
-                    systemImage: "mappin",
-                    description: Text("Tap the marker button to add one")
-                )
-            } else {
-                LazyVStack(spacing: 4) {
-                    ForEach(markerVM.sortedMarkers) { marker in
-                        MarkerRowView(
-                            marker: marker,
-                            frameRate: playerVM.frameRate,
-                            startTimecodeFrames: playerVM.startTimecodeFrames,
-                            isSelected: markerVM.selectedMarker?.id == marker.id,
-                            onTap: {
-                                playerVM.seek(toFrame: marker.timecodeFrames)
-                                markerVM.selectMarker(id: marker.id)
-                            },
-                            onDoubleTap: {
-                                playerVM.seek(toFrame: marker.timecodeFrames)
-                                markerVM.openEditor(for: marker)
-                            }
-                        )
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-            }
-        }
-    }
-
-    // MARK: - Right Panel (iPad)
-
-    @ViewBuilder
-    private var rightPanel: some View {
-        VStack(spacing: 0) {
-            CalculatorView(
-                viewModel: calculatorVM
-            )
-
-            if let metadata = appState.currentMetadata {
-                Divider().padding(.horizontal, 12)
-
-                InOutPanel(viewModel: playerVM)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-
-                Divider().padding(.horizontal, 12)
-
-                MetadataPanel(metadata: metadata)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.top, 8)
     }
 
     // MARK: - Video Import Menu
