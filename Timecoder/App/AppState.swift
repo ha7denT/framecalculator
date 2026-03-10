@@ -133,6 +133,12 @@ public final class AppState: ObservableObject {
 
     // MARK: - Computed Properties
 
+    /// Whether the app is currently in video inspector mode.
+    /// Used by iOSAppDelegate for orientation decisions.
+    public var isVideoMode: Bool {
+        mode == .videoInspector
+    }
+
     /// The currently loaded video metadata, if any.
     public var currentMetadata: VideoMetadata? {
         if case .loaded(let metadata) = videoState {
