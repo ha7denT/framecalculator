@@ -705,16 +705,49 @@ Redesign the iPhone portrait video mode to eliminate clipping issues, remove was
 
 ---
 
-## Sprint 24: iPad Layout Refresh & Performance
+## Sprint 24: Marker Overlay, iPhone Landscape Video & iPad Tweaks
 
 ### Goal
-Address iPad video mode layout, seek performance gains across both platforms, and handle iOS edge cases (lifecycle, accessibility, app icon).
+Add on-screen marker text overlay during playback (all platforms), implement landscape-only video viewing mode on iPhone, and begin iPad UI tweaks.
 
 ### Deliverables
 
-- [ ] **iPad video mode layout improvements**
-  - Review and optimize iPad portrait and landscape layouts
-  - Ensure consistent panel sizing and spacing
+- [x] **Marker text overlay on video frame (all platforms)**
+  - When the playback head is on a frame that has a marker, display the marker text in a transparent box in the top-left corner of the video frame
+  - Box background should be semi-transparent, tinted with the marker's colour
+  - Text in white (or high-contrast against the colour)
+  - Overlay should appear/disappear as playback crosses marker frames
+  - Works on macOS, iPad, and iPhone
+
+- [x] **iPhone landscape video viewing mode**
+  - When the user is in video logging mode, allow rotation to landscape
+  - Landscape mode is purely for video playback — hide: metadata info, calculator controls, in/out/duration panel
+  - Transport controls shown as transparent Liquid Glass overlay on top of the video
+  - Include marker text overlay (from above) in landscape mode
+  - Return to portrait layout when phone rotates back to portrait
+  - Update `iOSAppDelegate` orientation logic: portrait-only for calculator mode, portrait + landscape for video mode
+
+- [x] **iPad video mode layout improvements (TBD)**
+  - Review and optimise iPad portrait and landscape layouts
+  - Specific tweaks to be determined during sprint
+
+### Acceptance Criteria
+
+- [x] Marker text visible on video frame when playback head is on a marker (all platforms)
+- [x] Marker overlay shows correct colour and text
+- [x] iPhone rotates to landscape in video mode, showing full-screen video with glass transport overlay
+- [x] iPhone landscape hides all non-video UI (metadata, calculator, in/out)
+- [x] iPhone remains portrait-only in calculator mode
+- [x] iPad layouts reviewed (specific criteria TBD)
+
+---
+
+## Sprint 25: Performance, Edge Cases & Polish
+
+### Goal
+Seek performance gains across both platforms, handle iOS edge cases (lifecycle, accessibility, app icon).
+
+### Deliverables
 
 - [ ] **Performance profiling on iOS**
   - Memory usage during video playback
@@ -738,14 +771,13 @@ Address iPad video mode layout, seek performance gains across both platforms, an
 
 ### Acceptance Criteria
 
-- [ ] iPad layouts polished and consistent
 - [ ] No performance regressions from portrait redesign
 - [ ] App handles backgrounding gracefully
 - [ ] VoiceOver navigates all controls on iOS
 
 ---
 
-## Sprint 25: App Store Connect & Universal Purchase Setup
+## Sprint 26: App Store Connect & Universal Purchase Setup
 
 ### Goal
 Configure App Store Connect for universal purchase and prepare iOS-specific submission assets.
@@ -809,7 +841,7 @@ Configure App Store Connect for universal purchase and prepare iOS-specific subm
 
 ---
 
-## Sprint 26: iOS TestFlight & Release
+## Sprint 27: iOS TestFlight & Release
 
 ### Goal
 Archive, upload, and distribute the iOS build via TestFlight. Then submit for App Store review.
@@ -875,9 +907,10 @@ Archive, upload, and distribute the iOS build via TestFlight. Then submit for Ap
 | 21 - Liquid Glass (iOS) | ✅ Complete | Interactive glass, GlassEffectContainer | FrameRatePicker, TransportControls, TimecodeDisplayView |
 | 22 - Shortcuts, Menu Bar & iPad | ✅ Complete | ⌘-hold overlay, ⌘C command, video import menu, iOS build fix | TimecoderApp, iOSVideoInspectorView, iOSContentView, Notifications |
 | 23 - iPhone Portrait Redesign | ✅ Complete | Portrait video mode, orientation lock | iOSVideoInspectorView, CalculatorView, TimecodeDisplayView, TransportControls, MarkerEditorSheet, TimecoderApp, iOSContentView |
-| 24 - iPad Layout & Performance | Pending | iPad layouts, perf, edge cases | TBD |
-| 25 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
-| 26 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
+| 24 - Marker Overlay & iPhone Landscape | Pending | Marker overlay, iPhone landscape video, iPad tweaks | iOSVideoInspectorView, VideoInspectorView, CustomVideoPlayerView, iOSAppDelegate |
+| 25 - Performance & Polish | Pending | Perf, edge cases, a11y, app icon | TBD |
+| 26 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
+| 27 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
 
 ---
 
