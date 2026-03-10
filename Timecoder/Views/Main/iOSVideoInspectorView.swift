@@ -710,62 +710,115 @@ struct iOSVideoInspectorView: View {
     private var regularLayout: some View {
         GeometryReader { geometry in
             let isLandscape = geometry.size.width > geometry.size.height
+            let videoWidth = isLandscape ? geometry.size.width * 0.65 : geometry.size.width * 0.55
 
-            if isLandscape {
-                // iPad landscape: side-by-side (65/35 split)
-                HStack(alignment: .top, spacing: 0) {
-                    videoPlayerArea
-                        .frame(width: geometry.size.width * 0.65)
-
-                    Divider()
-
-                    ScrollView {
-                        rightPanel
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            } else {
-                // iPad portrait: stacked like compact mode
-                let totalWidth = geometry.size.width
-
+            HStack(alignment: .top, spacing: 0) {
+                // Left: Video with overlay controls + timeline
                 VStack(spacing: 0) {
-                    videoPlayerArea
-                        .frame(width: totalWidth)
+                    iPadVideoArea
+                        .frame(width: videoWidth)
 
-                    panelPicker
-                        .frame(width: totalWidth)
-
-                    Group {
-                        switch selectedPanel {
-                        case .calculator:
-                            calculatorPanelContent(width: totalWidth)
-                        case .metadata:
-                            metadataPanel
-                        case .markers:
-                            markersPanel
+                    TimelineWithTimecode(
+                        viewModel: playerVM,
+                        markers: markerVM.sortedMarkers,
+                        onMarkerTapped: { marker in
+                            markerVM.openEditor(for: marker)
                         }
-                    }
-                    .frame(width: totalWidth)
-                    .frame(maxHeight: .infinity)
-                    .clipped()
-                    .gesture(
-                        DragGesture(minimumDistance: 30)
-                            .onEnded { value in
-                                if value.translation.width < -30 {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedPanel = selectedPanel.next
-                                    }
-                                } else if value.translation.width > 30 {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        selectedPanel = selectedPanel.previous
-                                    }
-                                }
-                            }
                     )
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                 }
-                .frame(width: totalWidth)
+
+                Divider()
+
+                // Right: Calculator + In/Out + Metadata + Markers
+                ScrollView {
+                    iPadRightPanel
+                }
+                .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    /// iPad video area with overlay transport controls (no inline transport/timeline).
+    @ViewBuilder
+    private var iPadVideoArea: some View {
+        ZStack {
+            Color.black
+                .aspectRatio(videoAspectRatio, contentMode: .fit)
+                .overlay {
+                    if let player = appState.player {
+                        CustomVideoPlayerView(player: player)
+                    } else {
+                        emptyPlayerState
+                    }
+                }
+                .overlay(alignment: .topLeading) {
+                    if let marker = playerVM.activeMarker {
+                        MarkerOverlayView(marker: marker)
+                            .padding(8)
+                    }
+                }
+
+            OverlayTransportControls(
+                viewModel: playerVM,
+                onPreviousMarker: goToPreviousMarker,
+                onAddMarker: addMarkerAtPlayhead,
+                onNextMarker: goToNextMarker,
+                hasPreviousMarker: markerVM.previousMarker(before: playerVM.currentFrames) != nil,
+                hasNextMarker: markerVM.nextMarker(after: playerVM.currentFrames) != nil
+            )
+        }
+    }
+
+    /// Right panel for iPad layout — calculator, in/out, metadata, and markers list.
+    @ViewBuilder
+    private var iPadRightPanel: some View {
+        VStack(spacing: 0) {
+            CalculatorView(viewModel: calculatorVM)
+
+            if let metadata = appState.currentMetadata {
+                Divider().padding(.horizontal, 12)
+
+                InOutPanel(viewModel: playerVM)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+
+                Divider().padding(.horizontal, 12)
+
+                MetadataPanel(metadata: metadata)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+
+            if !markerVM.markers.isEmpty {
+                Divider().padding(.horizontal, 12)
+
+                LazyVStack(spacing: 4) {
+                    ForEach(markerVM.sortedMarkers) { marker in
+                        MarkerRowView(
+                            marker: marker,
+                            frameRate: playerVM.frameRate,
+                            startTimecodeFrames: playerVM.startTimecodeFrames,
+                            isSelected: markerVM.selectedMarker?.id == marker.id,
+                            onTap: {
+                                playerVM.seek(toFrame: marker.timecodeFrames)
+                                markerVM.selectMarker(id: marker.id)
+                            },
+                            onDoubleTap: {
+                                playerVM.seek(toFrame: marker.timecodeFrames)
+                                markerVM.openEditor(for: marker)
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 8)
     }
 
     // MARK: - Video Player Area
