@@ -293,6 +293,9 @@ struct iOSVideoInspectorView: View {
                 selectedPhotoItem = nil
             }
         }
+        .onChange(of: markerVM.markers) { _, _ in
+            playerVM.markers = markerVM.sortedMarkers
+        }
     }
 
     // MARK: - Compact Layout (iPhone)
@@ -510,6 +513,12 @@ struct iOSVideoInspectorView: View {
                     CustomVideoPlayerView(player: player)
                 } else {
                     emptyPlayerState
+                }
+            }
+            .overlay(alignment: .topLeading) {
+                if let marker = playerVM.activeMarker {
+                    MarkerOverlayView(marker: marker)
+                        .padding(8)
                 }
             }
     }
@@ -772,6 +781,12 @@ struct iOSVideoInspectorView: View {
                         emptyPlayerState
                     }
                 }
+                .overlay(alignment: .topLeading) {
+                    if let marker = playerVM.activeMarker {
+                        MarkerOverlayView(marker: marker)
+                            .padding(8)
+                    }
+                }
 
             // Timeline
             TimelineWithTimecode(
@@ -1002,6 +1017,7 @@ struct iOSVideoInspectorView: View {
         }
 
         playerVM.configure(with: player, metadata: metadata)
+        playerVM.markers = markerVM.sortedMarkers
         isConfigured = true
 
         playerVM.onTimecodeChanged = { [weak calculatorVM] timecode in
