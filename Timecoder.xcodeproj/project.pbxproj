@@ -10,6 +10,7 @@
 		2090EA76BBECDA8DF1BE4ADF /* MarkerEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB501894E53BEE99BC9461 /* MarkerEditorSheet.swift */; };
 		25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7CCDAF4342677F1085A400 /* MarkerListView.swift */; };
 		2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 793A032AA16E395D28CF02A1 /* MarkerExporter.swift */; };
+		3E0CD7142F60D3EE008D18AC /* MarkerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0CD7132F60D3EE008D18AC /* MarkerOverlayView.swift */; };
 		3E5C936A2F4D2C0500DBA185 /* PlatformServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */; };
 		3E5C936C2F4D4AB400DBA185 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */; };
 		3E5C936E2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */; };
@@ -46,6 +47,7 @@
 
 /* Begin PBXFileReference section */
 		366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerRowView.swift; sourceTree = "<group>"; };
+		3E0CD7132F60D3EE008D18AC /* MarkerOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkerOverlayView.swift; sourceTree = "<group>"; };
 		3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformServices.swift; sourceTree = "<group>"; };
 		3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
 		3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSVideoInspectorView.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 				FC000012000 /* TransportControls.swift */,
 				FC000013000 /* TimelineView.swift */,
 				FC000015000 /* CustomVideoPlayerView.swift */,
+				3E0CD7132F60D3EE008D18AC /* MarkerOverlayView.swift */,
 			);
 			path = VideoPlayer;
 			sourceTree = "<group>";
@@ -367,6 +370,7 @@
 				25692FE16E7B66922218D212 /* MarkerListView.swift in Sources */,
 				2DBD8BE8D6B3AAE20253D76B /* MarkerExporter.swift in Sources */,
 				9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */,
+				3E0CD7142F60D3EE008D18AC /* MarkerOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
