@@ -727,9 +727,9 @@ Add on-screen marker text overlay during playback (all platforms), implement lan
   - Return to portrait layout when phone rotates back to portrait
   - Update `iOSAppDelegate` orientation logic: portrait-only for calculator mode, portrait + landscape for video mode
 
-- [x] **iPad video mode layout improvements (TBD)**
+- [ ] **iPad video mode layout improvements (DEFERRED)**
   - Review and optimise iPad portrait and landscape layouts
-  - Specific tweaks to be determined during sprint
+  - Deferred to a future sprint — focusing on iPhone + macOS for initial App Store submission
 
 ### Acceptance Criteria
 
@@ -738,7 +738,7 @@ Add on-screen marker text overlay during playback (all platforms), implement lan
 - [x] iPhone rotates to landscape in video mode, showing full-screen video with glass transport overlay
 - [x] iPhone landscape hides all non-video UI (metadata, calculator, in/out)
 - [x] iPhone remains portrait-only in calculator mode
-- [x] iPad layouts reviewed (specific criteria TBD)
+- [ ] iPad layouts reviewed (deferred)
 
 ---
 

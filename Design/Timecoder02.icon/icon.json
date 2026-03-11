@@ -7,8 +7,16 @@
       "blur-material" : null,
       "layers" : [
         {
+          "hidden" : false,
           "image-name" : "1_midground 6.svg",
-          "name" : "1_midground 6"
+          "name" : "1_midground 6",
+          "position" : {
+            "scale" : 1.33,
+            "translation-in-points" : [
+              0.6650000000000205,
+              -16.1171875
+            ]
+          }
         }
       ],
       "shadow" : {
@@ -25,8 +33,16 @@
       "blur-material" : null,
       "layers" : [
         {
+          "hidden" : false,
           "image-name" : "0_background 5.svg",
-          "name" : "0_background 5"
+          "name" : "0_background 5",
+          "position" : {
+            "scale" : 1.44,
+            "translation-in-points" : [
+              -1.1368683772161603e-13,
+              23.301249999999982
+            ]
+          }
         }
       ],
       "lighting" : "individual",

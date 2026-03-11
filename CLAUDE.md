@@ -109,19 +109,24 @@ enum FrameRate {
   - `iOSContentView.swift` — iOS app structure with `horizontalSizeClass`-based adaptive layout
   - `iOSVideoInspectorView.swift` — iOS video inspection (stacked on iPhone, side-by-side on iPad)
 - **ContentView dispatch pattern:** `ContentView.body` uses `#if os(iOS)` / `#if os(macOS)` to dispatch to `iOSBody` or `macOSBody`
-- **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`
+- **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`, `MarkerOverlayView`
 - **iOS sizing:** Uses `GeometryReader` and `aspectRatio` (NOT fixed pixel sizes from `VideoOrientation`)
 - **Configurable shared views:** `KeypadView`, `TimecodeDisplayView`, `CalculatorView` accept optional size params with defaults — macOS uses defaults, iOS containers compute from geometry
 - **`PlatformLayout`** — iOS-only enum in PlatformServices.swift: `keypadButtonSize(forWidth:spacing:)` computes responsive button sizes
 - **`AppState.shared`** — Singleton for `iOSAppDelegate` orientation lock access
-- **`iOSAppDelegate`** — Portrait-locks iPhone for ALL modes (calculator + video)
+- **`iOSAppDelegate`** — Mode-aware orientation: portrait-only for calculator, portrait + landscape for video mode
 - **`TransportControls.isCompact`** — Hides shuttle indicator, reduces spacing on compact layouts
 - **`GlassTransportButton`** — Internal access (not private), used directly by iPhone portrait layout for decomposed transport rows
 - **iPhone portrait video layout** — Decomposed single-screen: video → timeline → 2 transport rows → full-width timecode → HStack(keypad left, metadata+in/out right). No TabView/panelPicker.
 - **`compactPanelWidth`** — Shared constant (160pt) for metadata and in/out panel widths in iPhone portrait
 - **`TimecodeDisplayView.showSecondaryDisplay`** — Bool parameter (default true), set false in iPhone portrait video to hide frames count
 - **iPad orientation detection:** `geometry.size.width > geometry.size.height` (NOT device orientation)
-- **iPhone is portrait-only** — No landscape layout. `iOSAppDelegate` returns `.portrait` for all modes.
+- **iPhone landscape video mode** — In video mode, iPhone allows landscape rotation for fullscreen video with `OverlayTransportControls` (auto-hiding glass overlay). Calculator mode remains portrait-only.
+- **`PlatformOrientation.requestOrientationUpdate()`** — Calls `setNeedsUpdateOfSupportedInterfaceOrientations()` on all root view controllers to notify UIKit of orientation changes when switching modes
+- **`MarkerOverlayView`** — Cross-platform view showing marker text/color on video when playhead is on a marker frame. Driven by `VideoPlayerViewModel.activeMarker`.
+- **`OverlayTransportControls`** — iOS-only auto-hiding glass transport overlay for landscape video. 3s auto-hide timer, tap to show/hide.
+- **⌘C Copy Timecode** — macOS uses ⌘C in `.commands {}`, iOS uses ⌘⇧C to avoid conflict with system Copy command
+- **iPad video mode** — On hold; shipping iPhone + macOS first
 
 ## Marker Export Formats
 
