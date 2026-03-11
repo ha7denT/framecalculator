@@ -428,7 +428,7 @@ final class VideoPlayerViewModel: ObservableObject {
     func updateActiveMarker() {
         let frame = currentFrames
         if let marker = markers.first(where: { $0.timecodeFrames == frame }) {
-            if activeMarker?.id != marker.id {
+            if activeMarker != marker {
                 activeMarker = marker
             }
         } else {
