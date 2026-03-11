@@ -109,6 +109,7 @@ struct iOSContentView: View {
 
                     Spacer(minLength: 8)
                 }
+                .frame(maxWidth: .infinity)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
