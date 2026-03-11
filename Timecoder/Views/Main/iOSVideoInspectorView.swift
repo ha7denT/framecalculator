@@ -116,7 +116,7 @@ struct iOSVideoInspectorView: View {
             )
             .presentationDetents([.height(220)])
             .presentationBackgroundInteraction(.enabled(upThrough: .height(220)))
-            .presentationBackground(.ultraThinMaterial)
+            .presentationBackground(Color.black.opacity(0.3))
             .ignoresSafeArea(.keyboard)
         }
         .onReceive(NotificationCenter.default.publisher(for: .showExportDialog)) { _ in
@@ -662,7 +662,7 @@ struct iOSVideoInspectorView: View {
                     if let marker = playerVM.activeMarker {
                         MarkerOverlayView(marker: marker)
                             .padding(.leading, 8)
-                            .padding(.top, 52)
+                            .padding(.top, 80)
                     }
                 }
 
@@ -684,13 +684,37 @@ struct iOSVideoInspectorView: View {
     private var regularLayout: some View {
         GeometryReader { geometry in
             let isLandscape = geometry.size.width > geometry.size.height
-            let videoWidth = isLandscape ? geometry.size.width * 0.65 : geometry.size.width * 0.55
 
-            HStack(alignment: .top, spacing: 0) {
-                // Left: Video with overlay controls + timeline
+            if isLandscape {
+                // iPad landscape: side-by-side (65/35 split)
+                HStack(alignment: .top, spacing: 0) {
+                    VStack(spacing: 0) {
+                        iPadVideoArea
+                            .frame(width: geometry.size.width * 0.65)
+
+                        TimelineWithTimecode(
+                            viewModel: playerVM,
+                            markers: markerVM.sortedMarkers,
+                            onMarkerTapped: { marker in
+                                markerVM.openEditor(for: marker)
+                            }
+                        )
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                    }
+
+                    Divider()
+
+                    ScrollView {
+                        iPadRightPanel
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            } else {
+                // iPad portrait: video on top, right panel below
                 VStack(spacing: 0) {
                     iPadVideoArea
-                        .frame(width: videoWidth)
+                        .frame(maxWidth: .infinity)
 
                     TimelineWithTimecode(
                         viewModel: playerVM,
@@ -701,15 +725,14 @@ struct iOSVideoInspectorView: View {
                     )
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                }
 
-                Divider()
+                    Divider()
 
-                // Right: Calculator + In/Out + Metadata + Markers
-                ScrollView {
-                    iPadRightPanel
+                    ScrollView {
+                        iPadRightPanel
+                    }
+                    .frame(maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity)
             }
         }
     }
@@ -750,6 +773,7 @@ struct iOSVideoInspectorView: View {
     private var iPadRightPanel: some View {
         VStack(spacing: 0) {
             CalculatorView(viewModel: calculatorVM)
+                .frame(maxWidth: .infinity)
 
             if let metadata = appState.currentMetadata {
                 Divider().padding(.horizontal, 12)
