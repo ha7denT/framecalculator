@@ -267,6 +267,7 @@ struct iOSVideoInspectorView: View {
         }
         .onChange(of: markerVM.markers) { _, _ in
             playerVM.markers = markerVM.sortedMarkers
+            playerVM.updateActiveMarker()
         }
     }
 
@@ -660,7 +661,8 @@ struct iOSVideoInspectorView: View {
                 .overlay(alignment: .topLeading) {
                     if let marker = playerVM.activeMarker {
                         MarkerOverlayView(marker: marker)
-                            .padding(8)
+                            .padding(.leading, 8)
+                            .padding(.top, 52)
                     }
                 }
 

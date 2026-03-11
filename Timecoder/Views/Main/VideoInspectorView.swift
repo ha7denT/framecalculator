@@ -77,6 +77,7 @@ struct VideoInspectorView: View {
         }
         .onChange(of: markerVM.markers) { _, _ in
             playerVM.markers = markerVM.sortedMarkers
+            playerVM.updateActiveMarker()
         }
         #if os(macOS)
         .background(

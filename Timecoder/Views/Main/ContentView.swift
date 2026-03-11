@@ -69,6 +69,9 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openVideoFile)) { _ in
             openVideoFile()
         }
+        .onChange(of: appState.mode) { _, _ in
+            PlatformOrientation.requestOrientationUpdate()
+        }
     }
     #endif
 

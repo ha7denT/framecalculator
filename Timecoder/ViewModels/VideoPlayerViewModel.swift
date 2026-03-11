@@ -424,8 +424,8 @@ final class VideoPlayerViewModel: ObservableObject {
     }
 
     /// Updates the active marker based on the current playhead frame.
-    /// Called automatically from the periodic time observer.
-    private func updateActiveMarker() {
+    /// Called automatically from the periodic time observer and when markers change.
+    func updateActiveMarker() {
         let frame = currentFrames
         if let marker = markers.first(where: { $0.timecodeFrames == frame }) {
             if activeMarker?.id != marker.id {

@@ -41,12 +41,21 @@ struct TimecoderApp: App {
                 .keyboardShortcut("e", modifiers: .command)
             }
 
-            // Edit menu - Copy Timecode
+            // Edit menu - Copy Timecode & Add Marker
             CommandGroup(after: .pasteboard) {
+                #if os(macOS)
                 Button("Copy Timecode") {
                     NotificationCenter.default.post(name: .copyTimecode, object: nil)
                 }
                 .keyboardShortcut("c", modifiers: .command)
+                #else
+                // On iOS, ⌘C conflicts with the system Copy command.
+                // iOS handles ⌘C via .onKeyPress in iOSContentView/iOSVideoInspectorView.
+                Button("Copy Timecode") {
+                    NotificationCenter.default.post(name: .copyTimecode, object: nil)
+                }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                #endif
 
                 Divider()
 

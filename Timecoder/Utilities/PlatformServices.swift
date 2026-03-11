@@ -94,6 +94,23 @@ enum PlatformHaptics {
     }
 }
 
+// MARK: - Platform Orientation
+
+/// Cross-platform orientation update. No-op on macOS.
+enum PlatformOrientation {
+    /// Notifies the system that supported interface orientations have changed.
+    /// Call after changing app mode (calculator ↔ video) so UIKit re-queries the app delegate.
+    @MainActor
+    static func requestOrientationUpdate() {
+        #if os(iOS)
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        for window in scene.windows {
+            window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
+        #endif
+    }
+}
+
 #if os(iOS)
 // MARK: - Platform Layout
 
