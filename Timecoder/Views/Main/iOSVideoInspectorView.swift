@@ -117,6 +117,7 @@ struct iOSVideoInspectorView: View {
             .presentationDetents([.height(220)])
             .presentationBackgroundInteraction(.enabled(upThrough: .height(220)))
             .presentationBackground(Color.black.opacity(0.3))
+            .presentationCompactAdaptation(.sheet)
             .ignoresSafeArea(.keyboard)
         }
         .onReceive(NotificationCenter.default.publisher(for: .showExportDialog)) { _ in
@@ -275,10 +276,16 @@ struct iOSVideoInspectorView: View {
 
     private var compactLayout: some View {
         GeometryReader { geometry in
-            if geometry.size.width > geometry.size.height {
-                compactLandscapeVideoLayout(geometry: geometry)
-            } else {
-                compactPortraitLayout
+            let isLandscapeLayout = geometry.size.width > geometry.size.height
+            Group {
+                if isLandscapeLayout {
+                    compactLandscapeVideoLayout(geometry: geometry)
+                } else {
+                    compactPortraitLayout
+                }
+            }
+            .onChange(of: isLandscapeLayout) { _, _ in
+                playerVM.updateActiveMarker()
             }
         }
     }

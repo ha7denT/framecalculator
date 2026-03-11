@@ -127,6 +127,12 @@ enum FrameRate {
 - **`OverlayTransportControls`** — iOS-only auto-hiding glass transport overlay for landscape video. 3s auto-hide timer, tap to show/hide.
 - **⌘C Copy Timecode** — macOS uses ⌘C in `.commands {}`, iOS uses ⌘⇧C to avoid conflict with system Copy command
 - **iPad video mode** — On hold; shipping iPhone + macOS first
+- **Marker editor landscape** — `.presentationCompactAdaptation(.sheet)` prevents iOS from adapting to full-screen cover in landscape, preserving transparent background
+- **Marker overlay on rotation** — `compactLayout` uses `.onChange(of: isLandscapeLayout)` to call `playerVM.updateActiveMarker()` so overlay persists across orientation changes
+- **App icon** — `Timecoder02.icon` bundle in `Resources/`, referenced by `ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder02` (Apple Icon Composer `.icon` format, NOT solidimagestack)
+- **iOS font paths** — `UIAppFonts` uses root-relative paths (`SpaceMono-Regular.ttf`), NOT `Fonts/` prefix. `ATSApplicationFontsPath = "."` is macOS-only.
+- **Entitlements** — `files.downloads.read-write` required for macOS marker export to Downloads directory
+- **Export error handling** — `ExportDialogView` uses `do/catch` with error alert, NOT `try?`
 
 ## Marker Export Formats
 

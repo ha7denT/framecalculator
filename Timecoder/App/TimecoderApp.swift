@@ -68,7 +68,7 @@ struct TimecoderApp: App {
             // Help menu
             CommandGroup(replacing: .help) {
                 Button("Timecoder Help") {
-                    if let url = URL(string: "https://github.com") {
+                    if let url = URL(string: "https://github.com/ha7denT/framecalculator") {
                         PlatformURL.open(url)
                     }
                 }

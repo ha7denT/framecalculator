@@ -283,9 +283,6 @@ public actor VideoLoader {
             ]
 
             if validTimecodeTypes.contains(mediaSubType) {
-                // For now, we just detect presence of timecode
-                // Reading actual start timecode requires more complex sample reading
-                // which we'll implement in Sprint 4 when we have the video player
                 return (true, nil)
             }
         } catch {

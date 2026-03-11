@@ -7,6 +7,7 @@ import AppKit
 struct ExportDialogView: View {
     @Binding var isPresented: Bool
     @State private var selectedFormat: MarkerExportFormat = .edl
+    @State private var exportError: String?
 
     let markers: [Marker]
     let frameRate: FrameRate
@@ -90,6 +91,16 @@ struct ExportDialogView: View {
         }
         .padding(20)
         .frame(width: 320)
+        .alert("Export Failed", isPresented: .init(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("OK") { exportError = nil }
+        } message: {
+            if let error = exportError {
+                Text(error)
+            }
+        }
     }
 
     /// Default filename for export.
@@ -126,14 +137,20 @@ struct ExportDialogView: View {
 
             // Export
             Task {
-                let exporter = MarkerExporter()
-                try? await exporter.export(
-                    markers: markersToExport,
-                    format: format,
-                    to: url,
-                    frameRate: rate,
-                    sourceFilename: source
-                )
+                do {
+                    let exporter = MarkerExporter()
+                    try await exporter.export(
+                        markers: markersToExport,
+                        format: format,
+                        to: url,
+                        frameRate: rate,
+                        sourceFilename: source
+                    )
+                } catch {
+                    await MainActor.run {
+                        exportError = error.localizedDescription
+                    }
+                }
             }
         }
     }
@@ -150,25 +167,38 @@ struct ExportDialogView: View {
 
         Task {
             let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-            let exporter = MarkerExporter()
-            try? await exporter.export(
-                markers: markersToExport,
-                format: format,
-                to: tempURL,
-                frameRate: rate,
-                sourceFilename: source
-            )
+            do {
+                let exporter = MarkerExporter()
+                try await exporter.export(
+                    markers: markersToExport,
+                    format: format,
+                    to: tempURL,
+                    frameRate: rate,
+                    sourceFilename: source
+                )
+            } catch {
+                await MainActor.run {
+                    exportError = error.localizedDescription
+                }
+                return
+            }
+
+            // Allow SwiftUI sheet dismissal to complete before presenting share sheet
+            try? await Task.sleep(for: .milliseconds(300))
 
             await MainActor.run {
                 guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                       let window = scene.windows.first,
                       let rootVC = window.rootViewController else { return }
+
+                // Ensure no other view controller is being presented
+                let presenter = rootVC.presentedViewController ?? rootVC
                 let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
                 if let popover = activityVC.popoverPresentationController {
                     popover.sourceView = window
                     popover.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
                 }
-                rootVC.present(activityVC, animated: true)
+                presenter.present(activityVC, animated: true)
             }
         }
     }

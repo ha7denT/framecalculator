@@ -456,14 +456,16 @@ final class VideoPlayerViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Observe when playback reaches the end
-        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.isPlaying = false
-                self?.shuttleState = .stopped
-            }
-            .store(in: &cancellables)
+        // Observe when playback reaches the end (scoped to current item)
+        if let currentItem = player.currentItem {
+            NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: currentItem)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.isPlaying = false
+                    self?.shuttleState = .stopped
+                }
+                .store(in: &cancellables)
+        }
     }
 }
 

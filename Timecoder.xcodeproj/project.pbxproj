@@ -15,7 +15,8 @@
 		3E5C936A2F4D2C0500DBA185 /* PlatformServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */; };
 		3E5C936C2F4D4AB400DBA185 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */; };
 		3E5C936E2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */; };
-		3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */; };
+		3ECC3ABB2F0E16F700215607 /* Timecoder02.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3ECC3ABA2F0E16F700215607 /* Timecoder02.icon */; };
+
 		9071E92DF44A8DBF9F8AA53D /* ExportDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A307582FBAD10D0D8C42AA /* ExportDialogView.swift */; };
 		E624ED5661E8D51ED30CF011 /* MarkerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366FD86F50BEC1757683E5A1 /* MarkerRowView.swift */; };
 		F3C60314DAE520505FAA2008 /* Marker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D3365CC63152809B0FE50E /* Marker.swift */; };
@@ -53,7 +54,8 @@
 		3E5C93692F4D2C0500DBA185 /* PlatformServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformServices.swift; sourceTree = "<group>"; };
 		3E5C936B2F4D4AB400DBA185 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
 		3E5C936D2F4D4ADD00DBA185 /* iOSVideoInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSVideoInspectorView.swift; sourceTree = "<group>"; };
-		3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Timecoder01.icon; sourceTree = "<group>"; };
+		3ECC3ABA2F0E16F700215607 /* Timecoder02.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Timecoder02.icon; sourceTree = "<group>"; };
+
 		58D3365CC63152809B0FE50E /* Marker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Marker.swift; sourceTree = "<group>"; };
 		793A032AA16E395D28CF02A1 /* MarkerExporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkerExporter.swift; sourceTree = "<group>"; };
 		A972022BAA1DDEED330268C3 /* TimelineMarkerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineMarkerView.swift; sourceTree = "<group>"; };
@@ -246,7 +248,7 @@
 			isa = PBXGroup;
 			children = (
 				FC000023000 /* Fonts */,
-				3ECC3ABA2F0E16F700215607 /* Timecoder01.icon */,
+				3ECC3ABA2F0E16F700215607 /* Timecoder02.icon */,
 				FC000040000 /* Assets.xcassets */,
 			);
 			path = Resources;
@@ -329,7 +331,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC000020001 /* SpaceMono-Regular.ttf in Resources */,
-				3ECC3ABB2F0E16F700215607 /* Timecoder01.icon in Resources */,
+				3ECC3ABB2F0E16F700215607 /* Timecoder02.icon in Resources */,
 				FC000021001 /* SpaceMono-Bold.ttf in Resources */,
 				FC000030001 /* PrivacyInfo.xcprivacy in Resources */,
 				FC000040001 /* Assets.xcassets in Resources */,
@@ -504,7 +506,7 @@
 		FC000001500 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder01;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder02;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
@@ -540,7 +542,7 @@
 		FC000001600 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder01;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder02;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Timecoder/Timecoder.entitlements;
