@@ -129,7 +129,11 @@ struct iOSContentView: View {
         }
         .focusable()
         .focused($isKeyboardFocused)
-        .onAppear { isKeyboardFocused = true }
+        .onAppear {
+            if horizontalSizeClass == .regular {
+                isKeyboardFocused = true
+            }
+        }
         .onKeyPress(keys: Set("0123456789".map { KeyEquivalent(Character(String($0))) })) { press in
             if let digit = Int(String(press.key.character)) {
                 calculatorVM.enterDigit(digit, fromKeyboard: true)
@@ -216,7 +220,7 @@ struct iOSContentView: View {
 
     private var videoModeView: some View {
         Group {
-            if horizontalSizeClass == .compact {
+            if UIDevice.current.userInterfaceIdiom == .phone {
                 iPhoneVideoLayout
             } else {
                 iPadVideoLayout

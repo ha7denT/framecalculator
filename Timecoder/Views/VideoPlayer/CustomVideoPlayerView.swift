@@ -37,6 +37,10 @@ struct CustomVideoPlayerView: UIViewControllerRepresentable {
         controller.player = player
         controller.showsPlaybackControls = false
         controller.allowsPictureInPicturePlayback = false
+        controller.allowsVideoFrameAnalysis = false
+        controller.videoGravity = .resizeAspect
+        // Ensure proper HDR tone mapping
+        controller.view.backgroundColor = .black
         return controller
     }
 

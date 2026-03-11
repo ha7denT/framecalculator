@@ -742,6 +742,49 @@ Add on-screen marker text overlay during playback (all platforms), implement lan
 
 ---
 
+## App Store Prep: Audit Fixes & iPhone Bug Fixes
+
+### Goal
+Fix all issues found during App Store readiness audit and iPhone device testing.
+
+### Deliverables
+
+- [x] **App Store audit fixes**
+  - Entitlements: added `files.downloads.read-write` for macOS marker export
+  - Export error handling: `do/catch` with error alert (replaced `try?`)
+  - App icon: imported Timecoder02.icon (Apple Icon Composer format)
+  - Font paths: fixed `UIAppFonts` to root-relative (`SpaceMono-Regular.ttf`)
+  - Help URL: pointed to actual GitHub repo
+  - Scoped `AVPlayerItemDidPlayToEndTime` to current item
+
+- [x] **Xcode project modernisation**
+  - Accepted Xcode 26.3 "Perform Changes" migration
+  - Entitlements migrated from plist to build settings (`ENABLE_APP_SANDBOX`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER`, `ENABLE_USER_SELECTED_FILES`)
+  - Added `DEAD_CODE_STRIPPING`, `STRING_CATALOG_GENERATE_SYMBOLS`
+  - `LastUpgradeCheck` updated to 2630
+
+- [x] **iPhone bug fixes**
+  - Keyboard flash on frame rate picker: auto-focus now iPad-only (`horizontalSizeClass == .regular`)
+  - Pro Max landscape layout clipped: changed video mode check from `horizontalSizeClass == .compact` to `UIDevice.current.userInterfaceIdiom == .phone`
+  - Marker editor opaque in landscape: added `.presentationCompactAdaptation(.sheet)`
+  - Marker overlay disappearing on rotation: added `.onChange(of: isLandscapeLayout)` to update active marker
+
+- [x] **HDR video handling**
+  - Added `allowsVideoFrameAnalysis = false`, `videoGravity = .resizeAspect`, black background to iOS `AVPlayerViewController`
+  - Note: iOS Simulator does not support EDR rendering — HDR videos appear blown out. Requires physical device testing.
+
+- [x] **Version bump to 1.1 (build 3)** for dual-platform App Store submission
+
+### Acceptance Criteria
+
+- [x] Both platforms build successfully
+- [x] No keyboard flash on iPhone frame rate picker
+- [x] Pro Max landscape uses correct iPhone layout
+- [x] Marker editor transparent in all orientations
+- [x] Version 1.1 (3) in project settings
+
+---
+
 ## Sprint 25: Performance, Edge Cases & Polish
 
 ### Goal
@@ -907,8 +950,9 @@ Archive, upload, and distribute the iOS build via TestFlight. Then submit for Ap
 | 21 - Liquid Glass (iOS) | ✅ Complete | Interactive glass, GlassEffectContainer | FrameRatePicker, TransportControls, TimecodeDisplayView |
 | 22 - Shortcuts, Menu Bar & iPad | ✅ Complete | ⌘-hold overlay, ⌘C command, video import menu, iOS build fix | TimecoderApp, iOSVideoInspectorView, iOSContentView, Notifications |
 | 23 - iPhone Portrait Redesign | ✅ Complete | Portrait video mode, orientation lock | iOSVideoInspectorView, CalculatorView, TimecodeDisplayView, TransportControls, MarkerEditorSheet, TimecoderApp, iOSContentView |
-| 24 - Marker Overlay & iPhone Landscape | Pending | Marker overlay, iPhone landscape video, iPad tweaks | iOSVideoInspectorView, VideoInspectorView, CustomVideoPlayerView, iOSAppDelegate |
-| 25 - Performance & Polish | Pending | Perf, edge cases, a11y, app icon | TBD |
+| 24 - Marker Overlay & iPhone Landscape | ✅ Complete | Marker overlay, iPhone landscape video, iPad tweaks (deferred) | iOSVideoInspectorView, VideoInspectorView, CustomVideoPlayerView, iOSAppDelegate |
+| App Store Prep | ✅ Complete | Audit fixes, Xcode modernisation, iPhone bug fixes | project.pbxproj, entitlements, iOSContentView, CustomVideoPlayerView |
+| 25 - Performance & Polish | Pending | Perf, edge cases, a11y | TBD |
 | 26 - App Store Connect | Pending | Universal purchase setup | App Store Connect, screenshots |
 | 27 - TestFlight & Release | Pending | Ship it | Archives, TestFlight |
 

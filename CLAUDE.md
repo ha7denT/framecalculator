@@ -106,7 +106,7 @@ enum FrameRate {
 - **iOS file import:** `.fileImporter()` modifier replaces `NSOpenPanel`
 - **iOS marker export:** `UIActivityViewController` replaces `NSSavePanel`
 - **iOS-specific view files:**
-  - `iOSContentView.swift` — iOS app structure with `horizontalSizeClass`-based adaptive layout
+  - `iOSContentView.swift` — iOS app structure with device idiom check for iPhone vs iPad video layout
   - `iOSVideoInspectorView.swift` — iOS video inspection (stacked on iPhone, side-by-side on iPad)
 - **ContentView dispatch pattern:** `ContentView.body` uses `#if os(iOS)` / `#if os(macOS)` to dispatch to `iOSBody` or `macOSBody`
 - **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`, `MarkerOverlayView`
@@ -131,8 +131,11 @@ enum FrameRate {
 - **Marker overlay on rotation** — `compactLayout` uses `.onChange(of: isLandscapeLayout)` to call `playerVM.updateActiveMarker()` so overlay persists across orientation changes
 - **App icon** — `Timecoder02.icon` bundle in `Resources/`, referenced by `ASSETCATALOG_COMPILER_APPICON_NAME = Timecoder02` (Apple Icon Composer `.icon` format, NOT solidimagestack)
 - **iOS font paths** — `UIAppFonts` uses root-relative paths (`SpaceMono-Regular.ttf`), NOT `Fonts/` prefix. `ATSApplicationFontsPath = "."` is macOS-only.
-- **Entitlements** — `files.downloads.read-write` required for macOS marker export to Downloads directory
+- **Entitlements** — Migrated to build settings (`ENABLE_APP_SANDBOX`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER`, `ENABLE_USER_SELECTED_FILES`). `Timecoder.entitlements` file is empty dict.
 - **Export error handling** — `ExportDialogView` uses `do/catch` with error alert, NOT `try?`
+- **iPhone vs iPad video layout** — Use `UIDevice.current.userInterfaceIdiom == .phone` (NOT `horizontalSizeClass == .compact`). Pro Max reports `.regular` in landscape.
+- **iOS auto-focus** — Only auto-focus keyboard on iPad (`horizontalSizeClass == .regular`). iPhone auto-focus triggers unwanted software keyboard.
+- **iOS HDR video** — `AVPlayerViewController` configured with `allowsVideoFrameAnalysis = false`, `.resizeAspect` gravity, black background. iOS Simulator does not support EDR — HDR videos appear blown out (test on physical device).
 
 ## Marker Export Formats
 
@@ -150,9 +153,10 @@ Standard columns: `Timecode In,Timecode Out,Color,Name,Duration`
 
 ## App Sandbox Entitlements
 
-Required for App Store:
-- `com.apple.security.files.user-selected.read-write` — drag/drop video files + save panel for export
-- `com.apple.security.files.downloads.read-write` — marker export
+Required for App Store (now in build settings, NOT entitlements plist):
+- `ENABLE_APP_SANDBOX = YES`
+- `ENABLE_USER_SELECTED_FILES = readwrite` — drag/drop video files + save panel for export
+- `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite` — marker export
 
 ## UI Guidelines
 
@@ -206,3 +210,7 @@ Required for App Store:
 - **`VideoOrientation.videoFrameSize` is macOS-only** — iOS uses `GeometryReader` for responsive sizing. Don't reference these fixed-pixel properties from iOS code
 - **Separate view files over complex `#if` branching** — For fundamentally different layouts (macOS fixed-frame HStack vs iOS adaptive stacked/side-by-side), create separate files (e.g., `iOSVideoInspectorView.swift`) rather than interleaving `#if` blocks in the same view body
 - **iOS security-scoped URLs** — `.fileImporter()` returns security-scoped URLs. Must call `url.startAccessingSecurityScopedResource()` before use and `url.stopAccessingSecurityScopedResource()` after
+- **`horizontalSizeClass` unreliable for iPhone detection** — iPhone Pro Max reports `.regular` in landscape. Use `UIDevice.current.userInterfaceIdiom == .phone` for iPhone vs iPad branching
+- **`.focusable()` auto-focus triggers software keyboard on iPhone** — Only set `isKeyboardFocused = true` on iPad (check `horizontalSizeClass == .regular`). iPhone without hardware keyboard will flash the software keyboard
+- **Entitlements plist vs build settings** — Xcode 26.3+ migrates entitlements to build settings. `Timecoder.entitlements` is now an empty `<dict/>`. Don't add entitlements to the plist; use `ENABLE_APP_SANDBOX`, `ENABLE_USER_SELECTED_FILES`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER` in project.pbxproj
+- **iOS Simulator lacks EDR/HDR support** — HDR videos appear blown out in Simulator. Always verify HDR rendering on physical device
