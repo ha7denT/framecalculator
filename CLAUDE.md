@@ -133,7 +133,7 @@ enum FrameRate {
 - **iOS font paths** — `UIAppFonts` uses root-relative paths (`SpaceMono-Regular.ttf`), NOT `Fonts/` prefix. `ATSApplicationFontsPath = "."` is macOS-only.
 - **Entitlements** — Migrated to build settings (`ENABLE_APP_SANDBOX`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER`, `ENABLE_USER_SELECTED_FILES`). `Timecoder.entitlements` file is empty dict.
 - **Export error handling** — `ExportDialogView` uses `do/catch` with error alert, NOT `try?`
-- **iPhone vs iPad video layout** — Use `UIDevice.current.userInterfaceIdiom == .phone` (NOT `horizontalSizeClass == .compact`). Pro Max reports `.regular` in landscape.
+- **iPhone vs iPad video layout** — Video mode always uses compact (iPhone) layout via `isCompact: true`. iPad video mode is on hold; iPhone-only apps run in compatibility mode on iPad where the regular layout doesn't fit (App Store rejection guideline 4). `UIDevice.current.userInterfaceIdiom` returns `.pad` even in compatibility mode.
 - **iOS auto-focus** — Only auto-focus keyboard on iPad (`horizontalSizeClass == .regular`). iPhone auto-focus triggers unwanted software keyboard.
 - **iOS HDR video** — `AVPlayerViewController` configured with `allowsVideoFrameAnalysis = false`, `.resizeAspect` gravity, black background. iOS Simulator does not support EDR — HDR videos appear blown out (test on physical device).
 
@@ -210,7 +210,7 @@ Required for App Store (now in build settings, NOT entitlements plist):
 - **`VideoOrientation.videoFrameSize` is macOS-only** — iOS uses `GeometryReader` for responsive sizing. Don't reference these fixed-pixel properties from iOS code
 - **Separate view files over complex `#if` branching** — For fundamentally different layouts (macOS fixed-frame HStack vs iOS adaptive stacked/side-by-side), create separate files (e.g., `iOSVideoInspectorView.swift`) rather than interleaving `#if` blocks in the same view body
 - **iOS security-scoped URLs** — `.fileImporter()` returns security-scoped URLs. Must call `url.startAccessingSecurityScopedResource()` before use and `url.stopAccessingSecurityScopedResource()` after
-- **`horizontalSizeClass` unreliable for iPhone detection** — iPhone Pro Max reports `.regular` in landscape. Use `UIDevice.current.userInterfaceIdiom == .phone` for iPhone vs iPad branching
+- **`horizontalSizeClass` unreliable for iPhone detection** — iPhone Pro Max reports `.regular` in landscape. But `userInterfaceIdiom` returns `.pad` on iPad in iPhone compatibility mode. Since iPad video is on hold, video mode always uses compact layout — no device branching needed
 - **`.focusable()` auto-focus triggers software keyboard on iPhone** — Only set `isKeyboardFocused = true` on iPad (check `horizontalSizeClass == .regular`). iPhone without hardware keyboard will flash the software keyboard
 - **Entitlements plist vs build settings** — Xcode 26.3+ migrates entitlements to build settings. `Timecoder.entitlements` is now an empty `<dict/>`. Don't add entitlements to the plist; use `ENABLE_APP_SANDBOX`, `ENABLE_USER_SELECTED_FILES`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER` in project.pbxproj
 - **iOS Simulator lacks EDR/HDR support** — HDR videos appear blown out in Simulator. Always verify HDR rendering on physical device

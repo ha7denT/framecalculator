@@ -218,39 +218,16 @@ struct iOSContentView: View {
 
     // MARK: - Video Mode
 
+    // Always use compact (iPhone) layout — iPad video mode is on hold,
+    // and iPhone-only apps run in compatibility mode on iPad where the
+    // regular layout doesn't fit.
     private var videoModeView: some View {
-        Group {
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                iPhoneVideoLayout
-            } else {
-                iPadVideoLayout
-            }
-        }
-    }
-
-    // MARK: - iPhone Video Layout (Stacked)
-
-    private var iPhoneVideoLayout: some View {
         iOSVideoInspectorView(
             appState: appState,
             calculatorVM: calculatorVM,
             playerVM: playerVM,
             markerVM: markerVM,
             isCompact: true,
-            onSwitchToCalculator: onSwitchToCalculator,
-            onOpenVideoFile: onOpenVideoFile
-        )
-    }
-
-    // MARK: - iPad Video Layout (Side-by-Side)
-
-    private var iPadVideoLayout: some View {
-        iOSVideoInspectorView(
-            appState: appState,
-            calculatorVM: calculatorVM,
-            playerVM: playerVM,
-            markerVM: markerVM,
-            isCompact: false,
             onSwitchToCalculator: onSwitchToCalculator,
             onOpenVideoFile: onOpenVideoFile
         )
