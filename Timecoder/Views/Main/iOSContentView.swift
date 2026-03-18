@@ -96,20 +96,23 @@ struct iOSContentView: View {
                 // Larger font size to fill vertical space
                 let fontSize = min(geometry.size.width * 0.12, 52)
 
-                VStack(spacing: 0) {
-                    Spacer(minLength: 8)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 8)
 
-                    CalculatorView(
-                        viewModel: calculatorVM,
-                        onOpenVideoFile: nil,
-                        keypadButtonSize: buttonSize,
-                        timecodeFontSize: fontSize
-                    )
-                    .frame(maxWidth: 420)
+                        CalculatorView(
+                            viewModel: calculatorVM,
+                            onOpenVideoFile: nil,
+                            keypadButtonSize: buttonSize,
+                            timecodeFontSize: fontSize
+                        )
+                        .frame(maxWidth: 420)
 
-                    Spacer(minLength: 8)
+                        Spacer(minLength: 8)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                .frame(maxWidth: .infinity)
+                .scrollBounceBehavior(.basedOnSize)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

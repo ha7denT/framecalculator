@@ -106,8 +106,8 @@ enum FrameRate {
 - **iOS file import:** `.fileImporter()` modifier replaces `NSOpenPanel`
 - **iOS marker export:** `UIActivityViewController` replaces `NSSavePanel`
 - **iOS-specific view files:**
-  - `iOSContentView.swift` — iOS app structure with device idiom check for iPhone vs iPad video layout
-  - `iOSVideoInspectorView.swift` — iOS video inspection (stacked on iPhone, side-by-side on iPad)
+  - `iOSContentView.swift` — iOS app structure, always uses compact (iPhone) layout
+  - `iOSVideoInspectorView.swift` — iOS video inspection (compact layout only, iPad on hold)
 - **ContentView dispatch pattern:** `ContentView.body` uses `#if os(iOS)` / `#if os(macOS)` to dispatch to `iOSBody` or `macOSBody`
 - **Shared cross-platform views:** `InOutPanel`, `CalculatorView`, `TransportControls`, `TimelineWithTimecode`, `MetadataPanel`, `MarkerEditorPopover`, `MarkerRowView`, `MarkerOverlayView`
 - **iOS sizing:** Uses `GeometryReader` and `aspectRatio` (NOT fixed pixel sizes from `VideoOrientation`)
@@ -214,3 +214,4 @@ Required for App Store (now in build settings, NOT entitlements plist):
 - **`.focusable()` auto-focus triggers software keyboard on iPhone** — Only set `isKeyboardFocused = true` on iPad (check `horizontalSizeClass == .regular`). iPhone without hardware keyboard will flash the software keyboard
 - **Entitlements plist vs build settings** — Xcode 26.3+ migrates entitlements to build settings. `Timecoder.entitlements` is now an empty `<dict/>`. Don't add entitlements to the plist; use `ENABLE_APP_SANDBOX`, `ENABLE_USER_SELECTED_FILES`, `ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER` in project.pbxproj
 - **iOS Simulator lacks EDR/HDR support** — HDR videos appear blown out in Simulator. Always verify HDR rendering on physical device
+- **iPad compatibility mode** — iPhone-only apps (`TARGETED_DEVICE_FAMILY = 1`) still run on iPad in compatibility mode. There is NO App Store Connect toggle to disable this. Both calculator and video portrait layouts use `ScrollView` with `.scrollBounceBehavior(.basedOnSize)` so content is reachable on shorter screens. No bounce on normal iPhones.

@@ -304,81 +304,84 @@ struct iOSVideoInspectorView: View {
             let keypadButtonSize = min(PlatformLayout.keypadButtonSize(forWidth: leftWidth, spacing: 6), 44)
             let timecodeFontSize = min(leftWidth * 0.1, 24)
 
-            VStack(spacing: 0) {
-                // Video player — below notch, respects safe area
-                compactVideoOnlyView
-                    .frame(width: totalWidth)
-                    .frame(maxHeight: maxVideoHeight)
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Video player — below notch, respects safe area
+                    compactVideoOnlyView
+                        .frame(width: totalWidth)
+                        .frame(maxHeight: maxVideoHeight)
 
-                // Timeline
-                TimelineWithTimecode(
-                    viewModel: playerVM,
-                    markers: markerVM.sortedMarkers,
-                    onMarkerTapped: { marker in
-                        markerVM.openEditor(for: marker)
-                    }
-                )
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-
-                // Row 1: Playback controls (step back, shuttle, step forward)
-                compactPlaybackRow
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 4)
-
-                // Row 2: Marker + In/Out controls
-                compactMarkerIORow
-                    .padding(.horizontal, 4)
-                    .padding(.bottom, 8)
-
-                // Side-by-side: Timecode+Keypad (left) + Info (right)
-                HStack(alignment: .top, spacing: 0) {
-                    // Left column: Timecode display + Keypad
-                    VStack(spacing: 4) {
-                        TimecodeDisplayView(
-                            formattedTimecode: calculatorVM.formattedTimecodeString,
-                            frameCount: calculatorVM.currentFrameCount,
-                            displayMode: calculatorVM.entryMode == .frames ? .frames : .timecode,
-                            hasError: false,
-                            isPendingOperation: calculatorVM.hasPendingOperation,
-                            invalidComponents: calculatorVM.invalidComponents,
-                            pendingOperation: calculatorVM.pendingOperation,
-                            primaryFontSize: timecodeFontSize,
-                            showSecondaryDisplay: false
-                        )
-                        .padding(.horizontal, 4)
-
-                        KeypadView(
-                            viewModel: calculatorVM,
-                            buttonSize: keypadButtonSize,
-                            buttonSpacing: 6
-                        )
-                    }
-                    .frame(width: leftWidth)
-
-                    // Right column: FPS picker + compact metadata + In/Out
-                    VStack(alignment: .leading, spacing: 8) {
-                        CompactFrameRatePicker(selection: $calculatorVM.frameRate)
-                            .padding(.top, 4)
-
-                        Divider()
-
-                        if let metadata = appState.currentMetadata {
-                            compactMetadataView(metadata: metadata)
+                    // Timeline
+                    TimelineWithTimecode(
+                        viewModel: playerVM,
+                        markers: markerVM.sortedMarkers,
+                        onMarkerTapped: { marker in
+                            markerVM.openEditor(for: marker)
                         }
-
-                        if appState.currentMetadata != nil {
-                            Divider()
-                            compactInOutView
-                        }
-
-                        Spacer(minLength: 0)
-                    }
+                    )
                     .padding(.horizontal, 8)
-                    .frame(width: rightWidth)
+                    .padding(.vertical, 2)
+
+                    // Row 1: Playback controls (step back, shuttle, step forward)
+                    compactPlaybackRow
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 4)
+
+                    // Row 2: Marker + In/Out controls
+                    compactMarkerIORow
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 8)
+
+                    // Side-by-side: Timecode+Keypad (left) + Info (right)
+                    HStack(alignment: .top, spacing: 0) {
+                        // Left column: Timecode display + Keypad
+                        VStack(spacing: 4) {
+                            TimecodeDisplayView(
+                                formattedTimecode: calculatorVM.formattedTimecodeString,
+                                frameCount: calculatorVM.currentFrameCount,
+                                displayMode: calculatorVM.entryMode == .frames ? .frames : .timecode,
+                                hasError: false,
+                                isPendingOperation: calculatorVM.hasPendingOperation,
+                                invalidComponents: calculatorVM.invalidComponents,
+                                pendingOperation: calculatorVM.pendingOperation,
+                                primaryFontSize: timecodeFontSize,
+                                showSecondaryDisplay: false
+                            )
+                            .padding(.horizontal, 4)
+
+                            KeypadView(
+                                viewModel: calculatorVM,
+                                buttonSize: keypadButtonSize,
+                                buttonSpacing: 6
+                            )
+                        }
+                        .frame(width: leftWidth)
+
+                        // Right column: FPS picker + compact metadata + In/Out
+                        VStack(alignment: .leading, spacing: 8) {
+                            CompactFrameRatePicker(selection: $calculatorVM.frameRate)
+                                .padding(.top, 4)
+
+                            Divider()
+
+                            if let metadata = appState.currentMetadata {
+                                compactMetadataView(metadata: metadata)
+                            }
+
+                            if appState.currentMetadata != nil {
+                                Divider()
+                                compactInOutView
+                            }
+
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 8)
+                        .frame(width: rightWidth)
+                    }
                 }
+                .frame(width: totalWidth)
             }
-            .frame(width: totalWidth)
+            .scrollBounceBehavior(.basedOnSize)
         }
     }
 
